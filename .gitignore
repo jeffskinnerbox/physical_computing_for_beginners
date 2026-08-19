@@ -1,0 +1,17 @@
+# Python / CircuitPython
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor cruft
+.vscode/
+.idea/
+*.swp
+
+# Backup files created by AI-assisted edits
+*.bak
