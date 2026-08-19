@@ -107,7 +107,7 @@ PROJECT_ROOT="$(pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 
 usage() {
-    cat <<USAGE
+  cat <<USAGE
 Usage: ${SCRIPT_NAME} [-n|--dry-run] [-h|--help]
 
   -n, --dry-run   Show prompts and the planned-actions summary, but don't
@@ -116,88 +116,94 @@ Usage: ${SCRIPT_NAME} [-n|--dry-run] [-h|--help]
 USAGE
 }
 
-PARSED_OPTS="$(getopt -o nh --long dry-run,help -n "$SCRIPT_NAME" -- "$@")" \
-    || { usage; exit 1; }
+PARSED_OPTS="$(getopt -o nh --long dry-run,help -n "$SCRIPT_NAME" -- "$@")" ||
+  {
+    usage
+    exit 1
+  }
 eval set -- "$PARSED_OPTS"
 
 DRY_RUN=0
 while true; do
-    case "$1" in
-        -n|--dry-run)
-            DRY_RUN=1
-            shift
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            usage
-            exit 1
-            ;;
-    esac
+  case "$1" in
+  -n | --dry-run)
+    DRY_RUN=1
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  --)
+    shift
+    break
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+  esac
 done
 
 # ----------------------------------------------------------------------------
 # Small helpers
 # ----------------------------------------------------------------------------
-info()  { printf '\n[INFO] %s\n' "$*"; }
-warn()  { printf '\n[WARN] %s\n' "$*"; }
-err()   { printf '\n[ERROR] %s\n' "$*" >&2; }
-abort() { err "$*"; exit 1; }
+info() { printf '\n[INFO] %s\n' "$*"; }
+warn() { printf '\n[WARN] %s\n' "$*"; }
+err() { printf '\n[ERROR] %s\n' "$*" >&2; }
+abort() {
+  err "$*"
+  exit 1
+}
 
 ask() {
-    # ask "Prompt text" "default value" -> echoes answer
-    local prompt="$1"
-    local default="${2:-}"
-    local answer
-    if [[ -n "$default" ]]; then
-        read -r -p "$prompt [$default]: " answer
-        echo "${answer:-$default}"
-    else
-        read -r -p "$prompt: " answer
-        echo "$answer"
-    fi
+  # ask "Prompt text" "default value" -> echoes answer
+  local prompt="$1"
+  local default="${2:-}"
+  local answer
+  if [[ -n "$default" ]]; then
+    read -r -p "$prompt [$default]: " answer
+    echo "${answer:-$default}"
+  else
+    read -r -p "$prompt: " answer
+    echo "$answer"
+  fi
 }
 
 ask_yes_no() {
-    # ask_yes_no "Prompt text" "y|n default" -> returns 0 for yes, 1 for no
-    local prompt="$1"
-    local default="${2:-n}"
-    local answer
-    read -r -p "$prompt [y/n, default: $default]: " answer
-    answer="${answer:-$default}"
-    case "$answer" in
-        y|Y|yes|YES|Yes) return 0 ;;
-        *) return 1 ;;
-    esac
+  # ask_yes_no "Prompt text" "y|n default" -> returns 0 for yes, 1 for no
+  local prompt="$1"
+  local default="${2:-n}"
+  local answer
+  read -r -p "$prompt [y/n, default: $default]: " answer
+  answer="${answer:-$default}"
+  case "$answer" in
+  y | Y | yes | YES | Yes) return 0 ;;
+  *) return 1 ;;
+  esac
 }
 
 # ----------------------------------------------------------------------------
 # 1. Prerequisite checks
 # ----------------------------------------------------------------------------
 command -v git >/dev/null 2>&1 || abort "git is not installed. Install it and re-run."
-command -v gh  >/dev/null 2>&1 || abort "GitHub CLI (gh) is not installed. Install it from https://cli.github.com/ and re-run."
+command -v gh >/dev/null 2>&1 || abort "GitHub CLI (gh) is not installed. Install it from https://cli.github.com/ and re-run."
 
 info "Operating on current directory: $PROJECT_ROOT"
 [[ "$DRY_RUN" -eq 1 ]] && info "DRY RUN MODE: prompts and summary only — nothing will be executed."
 
 GH_AUTHENTICATED=0
 if gh auth status >/dev/null 2>&1; then
-    GH_AUTHENTICATED=1
-    info "gh is already authenticated as: $(gh api user --jq .login 2>/dev/null || echo 'unknown')"
+  GH_AUTHENTICATED=1
+  info "gh is already authenticated as: $(gh api user --jq .login 2>/dev/null || echo 'unknown')"
 else
-    warn "gh is not authenticated."
-    if [[ "$DRY_RUN" -eq 1 ]]; then
-        info "(dry run — skipping 'gh auth login'; treating as not authenticated for this preview)"
-    elif ask_yes_no "Run 'gh auth login' now?" "y"; then
-        gh auth login
-        gh auth status >/dev/null 2>&1 && GH_AUTHENTICATED=1
-    fi
+  warn "gh is not authenticated."
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    info "(dry run — skipping 'gh auth login'; treating as not authenticated for this preview)"
+  elif ask_yes_no "Run 'gh auth login' now?" "y"; then
+    gh auth login
+    gh auth status >/dev/null 2>&1 && GH_AUTHENTICATED=1
+  fi
 fi
 
 # ----------------------------------------------------------------------------
@@ -205,24 +211,24 @@ fi
 # ----------------------------------------------------------------------------
 ALREADY_GIT_REPO=0
 if [[ -d "${PROJECT_ROOT}/.git" ]]; then
-    ALREADY_GIT_REPO=1
-    info "This directory is already a git repository (found .git/)."
+  ALREADY_GIT_REPO=1
+  info "This directory is already a git repository (found .git/)."
 else
-    info "This directory is NOT yet a git repository."
+  info "This directory is NOT yet a git repository."
 fi
 
 EXISTING_REMOTE_URL=""
 if [[ "$ALREADY_GIT_REPO" -eq 1 ]]; then
-    EXISTING_REMOTE_URL="$(git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null || true)"
-    if [[ -n "$EXISTING_REMOTE_URL" ]]; then
-        info "An 'origin' remote is already configured: $EXISTING_REMOTE_URL"
-    fi
+  EXISTING_REMOTE_URL="$(git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null || true)"
+  if [[ -n "$EXISTING_REMOTE_URL" ]]; then
+    info "An 'origin' remote is already configured: $EXISTING_REMOTE_URL"
+  fi
 fi
 
 EXISTING_GITIGNORE=0
 if [[ -f "${PROJECT_ROOT}/.gitignore" ]]; then
-    EXISTING_GITIGNORE=1
-    info "A .gitignore file already exists."
+  EXISTING_GITIGNORE=1
+  info "A .gitignore file already exists."
 fi
 
 # ----------------------------------------------------------------------------
@@ -230,36 +236,36 @@ fi
 # ----------------------------------------------------------------------------
 DO_GIT_INIT=0
 if [[ "$ALREADY_GIT_REPO" -eq 0 ]]; then
-    if ask_yes_no "Initialize a local git repository in the current directory ($PROJECT_ROOT)?" "y"; then
-        DO_GIT_INIT=1
-    fi
+  if ask_yes_no "Initialize a local git repository in the current directory ($PROJECT_ROOT)?" "y"; then
+    DO_GIT_INIT=1
+  fi
 fi
 
 GIT_USER_NAME=""
 GIT_USER_EMAIL=""
 if [[ "$DO_GIT_INIT" -eq 1 ]]; then
-    CURRENT_NAME="$(git config --global user.name 2>/dev/null || true)"
-    CURRENT_EMAIL="$(git config --global user.email 2>/dev/null || true)"
-    GIT_USER_NAME="$(ask "Git user.name for commits" "$CURRENT_NAME")"
-    GIT_USER_EMAIL="$(ask "Git user.email for commits" "$CURRENT_EMAIL")"
+  CURRENT_NAME="$(git config --global user.name 2>/dev/null || true)"
+  CURRENT_EMAIL="$(git config --global user.email 2>/dev/null || true)"
+  GIT_USER_NAME="$(ask "Git user.name for commits" "$CURRENT_NAME")"
+  GIT_USER_EMAIL="$(ask "Git user.email for commits" "$CURRENT_EMAIL")"
 fi
 
 GITIGNORE_ACTION="skip"
 if [[ "$EXISTING_GITIGNORE" -eq 0 ]]; then
-    if ask_yes_no "Create a basic .gitignore (Python/CircuitPython/OS/editor cruft)?" "y"; then
-        GITIGNORE_ACTION="create"
-    fi
+  if ask_yes_no "Create a basic .gitignore (Python/CircuitPython/OS/editor cruft)?" "y"; then
+    GITIGNORE_ACTION="create"
+  fi
 else
-    if ask_yes_no "A .gitignore already exists. Overwrite it?" "n"; then
-        GITIGNORE_ACTION="overwrite"
-    fi
+  if ask_yes_no "A .gitignore already exists. Overwrite it?" "n"; then
+    GITIGNORE_ACTION="overwrite"
+  fi
 fi
 
 DO_INITIAL_COMMIT=0
 COMMIT_MESSAGE=""
 if [[ "$DO_GIT_INIT" -eq 1 ]] || ask_yes_no "Stage and create a commit of current changes?" "y"; then
-    DO_INITIAL_COMMIT=1
-    COMMIT_MESSAGE="$(ask "Commit message" "Initial commit")"
+  DO_INITIAL_COMMIT=1
+  COMMIT_MESSAGE="$(ask "Commit message" "Initial commit")"
 fi
 
 DO_GH_CREATE=0
@@ -269,33 +275,33 @@ REPO_VISIBILITY=""
 DO_PUSH=0
 BRANCH_NAME=""
 if [[ -n "$EXISTING_REMOTE_URL" ]]; then
-    info "'origin' remote already set — skipping GitHub repo creation step."
-    if ask_yes_no "Push current branch to the existing 'origin' remote?" "y"; then
-        DO_PUSH=1
-        BRANCH_NAME="$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "main")"
-    fi
+  info "'origin' remote already set — skipping GitHub repo creation step."
+  if ask_yes_no "Push current branch to the existing 'origin' remote?" "y"; then
+    DO_PUSH=1
+    BRANCH_NAME="$(git -C "$PROJECT_ROOT" branch --show-current 2>/dev/null || echo "main")"
+  fi
 else
-    if [[ "$GH_AUTHENTICATED" -eq 1 ]]; then
-        if ask_yes_no "Create a new GitHub repository via 'gh repo create'?" "y"; then
-            DO_GH_CREATE=1
-            DEFAULT_REPO_NAME="$(basename "$PROJECT_ROOT")"
-            REPO_NAME="$(ask "GitHub repository name" "$DEFAULT_REPO_NAME")"
-            REPO_DESC="$(ask "Repository description" "Physical Computing for Beginners - Makersmiths course materials")"
-            while true; do
-                REPO_VISIBILITY="$(ask "Visibility (public/private)" "public")"
-                case "$REPO_VISIBILITY" in
-                    public|private) break ;;
-                    *) warn "Please enter 'public' or 'private'." ;;
-                esac
-            done
-            if ask_yes_no "Push to the new GitHub repo after creating it?" "y"; then
-                DO_PUSH=1
-                BRANCH_NAME="$(ask "Branch name to push" "main")"
-            fi
-        fi
-    else
-        warn "Skipping GitHub repo creation: gh is not authenticated."
+  if [[ "$GH_AUTHENTICATED" -eq 1 ]]; then
+    if ask_yes_no "Create a new GitHub repository via 'gh repo create'?" "y"; then
+      DO_GH_CREATE=1
+      DEFAULT_REPO_NAME="$(basename "$PROJECT_ROOT")"
+      REPO_NAME="$(ask "GitHub repository name" "$DEFAULT_REPO_NAME")"
+      REPO_DESC="$(ask "Repository description" "Physical Computing for Beginners - Makersmiths course materials")"
+      while true; do
+        REPO_VISIBILITY="$(ask "Visibility (public/private)" "public")"
+        case "$REPO_VISIBILITY" in
+        public | private) break ;;
+        *) warn "Please enter 'public' or 'private'." ;;
+        esac
+      done
+      if ask_yes_no "Push to the new GitHub repo after creating it?" "y"; then
+        DO_PUSH=1
+        BRANCH_NAME="$(ask "Branch name to push" "main")"
+      fi
     fi
+  else
+    warn "Skipping GitHub repo creation: gh is not authenticated."
+  fi
 fi
 
 # ----------------------------------------------------------------------------
@@ -308,104 +314,182 @@ echo "============================================================"
 echo "Current directory:         $PROJECT_ROOT"
 echo "------------------------------------------------------------"
 if [[ "$DO_GIT_INIT" -eq 1 ]]; then
-    echo "git init:                   YES"
-    echo "  user.name (local repo):   ${GIT_USER_NAME:-<unset>}"
-    echo "  user.email (local repo):  ${GIT_USER_EMAIL:-<unset>}"
+  echo "git init:                   YES"
+  echo "  user.name (local repo):   ${GIT_USER_NAME:-<unset>}"
+  echo "  user.email (local repo):  ${GIT_USER_EMAIL:-<unset>}"
 else
-    echo "git init:                   NO (repo already exists or declined)"
+  echo "git init:                   NO (repo already exists or declined)"
 fi
 echo "------------------------------------------------------------"
 case "$GITIGNORE_ACTION" in
-    create)    echo ".gitignore:                 CREATE (new file)" ;;
-    overwrite) echo ".gitignore:                 OVERWRITE (existing file replaced)" ;;
-    skip)      echo ".gitignore:                 no change" ;;
+create) echo ".gitignore:                 CREATE (new file)" ;;
+overwrite) echo ".gitignore:                 OVERWRITE (existing file replaced)" ;;
+skip) echo ".gitignore:                 no change" ;;
 esac
 echo "------------------------------------------------------------"
 if [[ "$DO_INITIAL_COMMIT" -eq 1 ]]; then
-    echo "git add + commit:           YES"
-    echo "  commit message:            \"$COMMIT_MESSAGE\""
+  echo "git add + commit:           YES"
+  echo "  commit message:            \"$COMMIT_MESSAGE\""
 else
-    echo "git add + commit:           NO"
+  echo "git add + commit:           NO"
 fi
 echo "------------------------------------------------------------"
 if [[ "$DO_GH_CREATE" -eq 1 ]]; then
-    echo "gh repo create:              YES"
-    echo "  name:                      $REPO_NAME"
-    echo "  description:               $REPO_DESC"
-    echo "  visibility:                $REPO_VISIBILITY"
+  echo "gh repo create:              YES"
+  echo "  name:                      $REPO_NAME"
+  echo "  description:               $REPO_DESC"
+  echo "  visibility:                $REPO_VISIBILITY"
 elif [[ -n "$EXISTING_REMOTE_URL" ]]; then
-    echo "gh repo create:              NO (origin already set: $EXISTING_REMOTE_URL)"
+  echo "gh repo create:              NO (origin already set: $EXISTING_REMOTE_URL)"
 else
-    echo "gh repo create:              NO"
+  echo "gh repo create:              NO"
 fi
 echo "------------------------------------------------------------"
 if [[ "$DO_PUSH" -eq 1 ]]; then
-    echo "git push:                    YES"
-    echo "  branch:                    $BRANCH_NAME"
+  echo "git push:                    YES"
+  echo "  branch:                    $BRANCH_NAME"
 else
-    echo "git push:                    NO"
+  echo "git push:                    NO"
 fi
 echo "============================================================"
 echo
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
-    info "Dry run complete. No changes made. Re-run without --dry-run to execute."
-    exit 0
+  info "Dry run complete. No changes made. Re-run without --dry-run to execute."
+  exit 0
 fi
 
 if ! ask_yes_no "Proceed with the actions above?" "n"; then
-    info "Aborted. No changes made."
-    exit 0
+  info "Aborted. No changes made."
+  exit 0
 fi
 
 # ----------------------------------------------------------------------------
 # 5. Execute
 # ----------------------------------------------------------------------------
 if [[ "$DO_GIT_INIT" -eq 1 ]]; then
-    info "Running: git init"
-    git -C "$PROJECT_ROOT" init
-    [[ -n "$GIT_USER_NAME" ]]  && git -C "$PROJECT_ROOT" config user.name "$GIT_USER_NAME"
-    [[ -n "$GIT_USER_EMAIL" ]] && git -C "$PROJECT_ROOT" config user.email "$GIT_USER_EMAIL"
+  info "Running: git init"
+  git -C "$PROJECT_ROOT" init
+  [[ -n "$GIT_USER_NAME" ]] && git -C "$PROJECT_ROOT" config user.name "$GIT_USER_NAME"
+  [[ -n "$GIT_USER_EMAIL" ]] && git -C "$PROJECT_ROOT" config user.email "$GIT_USER_EMAIL"
 fi
 
 if [[ "$GITIGNORE_ACTION" != "skip" ]]; then
-    info "Writing .gitignore"
-    cat > "${PROJECT_ROOT}/.gitignore" <<'EOF'
-# Python / CircuitPython
-__pycache__/
-*.pyc
-.venv/
-venv/
+  info "Writing .gitignore"
+  cat >"${PROJECT_ROOT}/.gitignore" <<'EOF'
+# Maintainer:   jeffskinnerbox@yahoo.com / www.jeffskinnerbox.me
+# Version:      1.5.0
+#
+# DESCRIPTION:
+#    This file specifies intentionally untracked files that Git should ignore.
+#
+#    Each line in this .gitignore file specifies a regular expression pattern
+#    that, when matched, the coresponding file will NOT be include in Git processing.
+#
+# DOCUMENTATION:
+#    Some basic rules to help you to set up your .gitignore file correctly:
+#
+#      * Any line that starts with a hash (#) is a comment.
+#      * The \ character escapes special characters.
+#      * The / character means that the rule applies only to files and folders located in the same folder.
+#      * An asterisk (*) means any number of characters (zero or more).
+#      * Two asterisks (**) specify any number of subdirectories.
+#      * A question mark (?) replaces zero or one character.
+#      * An exclamation sign (!) designates the inversion rule
+#        (i.e., it includes any file that was excluded by a previous pattern).
+#      * Blank lines are ignored, so you can use them to add space and make your file easier to read.
+#      * Adding / on the end ignores entire directory paths.
+#
+# SOURCE:
+#   https://git-scm.com/docs/gitignore
 
-# OS cruft
+
+### --------------------------- Project Specific --------------------------- ###
+*.bak
+*.pdf
+expenses/
+communications/registration.md
+
+
+### ------------------------------- General -------------------------------- ###
+
+### Compiler and Linker Files ###
+*.pyc
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.bin
+*.elf
+
+### Packages ###
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+### Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+### Files containing secrets
+secret*
+secrets*
+.secret*
+.secrets*
+
+### Logs & Databases ###
+*.log
+*.sql
+*.sqlite
+*.dblite
+.ipynb_checkpoints
+.ropeproject
+__pycache__
+
+### OS Generated Files ###
+*.out
+*.swp
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
 Thumbs.db
 
-# Editor cruft
-.vscode/
-.idea/
-*.swp
-
-# Backup files created by AI-assisted edits
-*.bak
+### Vagrant files & directory
+*.box
+.vagrant
 EOF
 fi
 
 if [[ "$DO_INITIAL_COMMIT" -eq 1 ]]; then
-    info "Running: git add -A"
-    git -C "$PROJECT_ROOT" add -A
-    info "Running: git commit -m \"$COMMIT_MESSAGE\""
-    git -C "$PROJECT_ROOT" commit -m "$COMMIT_MESSAGE"
+  info "Running: git add -A"
+  git -C "$PROJECT_ROOT" add -A
+  info "Running: git commit -m \"$COMMIT_MESSAGE\""
+  git -C "$PROJECT_ROOT" commit -m "$COMMIT_MESSAGE"
 fi
 
 if [[ "$DO_GH_CREATE" -eq 1 ]]; then
-    info "Running: gh repo create $REPO_NAME --$REPO_VISIBILITY --description \"$REPO_DESC\" --source=. --remote=origin"
-    gh repo create "$REPO_NAME" "--${REPO_VISIBILITY}" --description "$REPO_DESC" --source="$PROJECT_ROOT" --remote=origin
+  info "Running: gh repo create $REPO_NAME --$REPO_VISIBILITY --description \"$REPO_DESC\" --source=. --remote=origin"
+  gh repo create "$REPO_NAME" "--${REPO_VISIBILITY}" --description "$REPO_DESC" --source="$PROJECT_ROOT" --remote=origin
 fi
 
 if [[ "$DO_PUSH" -eq 1 ]]; then
-    info "Running: git push -u origin $BRANCH_NAME"
-    git -C "$PROJECT_ROOT" push -u origin "$BRANCH_NAME"
+  info "Running: git push -u origin $BRANCH_NAME"
+  git -C "$PROJECT_ROOT" push -u origin "$BRANCH_NAME"
 fi
 
 info "Done."
