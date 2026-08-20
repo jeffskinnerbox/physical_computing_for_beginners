@@ -1,0 +1,2 @@
+
+* [5 Easy Ways to Install Python on Windows](https://www.kdnuggets.com/5-easy-ways-to-install-python-on-windows)
