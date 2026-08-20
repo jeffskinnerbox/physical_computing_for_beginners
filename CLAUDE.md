@@ -8,7 +8,7 @@ Course materials for "Physical Computing for Beginners," a Makersmiths hands-on 
 Pre-Class + 6 Classes) teaching middle/high schoolers physical computing with a Raspberry Pi
 Pico 2 W and CircuitPython, building up to an autonomous obstacle-avoiding robot car (the
 "Random Rover"). This is a documentation repo, not a software project — there is no build, no
-app, no test suite. Not a git repository.
+app, no test suite.
 
 ## Source of truth and generation order
 
@@ -44,7 +44,7 @@ Generation pipeline, per `my-vision.md`'s "Course Documentation" table:
 | install instructions | `/teen-install-instructions` | `tech_setup_check/*.md` |
 | theory of operation | `/theory_of_operation` | — |
 | explainer | `/explainer` | — |
-| bill of materials | `/bill_of_materials_generator` | — |
+| bill of materials | `/bill_of_materials_generator` | `lesson_plans/BOM.md` |
 | lesson script | none (ad-hoc — see "My 8th Prompt" in `input/my-prompts.md`) | `lesson_scripts/class-NN-lesson-script.md` |
 
 Lesson scripts are student-facing, detailed build+code walkthroughs (not the instructor-facing
@@ -101,13 +101,17 @@ installed.
 
 ## Skills available in `.claude/skills/`
 
-`bill_of_materials_generator`, `explainer`, `grill-me`, `history_and_application`,
+`bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
 `lesson_plan_generator`, `syllabus_generator`, `teen-install-instructions`, `theory_of_operation`.
 These are the primary tools for generating course content — prefer invoking the matching skill
 over freehand-writing a new syllabus/lesson-plan/install-guide/BOM section from scratch.
 
 ## Other directories
 
-`comminications/` holds course marketing copy and a registration roster containing real students'
-names, emails, phone numbers, and addresses — treat `comminications/registration.md` as sensitive
+`communications/` holds course marketing copy and a registration roster containing real students'
+names, emails, phone numbers, and addresses — treat `communications/registration.md` as sensitive
 PII, not course content; don't quote or propagate it into generated docs or elsewhere.
+
+`expenses/`, `explainers/`, and `handouts/` are new/mostly-empty working directories (as of this
+writing `handouts/` has a draft definitions outline, the other two are empty) — no established
+conventions yet.
