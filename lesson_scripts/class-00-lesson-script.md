@@ -494,15 +494,15 @@ scratch.
 
 Everything above got your dev environment running and proved the chain works with a one-line
 blink. The exercises below are **homework, not required class content** — optional problems that
-push you past "blink an LED" into territory that starts to look like real projects: web servers,
-wireless networking, and introspecting the hardware itself. Each one builds directly on the Pico
-2 W setup you already have; the only new hardware required is the [TFT display][19].
+push you past "blink an LED" into territory that starts to look like real projects: web servers
+and wireless networking. Each one builds directly on the Pico 2 W setup you already have; the only
+new hardware required is the [TFT display][19] and the IR obstacle avoidance sensor.
 
 Do them in any order. For each one you'll find: what the code does and why it's useful, the full
 commented code to save as `code.py` on your CIRCUITPY drive, and a couple of real-world examples
 of where this exact technique shows up outside of a classroom. The only new hardware required
-across all five is the [TFT display][19] (Homework 2) and the IR obstacle avoidance sensor
-(Homework 5) — both used again later in the course.
+across all four is the [TFT display][19] (Homework 3) and the IR obstacle avoidance sensor
+(Homework 4) — both used again later in the course.
 
 ### Homework 1 — Log the Pico 2W's Own Internal Temperature
 
@@ -549,106 +549,7 @@ responsive, not a fixed/fake number.
 * Server rooms and data centers log exactly this kind of self-reported chip temperature across
     thousands of machines to catch a failing cooling system before it causes an outage.
 
-### Homework 2 — Bouncing Shape Animation on the TFT Display
-
-**What this teaches:** *(Requires the [TFT display][19] used later in this course — see the "1.14"
-240x135 Color TFT Display" in the course's bill of materials, Class 6's stretch goal.)* This
-exercise draws a simple shape on the TFT and makes it bounce off the screen's edges, like the
-classic "DVD logo" screensaver. It introduces `displayio` (CircuitPython's graphics framework),
-a coordinate system with an X/Y origin, and the core game-physics idea of updating a position by a
-velocity every frame and reversing that velocity on collision with a boundary.
-
-This uses the same TFT and the same pins (`GP18`-`GP22`) documented for the Class 6 stretch goal,
-so if you've already wired the display for that class, this program will run on it as-is with no
-rewiring.
-
-**Wiring — Pico 2W to ST7789 1.14" 240x135 TFT:**
-
-| Pico 2W Pin | TFT Pin | Signal / Function |
-| ------------- | --------- | -------------------- |
-| `3V3(OUT)` | `VIN` | 3.3V power to the display |
-| `GND` | `GND` | Common ground |
-| `GP18` | `SCK` | SPI clock |
-| `GP19` | `MOSI` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
-| `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
-| `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
-| `GP22` | `RST` | Reset (lets CircuitPython force the display back to a known state on startup) |
-
-> Double-check your specific TFT board's silkscreen labels against this table — some boards
-> label the reset pin `RESET` or `RST`, and the data/command pin `DC` or `A0`, but they're the
-> same signal either way.
-
-```python
-# code.py - bounces a square around the TFT display, DVD-logo style
-import time
-import board
-import busio
-import displayio
-import fourwire
-import vectorio
-from adafruit_st7789 import ST7789   # matches the TFT used later in this course (Class 6)
-
-# --- Wire up and initialize the TFT display over SPI ---
-# Pin assignments match the wiring table above (and the Class 6 stretch-goal wiring).
-displayio.release_displays()  # frees up the display in case code.py has run before
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
-display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
-display = ST7789(display_bus, width=240, height=135, rotation=270)
-
-# --- Build the shape we'll bounce: a small filled square ---
-main_group = displayio.Group()
-display.root_group = main_group
-
-palette = displayio.Palette(1)
-palette[0] = 0x00AAFF  # a bright cyan-blue square
-
-square_size = 20
-square = vectorio.Rectangle(
-    pixel_shader=palette,
-    width=square_size,
-    height=square_size,
-    x=0,
-    y=0,
-)
-main_group.append(square)
-
-# --- Position and velocity, in pixels and pixels-per-frame ---
-x, y = 10, 10
-dx, dy = 2, 2  # positive = moving right/down; flips sign on each bounce
-
-while True:
-    x += dx
-    y += dy
-
-    # Bounce off the left/right edges
-    if x <= 0 or x + square_size >= display.width:
-        dx = -dx
-        x = max(0, min(x, display.width - square_size))  # clamp so it can't slide off-screen
-
-    # Bounce off the top/bottom edges
-    if y <= 0 or y + square_size >= display.height:
-        dy = -dy
-        y = max(0, min(y, display.height - square_size))
-
-    square.x = x
-    square.y = y
-
-    time.sleep(0.02)  # ~50 frames per second — fast enough to look smooth
-```
-
-**Test it:** Save as `code.py` with the TFT wired per Class 6's wiring notes. The square should
-glide around the screen and visibly change direction each time it touches an edge, without ever
-disappearing off the side.
-
-**Real-world examples:**
-
-* This exact bounce-and-reverse-velocity pattern is the starting point for real game physics
-    engines — Pong, Breakout, and any game with objects that ricochet off walls all extend this same
-    idea.
-* Digital signage and kiosk displays use idle "screensaver" animations like this one to avoid
-    burning a static image into the screen during long periods with no user interaction.
-
-### Homework 3 — Turn the Pico 2W into a WiFi Captive Portal Access Point
+### Homework 2 — Turn the Pico 2W into a WiFi Captive Portal Access Point
 
 **What this teaches:** The Pico 2W has a WiFi radio built in (that's what the "W" means), and
 CircuitPython can turn it into its own tiny WiFi network — an **access point** — instead of just
@@ -753,88 +654,106 @@ LED on the board.
     same pattern to let a technician walk up, connect directly, and check status without carrying a
     laptop cable or router.
 
-### Homework 4 — Print the Pico 2W's Pin Map to the Console
+### Homework 3 — Bouncing Shape Animation on the TFT Display
 
-**What this teaches:** Every pin you can wire something to has *four different names* depending on
-what you're looking at: the physical position on the board (silkscreen label), the RP2350 chip's
-internal GPIO number, the CircuitPython `board.` name your Python code actually imports, and the
-special function(s) that pin supports (I2C, SPI, PWM, ADC, etc.). Mixing these up is one of the
-most common beginner wiring mistakes. This program has the board introspect itself and print out
-its own pin map, so instead of memorizing it, you can always ask the board directly.
+**What this teaches:** *(Requires the [TFT display][19] used later in this course — see the "1.14"
+240x135 Color TFT Display" in the course's bill of materials, Class 6's stretch goal.)* This
+exercise draws a simple shape on the TFT and makes it bounce off the screen's edges, like the
+classic "DVD logo" screensaver. It introduces `displayio` (CircuitPython's graphics framework),
+a coordinate system with an X/Y origin, and the core game-physics idea of updating a position by a
+velocity every frame and reversing that velocity on collision with a boundary.
+
+This uses the same TFT and the same pins (`GP18`-`GP22`) documented for the Class 6 stretch goal,
+so if you've already wired the display for that class, this program will run on it as-is with no
+rewiring.
+
+**Wiring — Pico 2W to ST7789 1.14" 240x135 TFT:**
+
+| Pico 2W Pin | TFT Pin | Signal / Function |
+| ------------- | --------- | -------------------- |
+| `3V3(OUT)` | `VIN` | 3.3V power to the display |
+| `GND` | `GND` | Common ground |
+| `GP18` | `SCK` | SPI clock |
+| `GP19` | `MOSI` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
+| `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
+| `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
+| `GP22` | `RST` | Reset (lets CircuitPython force the display back to a known state on startup) |
+
+> Double-check your specific TFT board's silkscreen labels against this table — some boards
+> label the reset pin `RESET` or `RST`, and the data/command pin `DC` or `A0`, but they're the
+> same signal either way.
 
 ```python
-# code.py - prints the Pico 2W's pin mapping to the serial console
+# code.py - bounces a square around the TFT display, DVD-logo style
+import time
 import board
-import microcontroller
+import busio
+import displayio
+import fourwire
+import vectorio
+from adafruit_st7789 import ST7789   # matches the TFT used later in this course (Class 6)
 
-# Official pinout references for the Raspberry Pi Pico 2 W:
-# https://datasheets.raspberrypi.com/pico2/pico-2-w-pinout.pdf
-# https://circuitpython.org/board/raspberry_pi_pico2_w/
-print("=" * 60)
-print("Raspberry Pi Pico 2 W — Pin Map")
-print("See official pinout diagram: https://datasheets.raspberrypi.com/pico2/pico-2-w-pinout.pdf")
-print("=" * 60)
+# --- Wire up and initialize the TFT display over SPI ---
+# Pin assignments match the wiring table above (and the Class 6 stretch-goal wiring).
+displayio.release_displays()  # frees up the display in case code.py has run before
+spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
+display = ST7789(display_bus, width=240, height=135, rotation=270)
 
-# `dir(board)` lists every name CircuitPython's `board` module knows about —
-# this is the same module you `import board` and then write `board.LED`, `board.GP0`, etc.
-board_pins = [name for name in dir(board) if not name.startswith("_")]
+# --- Build the shape we'll bounce: a small filled square ---
+main_group = displayio.Group()
+display.root_group = main_group
 
-for name in sorted(board_pins):
-    pin_obj = getattr(board, name)
+palette = displayio.Palette(1)
+palette[0] = 0x00AAFF  # a bright cyan-blue square
 
-    # Not every name in `board` is an actual physical pin (some are bus objects like I2C/SPI
-    # helpers) — skip anything that isn't a real microcontroller.Pin.
-    if not isinstance(pin_obj, microcontroller.Pin):
-        continue
+square_size = 20
+square = vectorio.Rectangle(
+    pixel_shader=palette,
+    width=square_size,
+    height=square_size,
+    x=0,
+    y=0,
+)
+main_group.append(square)
 
-    # CircuitPython pin objects don't carry a human-readable "function" label on their own,
-    # so we build one from what we know: the GP number tells us which physical/chip pin this
-    # is, and a short lookup table below fills in the special functions for pins that have them.
-    print(f"board.{name:10s} -> {pin_obj}")
+# --- Position and velocity, in pixels and pixels-per-frame ---
+x, y = 10, 10
+dx, dy = 2, 2  # positive = moving right/down; flips sign on each bounce
 
-print("=" * 60)
-print("Pins with special hardware functions on the Pico 2 W:")
-print("=" * 60)
+while True:
+    x += dx
+    y += dy
 
-# A short reference table of notable special-function pins — cross-check the full picture
-# against the official pinout PDF linked above, which also shows physical pin *numbers*
-# (1-40) printed on the board's silkscreen, not just GP names.
-special_functions = {
-    "GP0":  "I2C0 SDA / UART0 TX",
-    "GP1":  "I2C0 SCL / UART0 RX",
-    "GP2":  "SPI0 SCK",
-    "GP3":  "SPI0 TX (MOSI)",
-    "GP4":  "SPI0 RX (MISO)",
-    "GP5":  "SPI0 CSn",
-    "GP26": "ADC0 (analog input)",
-    "GP27": "ADC1 (analog input)",
-    "GP28": "ADC2 (analog input)",
-    "LED":  "Onboard LED (routed through the wireless chip on Pico W boards, not a plain GPIO)",
-}
+    # Bounce off the left/right edges
+    if x <= 0 or x + square_size >= display.width:
+        dx = -dx
+        x = max(0, min(x, display.width - square_size))  # clamp so it can't slide off-screen
 
-for pin_name, function in special_functions.items():
-    print(f"{pin_name:6s} : {function}")
+    # Bounce off the top/bottom edges
+    if y <= 0 or y + square_size >= display.height:
+        dy = -dy
+        y = max(0, min(y, display.height - square_size))
 
-print("Done. For the full official mapping (including physical pin numbers), see:")
-print("https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html")
-print("https://pip-assets.raspberrypi.com/categories/1088-raspberry-pi-pico-2-w/documents/RP-008305-DS-1-pico-2-w-pinout.pdf")
+    square.x = x
+    square.y = y
+
+    time.sleep(0.02)  # ~50 frames per second — fast enough to look smooth
 ```
 
-**Test it:** Save as `code.py`, then open the Serial console (Mu) or Shell pane (Thonny) and press
-`Ctrl+D` to soft-reboot and rerun it. You should see every `board.GP*` name printed along with its
-underlying pin, followed by the special-function table.
+**Test it:** Save as `code.py` with the TFT wired per Class 6's wiring notes. The square should
+glide around the screen and visibly change direction each time it touches an edge, without ever
+disappearing off the side.
 
 **Real-world examples:**
 
-* Any time you pick up someone else's project code and it says `import board` then
-    `board.GP1` — this script is how you'd confirm, on your *own* board, whether `GP1` is
-    actually the I2C clock line before you go wire a sensor to it.
-* Professional embedded engineers do this same kind of self-check ("pin introspection") when
-    debugging a new board revision, to catch cases where a pin's silkscreen label, chip datasheet
-    name, and framework name have drifted out of sync — exactly the confusion this exercise
-    prevents.
+* This exact bounce-and-reverse-velocity pattern is the starting point for real game physics
+    engines — Pong, Breakout, and any game with objects that ricochet off walls all extend this same
+    idea.
+* Digital signage and kiosk displays use idle "screensaver" animations like this one to avoid
+    burning a static image into the screen during long periods with no user interaction.
 
-### Homework 5 — Test the IR Obstacle Avoidance Sensor
+### Homework 4 — Test the IR Obstacle Avoidance Sensor
 
 **What this teaches:** *(Requires the IR Obstacle Avoidance Sensor from the course's bill of
 materials — the same one you'll mount on the front of your Random Rover in Class 5.)* This is the
