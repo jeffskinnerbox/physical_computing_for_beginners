@@ -839,7 +839,7 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
   * [The CIRCUITPY Drive][04] — what the `CIRCUITPY` drive is and how it behaves
   * [The REPL][11] — using the interactive REPL prompt
   * [flash_nuke.uf2 — erase the Pico's flash memory][18] — used to remove flash memory entirely
-  * Mu / Thonny Editor
+* Mu / Thonny Editor
   * [codewith.mu — Mu Editor download][08] — where the Mu installer comes from
   * [Installing the Mu Editor][01] — step-by-step Mu install guide
   * [Creating and Editing Code][07] — saving and editing `code.py`
