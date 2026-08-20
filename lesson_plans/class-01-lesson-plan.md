@@ -43,9 +43,7 @@ control in Class 6's stretch goal).
   stick as backup. (~10 min)
 * **Day of, before students arrive:**
   * Set out one pushbutton switch, one KY-040 rotary encoder, two LEDs, two current-limiting
-    resistors, and a breadboard at each workstation. **[VERIFY]** — LEDs and resistors are not
-    currently itemized in the course Bill of Materials; confirm sourcing/quantity before Class 1
-    (see Materials & Components below).
+    resistors, and a breadboard at each workstation (see Materials & Components below).
   * Pre-build one reference circuit (button + encoder + 2 LEDs) at the instructor bench and test
     both `class-1-code-1.py` (no debounce) and `class-1-code-2.py` (debounced) end-to-end.
     (~20 min)
@@ -66,8 +64,8 @@ quantities, and sourcing.
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
 | Tactile Push Button Switch | Digital input; source of switch-bounce demonstration |
 | KY-040 Rotary Encoder Module | Rotational input; source of encoder-bounce demonstration |
-| 2x LED **[VERIFY — not in current BOM]** | Visual output: one for the button, one (PWM) for the encoder |
-| 2x current-limiting resistor (e.g. 220-330 ohm) **[VERIFY — not in current BOM]** | Protects the LEDs from the Pico's GPIO pins |
+| 2x LED | Visual output: one for the button, one (PWM) for the encoder |
+| 2x current-limiting resistor (e.g. 220-330 ohm) | Protects the LEDs from the Pico's GPIO pins |
 | Breadboard (830-point) | Circuit assembly surface |
 | Dupont jumper wires (shared) | Point-to-point wiring |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |

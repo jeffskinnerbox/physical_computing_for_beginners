@@ -20,10 +20,14 @@ servo-mounted ultrasonic sensor with Class 3's DRV8833 motor driver into a singl
 program: the car drives forward at a constant speed, periodically stops to sweep the sensor across a
 set of angles looking for the clearest direction, and steers toward whichever angle had the most
 open space — with an interrupt path that stops and rescans immediately if anything gets too close
-while driving, instead of waiting for the next scheduled scan. No new wiring happens today; this
-Class is entirely about writing the decision logic that ties Class 2's "eyes" to Class 3's "legs."
-By the end of the Class, students will have a car that drives around the room on its own and avoids
-at least one obstacle without instructor intervention — the course's central milestone.
+while driving, instead of waiting for the next scheduled scan. The Class 2 and Class 3 circuits are
+reconnected exactly as left wired, with no changes; the only new wiring today is two fixed safety
+sensors — a limit switch and an IR obstacle sensor — that back up the ultrasonic sweep with an
+immediate stop-and-reverse override, independent of the scan-and-turn logic. This Class is entirely
+about writing the decision logic that ties Class 2's "eyes" to Class 3's "legs," with those two new
+sensors as a last line of defense. By the end of the Class, students will have a car that drives
+around the room on its own and avoids at least one obstacle without instructor intervention — the
+course's central milestone.
 
 ## 2. Learning Goals
 
@@ -37,6 +41,8 @@ at least one obstacle without instructor intervention — the course's central m
   bad direction, and discuss why
 * Propose a way to measure whether the collision-avoidance behavior is actually working, beyond
   eyeballing it
+* Wire a limit switch and an IR obstacle sensor as fixed safety inputs, and use them to trigger an
+  immediate stop-and-reverse that overrides the normal scan-and-turn logic
 
 ## 3. Preparation Checklist
 
@@ -50,10 +56,11 @@ at least one obstacle without instructor intervention — the course's central m
 * Clear a large open floor area (or several smaller zones) for autonomous driving tests, with a
         few soft obstacles (cardboard boxes, foam blocks — nothing that will damage a car or a wall
         on contact) placed at varying distances.
-* Pre-build one reference rover (sensor+servo+motor driver combined) at the instructor bench and
-        test `class-5-code.py` end-to-end, tuning `DRIVE_SPEED`, `SCAN_ANGLES`, and
-        `STOP_DISTANCE_CM` so you know what a realistic first run looks like and can spot obviously
-        wrong behavior quickly during Guided Practice. (~30 min)
+* Pre-build one reference rover (sensor+servo+motor driver, plus the new bump switch and IR
+        sensor) at the instructor bench and test `class-5-code.py` end-to-end, tuning
+        `DRIVE_SPEED`, `SCAN_ANGLES`, `STOP_DISTANCE_CM`, and the IR sensor's sensitivity trimmer
+        so you know what a realistic first run looks like and can spot obviously wrong behavior
+        quickly during Guided Practice. (~30 min)
 * Project the instructor's serial console output so the whole class can see scan readings, chosen
         headings, and drive state stream by during the reference run. (~5 min)
 * Have a few spare 9V batteries charged and ready — today's Class runs motors continuously for
@@ -73,6 +80,8 @@ quantities, and sourcing.
 | HC-SR04 Ultrasonic Distance Sensor (from Class 2) | Measures distance at each scan angle |
 | SG90 Micro Servo Motor (from Class 2) | Sweeps the sensor across `SCAN_ANGLES` |
 | DRV8833 Dual H-Bridge DC/Stepper Motor Driver Breakout Board (from Class 3) | Drives the car forward and executes steering turns |
+| Micro Limit Switch | Physical bumper on the chassis front — last-resort stop-and-reverse override on contact |
+| IR Obstacle Avoidance Sensor | Fixed forward-facing near-field detector — stop-and-reverse override between ultrasonic scans |
 | Emo Smart Robot Car Chassis Kit | The completed (or near-complete) car chassis and wheels |
 | 9V battery clip and 9V battery | Motor power, independent of the Pico's logic power |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — no rewiring needed this Class |
@@ -90,9 +99,10 @@ and the Class 3 motor forward/reverse/stop test both still work independently. A
 recap, in one sentence each, what Class 2's sensor sweep showed them and what Class 3's "what's
 missing?" discussion concluded.
 
-**What to say:** "Today you're not wiring anything new — everything you need is already on your
-breadboard from Class 2 and Class 3. Today's work is entirely about writing the decision-making that
-connects your car's eyes to its legs."
+**What to say:** "Most of what you need is already on your breadboard from Class 2 and Class 3 —
+today's work is mostly about writing the decision-making that connects your car's eyes to its legs.
+The one new thing today is two small safety sensors, a bump switch and an IR sensor, that give your
+car a last-resort 'stop no matter what' reflex."
 
 **What to watch for:** Any regressions in the Class 2 or Class 3 circuits specifically (loose sensor
 mount, weak battery) — fix quickly, since today's build depends on both working correctly at the
@@ -173,9 +183,9 @@ fixed sensors at different angles — trading mechanical simplicity for more par
 
 Instructor builds along on the projector; students wire up and test in parallel.
 
-**Wiring — no new wiring this Class.** Class 2's sensor+servo circuit (`GP6`-`GP8`) and Class 3's
-motor driver circuit (`GP9`-`GP12`) are reconnected exactly as they were left wired. Class 1's
-button/encoder circuit and Class 4's IMU circuit are not used and can stay in place or be set aside.
+**Wiring — Class 2 and Class 3 circuits are reconnect-only, no changes.** The only *new* wiring this
+Class is the limit switch and IR sensor. Class 1's button/encoder circuit and Class 4's IMU circuit
+are not used and can stay in place or be set aside.
 
 | Component | Pico 2 W Pin | From Class |
 | :---------- | :------------- | :----------- |
@@ -184,6 +194,12 @@ button/encoder circuit and Class 4's IMU circuit are not used and can stay in pl
 | SG90 servo signal | `GP8` | Class 2 |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` | Class 3 |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` | Class 3 |
+| Limit switch (common + normally-open, to `GND`) | `GP5` (internal pull-up) | New this Class |
+| IR obstacle sensor `OUT` | `GP13` | New this Class |
+
+Mount the limit switch as a physical bumper on the chassis front (lever arm facing forward, so any
+contact presses it), and the IR sensor fixed and forward-facing, low on the chassis, aimed at
+ground-level obstacles the ultrasonic sweep might miss between scans.
 
 **Checkpoint 1:** Before writing any code, have every pair power up and re-verify both circuits
 independently still work (sensor sweep, motor forward/reverse) exactly as they did at the end of
@@ -199,6 +215,7 @@ Load `class-5-code.py` (save as `code.py`). Combines Class 2's servo-swept HC-SR
 # Random Rover: drives forward, rescans on a timer or on proximity, steers toward clearest heading.
 import time
 import board
+import digitalio
 import pwmio
 import adafruit_hcsr04
 from adafruit_motor import servo
@@ -207,6 +224,13 @@ import motor_driver  # from Class 3, must already be on CIRCUITPY
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
 scan_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)  # [VERIFY] -- recalibrate per servo
+
+bump_switch = digitalio.DigitalInOut(board.GP5)
+bump_switch.direction = digitalio.Direction.INPUT
+bump_switch.pull = digitalio.Pull.UP  # switch pulls the pin LOW when pressed
+
+ir_sensor = digitalio.DigitalInOut(board.GP13)
+ir_sensor.direction = digitalio.Direction.INPUT  # module drives its own LOW-on-detect output
 
 DRIVE_SPEED = 0.4               # [VERIFY] -- calibrate per robot, lower than Class 3's test speed
 SCAN_ANGLES = [30, 60, 90, 120, 150]  # degrees, left to right
@@ -255,6 +279,17 @@ def turn_toward(angle):
     motor_driver.stop()
 
 
+def safety_override_triggered():
+    """Check the fixed bump switch and IR sensor -- either one true means stop NOW."""
+    if not bump_switch.value:  # pulled LOW when pressed
+        print("SAFETY: bump switch contact")
+        return True
+    if not ir_sensor.value:  # module drives LOW when it sees an obstacle
+        print("SAFETY: IR sensor near-field obstacle")
+        return True
+    return False
+
+
 print("Class 5 -- Random Rover starting...")
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
@@ -265,6 +300,14 @@ while True:
 
     close_call = False
     while True:
+        if safety_override_triggered():
+            motor_driver.stop()
+            print("drive: emergency stop-and-reverse (safety override)")
+            motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
+            time.sleep(0.3)  # [VERIFY] -- back off far enough to clear the trigger
+            motor_driver.stop()
+            close_call = True
+            break
         distance = read_distance()
         if distance is not None and distance < STOP_DISTANCE_CM:
             print("drive: obstacle close, distance_cm", distance)
@@ -329,8 +372,9 @@ together. Next Class isn't about new concepts — it's about finishing and tunin
 for anyone who wants to go further, there are stretch goals that bring back your Class 1 encoder and
 Class 4 IMU."
 
-**Preview next Class:** Class 6 needs no new wiring for its core work — it's tuning today's rover.
-The optional stretch goals reconnect Class 1's encoder (`GP3`/`GP4`) and Class 4's IMU (`GP0`/`GP1`)
+**Preview next Class:** Class 6 needs no new wiring for its core work — it's tuning today's rover,
+including today's bump switch (`GP5`) and IR sensor (`GP13`), both carried forward unchanged. The
+optional stretch goals reconnect Class 1's encoder (`GP3`/`GP4`) and Class 4's IMU (`GP0`/`GP1`)
 exactly as already wired, alongside today's rover circuit; a TFT display stretch goal is the only new
 wiring, on pins not used anywhere else in the course. Point students to the Class 6 references in the
 syllabus if they want to read ahead.
@@ -347,6 +391,9 @@ syllabus if they want to read ahead.
 | Rover's turns overshoot or undershoot the intended heading | `TURN_SECONDS_PER_DEGREE` not recalibrated from Class 3's actual measured turn time | Recalculate from a fresh measured 90-degree turn, same method as Class 3 |
 | Console floods with `distance_cm: reading error` during a scan | Servo moved before the sensor settled, or sensor aimed at an out-of-range surface | Increase `SETTLE_TIME`; re-aim the test area to stay within the sensor's usable range |
 | Rover works on the bench but behaves erratically on the floor | Wheels slipping on the test surface, or floor surface interfering with the ultrasonic beam (e.g. thick carpet edges) | Test on a harder, flatter surface; treat as a real-world limitation to discuss, not just a bug |
+| Bump switch never triggers even on a hard hit | Lever arm not mounted low/forward enough to actually contact obstacles, or `GP5` wiring loose | Reposition the switch so the lever leads the chassis edge; re-verify wiring with a multimeter continuity check |
+| Rover constantly emergency-stops with nothing nearby | IR sensor's onboard sensitivity potentiometer set too high, or aimed at a reflective floor | Turn the sensor's sensitivity trimmer down; re-aim slightly upward off the floor |
+| Rover reverses into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
 
 ## 7. Age Differentiation Notes
 
@@ -397,6 +444,9 @@ in their build journal; Class 6 is explicitly built around continuing to tune th
 * Keep `class-5-code.py` and a reminder that `motor_driver.py` (from Class 3) must still be present
   on a shared drive/USB stick, since a student who reformatted or cleaned their CIRCUITPY drive
   between Classes will otherwise get a confusing `ImportError` with no obvious cause.
+* Test the bump switch and IR sensor mounts on the reference rover before students arrive — a
+  loosely-taped sensor or a switch lever that doesn't lead the chassis edge will silently never
+  trigger, and that failure mode is easy to miss until a student's rover actually hits something.
 
 ## 10. Resources & References
 

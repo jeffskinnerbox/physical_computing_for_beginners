@@ -394,7 +394,9 @@ wireless networking, and introspecting the hardware itself. Each one builds dire
 
 Do them in any order. For each one you'll find: what the code does and why it's useful, the full
 commented code to save as `code.py` on your CIRCUITPY drive, and a couple of real-world examples
-of where this exact technique shows up outside of a classroom.
+of where this exact technique shows up outside of a classroom. The only new hardware required
+across all five is the [TFT display][19] (Homework 2) and the IR obstacle avoidance sensor
+(Homework 5) — both used again later in the course.
 
 ### Homework 1 — Log the Pico 2W's Own Internal Temperature
 
@@ -724,6 +726,73 @@ underlying pin, followed by the special-function table.
     debugging a new board revision, to catch cases where a pin's silkscreen label, chip datasheet
     name, and framework name have drifted out of sync — exactly the confusion this exercise
     prevents.
+
+### Homework 5 — Test the IR Obstacle Avoidance Sensor
+
+**What this teaches:** *(Requires the IR Obstacle Avoidance Sensor from the course's bill of
+materials — the same one you'll mount on the front of your Random Rover in Class 5.)* This is the
+simplest possible test of a **digital sensor**: unlike the analog temperature reading in Homework
+1, this module does its own thresholding onboard and just hands you a clean HIGH or LOW on its
+`OUT` pin — HIGH when nothing's in range, LOW the instant it sees something within its detection
+distance. Reading it is a single `digitalio` input, the same pattern you'll reuse for the button in
+Class 1 and for this exact sensor again in Class 5, just wired to a different pin.
+
+**Wiring — Pico 2W to IR Obstacle Avoidance Sensor:**
+
+| Pico 2W Pin | Sensor Pin | Signal / Function |
+| ------------- | ------------- | -------------------- |
+| `3V3(OUT)` or `VBUS` | `VCC` | Power (most of these modules accept 3.3-5V) |
+| `GND` | `GND` | Common ground |
+| `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
+
+> Most of these modules have a small onboard potentiometer that adjusts detection distance. Start
+> with it turned most of the way counter-clockwise (shorter range) so you can test at arm's length
+> without the sensor triggering on the far side of the room.
+
+```python
+# code.py - reads the IR obstacle avoidance sensor and blinks the onboard
+# LED when something is detected within range
+import time
+import board
+import digitalio
+
+# The sensor drives its OUT pin LOW when it sees an obstacle, so this is a
+# plain digital input -- no pull-up needed, the module drives both states.
+ir_sensor = digitalio.DigitalInOut(board.GP13)
+ir_sensor.direction = digitalio.Direction.INPUT
+
+led = digitalio.DigitalInOut(board.LED)
+led.direction = digitalio.Direction.OUTPUT
+
+print("Watching the IR obstacle sensor. Press Ctrl+C to stop.")
+
+reading_count = 0
+while True:
+    obstacle_detected = not ir_sensor.value  # LOW means "something's there"
+    led.value = obstacle_detected            # mirror the sensor state onto the LED
+    reading_count += 1
+
+    status = "OBSTACLE DETECTED" if obstacle_detected else "clear"
+    print(f"Reading #{reading_count}: {status}")
+
+    time.sleep(0.2)
+```
+
+**Test it:** Save as `code.py`, open the Serial console (Mu) or Shell pane (Thonny), and watch it
+print `clear` repeatedly. Slowly move your hand toward the sensor from about arm's length away —
+at some distance it should switch to `OBSTACLE DETECTED` and the onboard LED should turn on, then
+switch back to `clear` and the LED off when you pull your hand away. If it never triggers, or
+triggers constantly with nothing nearby, adjust the sensitivity potentiometer and try again.
+
+**Real-world examples:**
+
+* Automatic paper towel dispensers, touchless soap dispensers, and hand dryers all use this exact
+    kind of digital IR proximity sensor to detect "something is here" without needing a precise
+    distance measurement.
+* Robot vacuums use similar IR sensors, often several at once around their edge, as a cheap
+    always-on backup to their primary distance/mapping sensors — the same redundancy idea your
+    Random Rover will use in Class 5, pairing this sensor with the ultrasonic sensor and a physical
+    bump switch.
 
 ## References
 

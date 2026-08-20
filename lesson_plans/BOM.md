@@ -14,7 +14,7 @@ budget picture, with no need to cross-reference the syllabus or lesson plans.
 builds a rover alongside the students, so all per-person hardware quantities below include the
 instructor. All math is shown so the numbers can be recalculated for a different class size.
 
-**Grand Total: $783.97 for the course (~$87.11 per person, 9 people)** — see the Cost Summary below
+**Grand Total: $736.69 for the course (~$81.85 per person, 9 people)** — see the Cost Summary below
 for the full breakdown.
 
 Adafruit prices in this document were confirmed against the live product pages. Amazon-sourced
@@ -37,11 +37,9 @@ the Cost Summary below.
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
-| JST PH 2mm 4-Pin to Male Header Cable - I2C STEMMA Cable - 200mm | 2 | $1.50 | [Adafruit][14] | I2C wiring, Class 4 onward |
-| JST PH 2mm 4-Pin to Female Socket Cable - I2C STEMMA Cable - 200mm | 2 | $1.50 | [Adafruit][15] | I2C wiring, Class 4 onward |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
 | IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
-| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 3 | $0.95 | [Adafruit][07] | I2C connections for the LSM9DS1 (Class 4 onward) |
+| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + wheels; assembled across Classes 1-2, driven starting Class 3 |
 | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.30 | [Amazon][03] | sold in 10-pack ($12.99); Class 2 sensor, reused Class 5-6 |
@@ -53,12 +51,12 @@ the Cost Summary below.
 | 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); onboard 5V power |
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
-| Micro Limit Switch | 1 | $0.35 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch |
-| IR Obstacle Avoidance Sensor | 1 | $0.35 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V, for smart car robot and line tracking projects |
+| Micro Limit Switch | 1 | $0.35 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch; Class 5 rover bump sensor, reused Class 6 |
+| IR Obstacle Avoidance Sensor | 1 | $0.35 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
 
-Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 3×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 2×1.50 + 2×1.50 + 1.50 + 0 + 0 + 1.00 ≈ **$83.55 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
+Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.35 + 0.35 ≈ **$74.41 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
 
 ### Per-Student Optional
 
@@ -82,7 +80,7 @@ Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per
 
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
-| Adafruit Shipping | NA | $10.00 [estimated] | NA | flat estimate for the combined Adafruit order (Pico, DRV8833, LSM9DS1, STEMMA/JST cables, TFT) — confirm actual rate/free-shipping threshold before ordering |
+| Adafruit Shipping | NA | $10.00 [estimated] | NA | flat estimate for the combined Adafruit order (Pico, DRV8833, LSM9DS1, STEMMA cables, TFT) — confirm actual rate/free-shipping threshold before ordering |
 | Amazon Shipping | NA | $0.00 [estimated] | NA | assumes Amazon Prime free shipping on all Amazon-sourced items |
 
 Shipping Cost = 10.00 + 0.00 = $10.00 total (assumption — verify both vendors' actual shipping before purchasing)
@@ -93,17 +91,17 @@ Exact totals from whole-pack/whole-unit purchasing (9 people: 8 students + instr
 
 ```text
 Per-Student Required (bulk-purchase total) = $72.00 (Pico) + $125.91 (chassis) + $12.99 (HC-SR04 10-pack)
-    + $19.99 (SG90 10-pack) + $53.55 (DRV8833 ×9) + $179.55 (LSM9DS1 ×9) + $25.65 (STEMMA cable ×27)
+    + $19.99 (SG90 10-pack) + $53.55 (DRV8833 ×9) + $179.55 (LSM9DS1 ×9) + $17.10 (STEMMA cable ×18)
     + $25.98 (KY-040, 2× 8-packs) + $89.55 (TFT ×9) + $9.99 (button 500-pack) + $26.97 (breadboard, 3× 3-packs)
-    + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs) + $27.00 (JST male ×18)
-    + $27.00 (JST female ×18) + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
-    + $9.00 (USB backup cable ×9)
-    = $751.99 total (~$83.55 per person)
+    + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs)
+    + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
+    + $9.00 (USB backup cable ×9) + $6.50 (limit switch 20-pack) + $8.77 (IR sensor 10-pack)
+    = $704.71 total (~$78.30 per person)
 
 Shared Supplies = $21.98 total (~$2.44 per person)
 Shipping = $10.00 total (~$1.11 per person)
 
-Grand Total = $751.99 + $21.98 + $10.00 = $783.97 for the course (~$87.11 per person, 9 people)
+Grand Total = $704.71 + $21.98 + $10.00 = $736.69 for the course (~$81.85 per person, 9 people)
 ```
 
 ----
@@ -137,7 +135,7 @@ lesson plan — no separate cost, but listed here for completeness.
 | `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
 | `class-4-code-1.py` / `class-4-code-2.py` | 2 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop), Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic, Class 5 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, WiFi IMU chart, TFT status display — Class 6 stretch goals |
 
 ----
@@ -185,8 +183,6 @@ part of the course budget above.
 [11]:https://www.amazon.com/EL-CP-003-Breadboard-Solderless-Distribution-Connecting/dp/B01EV6LJ7G/?th=1
 [12]:https://www.amazon.com/LampVPath-Battery-Connector-Plastic-Housing/dp/B079HY8DD9?th=1
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1
-[14]:https://www.adafruit.com/product/3955
-[15]:https://www.adafruit.com/product/3950
 [16]:https://www.amazon.com/dp/B0FTF8P9DQ
 [18]:https://www.amazon.com/Connector-Solderless-Multicolor-Electronic-Breadboard/dp/B09FPGT7JT/?th=1
 [19]:https://www.amazon.com/Invisible-Mounting-Double-Sided-Permanent-Classroom/dp/B07LFRN1K8/

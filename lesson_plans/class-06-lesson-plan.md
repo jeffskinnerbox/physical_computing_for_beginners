@@ -4,12 +4,12 @@
 * **Phase:** Phase 3 — Integration (Class 5-6: combine sensing + motion into an autonomous robot)
 * **Duration:** ~2 hours (120 min)
 * **Prerequisites from prior Classes:** Class 5 completed — every student has a working (even if
-  imperfect) autonomous Random Rover: Class 2's sensor+servo circuit (`GP6`-`GP8`) and Class 3's
-  motor driver circuit (`GP9`-`GP12`) combined into `class-5-code.py`'s stop-look-go collision
-  avoidance loop, with `motor_driver.py` present on the CIRCUITPY drive. Class 1's button/encoder
-  circuit (`GP2`-`GP4`, `GP14`-`GP15`) and Class 4's IMU circuit (`GP0`/`GP1`) should still be intact
-  on the breadboard, even though unused since Class 5 — both are reconnected today for the stretch
-  goals.
+  imperfect) autonomous Random Rover: Class 2's sensor+servo circuit (`GP6`-`GP8`), Class 3's
+  motor driver circuit (`GP9`-`GP12`), and Class 5's limit switch/IR sensor (`GP5`/`GP13`) combined
+  into `class-5-code.py`'s stop-look-go collision avoidance loop, with `motor_driver.py` present on
+  the CIRCUITPY drive. Class 1's button/encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`) and Class 4's
+  IMU circuit (`GP0`/`GP1`) should still be intact on the breadboard, even though unused since
+  Class 5 — both are reconnected today for the stretch goals.
 
 ---
 
@@ -74,7 +74,7 @@ quantities, and sourcing.
 | Component | Purpose This Class |
 | :---------- | :-------------------- |
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
-| Complete Class 5 rover circuit (HC-SR04, SG90, DRV8833, chassis, 9V battery) | The rover being finished and tuned |
+| Complete Class 5 rover circuit (HC-SR04, SG90, DRV8833, limit switch, IR sensor, chassis, 9V battery) | The rover being finished and tuned |
 | KY-040 Rotary Encoder Module (from Class 1, already wired) | Stretch #1: live speed control |
 | IMU: LSM9DS1 9-DOF Breakout Board (from Class 4, already wired) | Stretch #2: orientation data streamed over WiFi |
 | 1.14" 240x135 Color TFT Display | Stretch #3: on-board status display |

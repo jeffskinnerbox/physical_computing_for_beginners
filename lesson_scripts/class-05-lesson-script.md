@@ -22,10 +22,12 @@ sensor and look for the clearest direction, and steers that way — with an emer
 stops and rescans immediately if something gets too close while driving, instead of waiting for
 the next scheduled look.
 
-There's no new wiring today. Everything you need is already on your breadboard from Class 2 and
-Class 3. Today is entirely about writing the decision-making that connects your car's eyes to its
-legs. By the end, your car should be able to drive around the room on its own and steer around at
-least one obstacle without you touching it — the central milestone of the whole course.
+Most of what you need is already on your breadboard from Class 2 and Class 3 — Today is mostly
+about writing the decision-making that connects your car's eyes to its legs. The one new thing
+today: a limit switch and an IR obstacle sensor, two fixed safety inputs that give your car a
+last-resort "stop no matter what" reflex, backing up the ultrasonic sweep. By the end, your car
+should be able to drive around the room on its own and steer around at least one obstacle without
+you touching it — the central milestone of the whole course.
 
 ## 2. What You'll Need
 
@@ -35,6 +37,8 @@ least one obstacle without you touching it — the central milestone of the whol
 | HC-SR04 ultrasonic distance sensor (from Class 2) | 1 | Measures distance at each scan angle |
 | SG90 micro servo motor (from Class 2) | 1 | Sweeps the sensor across the scan angles |
 | DRV8833 dual H-bridge motor driver (from Class 3) | 1 | Drives forward and executes steering turns |
+| Micro limit switch | 1 | Physical bumper on the chassis front — last-resort stop-and-reverse on contact |
+| IR obstacle avoidance sensor | 1 | Fixed forward-facing near-field detector — stop-and-reverse between ultrasonic scans |
 | Emo Smart Robot Car Chassis Kit | 1 | Your completed (or near-complete) car |
 | 9V battery clip and 9V battery | 1 each | Motor power, independent of the Pico's logic power |
 | Breadboard (from prior classes) | 1 | No rewiring needed today |
@@ -63,7 +67,7 @@ the clearest direction, turn, and resume. That pattern is a genuine design trade
 scan is simple and safe, since the sensor never has to interpret a reading taken while the whole
 robot is also moving — but it's slower than continuously sensing while driving would be.
 
-**Pinout summary** (no new pins — this reconnects Class 2 and Class 3 exactly as wired):
+**Pinout summary** (Class 2 and Class 3 pins reconnect exactly as wired; `GP5`/`GP13` are new):
 
 | Pin | What it does | From Class |
 | :---- | :--------------- | :----------- |
@@ -72,13 +76,15 @@ robot is also moving — but it's slower than continuously sensing while driving
 | `GP8` | SG90 servo signal | Class 2 |
 | `GP9`/`GP10` | DRV8833 `AIN1`/`AIN2` (Motor A) | Class 3 |
 | `GP11`/`GP12` | DRV8833 `BIN1`/`BIN2` (Motor B) | Class 3 |
+| `GP5` | Limit switch (internal pull-up) | New this Class |
+| `GP13` | IR obstacle sensor `OUT` | New this Class |
 
 ## 4. Build It: The Collision-Avoidance Program
 
 ### Wiring for this phase
 
-No new wiring. Reconnect (or simply confirm) Class 2's sensor+servo circuit and Class 3's motor
-driver circuit exactly as they were left wired:
+Reconnect (or simply confirm) Class 2's sensor+servo circuit and Class 3's motor driver circuit
+exactly as they were left wired, then add the two new safety sensors:
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
@@ -87,8 +93,14 @@ driver circuit exactly as they were left wired:
 | SG90 servo signal | `GP8` |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
+| Limit switch (common + normally-open, to `GND`) | `GP5` (internal pull-up) |
+| IR obstacle sensor `OUT` | `GP13` |
 
-Before writing any new code, power up and re-verify both circuits independently: run a quick
+Mount the limit switch as a physical bumper on the chassis front (lever arm leading, so any contact
+presses it), and the IR sensor fixed and forward-facing, low on the chassis, aimed at ground-level
+obstacles the ultrasonic sweep might miss between scans.
+
+Before writing any new code, power up and re-verify both older circuits independently: run a quick
 sensor sweep test and a quick motor forward/reverse test, confirming both still work exactly as
 they did at the end of Class 2 and Class 3. Catching a regression now is far easier than debugging
 it once it's buried inside the combined rover logic.
@@ -96,8 +108,9 @@ it once it's buried inside the combined rover logic.
 ### What this code does
 
 This program is the "stop-look-go" cycle described above, running forever. It drives forward,
-watches for either a scan timer to elapse or an obstacle to come within `STOP_DISTANCE_CM`,
-stops, sweeps `SCAN_ANGLES` recording a distance at each one, picks the angle with the largest
+watches for either a scan timer to elapse, an obstacle to come within `STOP_DISTANCE_CM`, or the
+new limit switch/IR sensor to fire, stops (reversing briefly first if it was the switch or IR
+sensor), sweeps `SCAN_ANGLES` recording a distance at each one, picks the angle with the largest
 distance (the most open space), turns toward it using your Class 3 turn-time calibration, and
 resumes driving.
 
@@ -116,6 +129,7 @@ sitting alongside it, unchanged since Class 3.
 
 import time
 import board
+import digitalio
 import pwmio
 import adafruit_hcsr04
 from adafruit_motor import servo
@@ -124,6 +138,14 @@ import motor_driver  # from Class 3 -- must already be on CIRCUITPY
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
 scan_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)  # recalibrate per servo if needed
+
+# The two new fixed safety sensors -- both are digital, LOW when triggered.
+bump_switch = digitalio.DigitalInOut(board.GP5)
+bump_switch.direction = digitalio.Direction.INPUT
+bump_switch.pull = digitalio.Pull.UP
+
+ir_sensor = digitalio.DigitalInOut(board.GP13)
+ir_sensor.direction = digitalio.Direction.INPUT
 
 # Tune these for your specific robot -- start conservative and adjust
 # during Independent Work.
@@ -179,6 +201,17 @@ def turn_toward(angle):
     motor_driver.stop()
 
 
+def safety_override_triggered():
+    """Check the fixed bump switch and IR sensor -- either one true means stop NOW."""
+    if not bump_switch.value:  # pulled LOW when pressed
+        print("SAFETY: bump switch contact")
+        return True
+    if not ir_sensor.value:  # module drives LOW when it sees an obstacle
+        print("SAFETY: IR sensor near-field obstacle")
+        return True
+    return False
+
+
 print("Class 5 -- Random Rover starting...")
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
@@ -187,10 +220,18 @@ while True:
     print("drive: forward")
     motor_driver.drive(DRIVE_SPEED, DRIVE_SPEED)
 
-    # Drive straight until EITHER the scan timer elapses OR something gets
-    # too close -- whichever happens first breaks out of this inner loop.
+    # Drive straight until EITHER the scan timer elapses, something gets too
+    # close on the ultrasonic sensor, OR the bump switch/IR sensor fires.
     close_call = False
     while True:
+        if safety_override_triggered():
+            motor_driver.stop()
+            print("drive: emergency stop-and-reverse (safety override)")
+            motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
+            time.sleep(0.3)  # back off enough to clear whatever triggered it
+            motor_driver.stop()
+            close_call = True
+            break
         distance = read_distance()
         if distance is not None and distance < STOP_DISTANCE_CM:
             print("drive: obstacle close, distance_cm", distance)
@@ -224,7 +265,10 @@ completely normal to see before you tune it in Independent Work.
 Confirm your rover completes at least one full stop-look-go cycle — drive, stop, scan with printed
 readings, turn, resume driving — without you touching the keyboard once it starts. Then place an
 obstacle in its path while it's driving and confirm it stops immediately (an `emergency stop for
-scan` line), not waiting for the next scheduled timer scan.
+scan` line), not waiting for the next scheduled timer scan. Finally, confirm the two new safety
+sensors independently: press the limit switch by hand and confirm a `SAFETY: bump switch contact`
+line and a stop-and-reverse, then wave your hand close in front of the IR sensor and confirm
+`SAFETY: IR sensor near-field obstacle`.
 
 ## 5. Troubleshooting Guide
 
@@ -238,11 +282,15 @@ scan` line), not waiting for the next scheduled timer scan.
 | Rover's turns overshoot or undershoot the intended heading | `TURN_SECONDS_PER_DEGREE` not recalibrated from your actual measured turn time | Recalculate from a fresh measured 90-degree turn, same method as Class 3 |
 | Console floods with reading errors during a scan | Servo moved before the sensor settled, or the sensor is aimed at an out-of-range surface | Increase `SETTLE_TIME`; re-aim the test area to stay within the sensor's usable range |
 | Rover works on the bench but behaves erratically on the floor | Wheels slipping on the test surface, or the floor interfering with the ultrasonic beam | Test on a harder, flatter surface — this is a real-world limitation to note, not just a bug |
+| Bump switch never triggers even on a hard hit | Lever arm not mounted low/forward enough to actually contact obstacles, or `GP5` wiring loose | Reposition the switch so the lever leads the chassis edge; check wiring with a multimeter continuity test |
+| Rover constantly emergency-stops with nothing nearby | IR sensor's onboard sensitivity trimmer set too high, or aimed at a reflective floor | Turn the sensor's sensitivity trimmer down; re-aim slightly upward off the floor |
+| Rover backs into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
 
 ## 6. Put It All Together
 
 This is the finished project in one place. It reuses Class 2 and Class 3's circuits without
-changes — the only thing new is this single program.
+changes, plus the limit switch and IR sensor added this Class — the only thing new is this single
+program.
 
 ### Complete wiring
 
@@ -253,6 +301,8 @@ changes — the only thing new is this single program.
 | SG90 servo signal | `GP8` |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
+| Limit switch (internal pull-up) | `GP5` |
+| IR obstacle sensor `OUT` | `GP13` |
 
 ### Complete code
 
@@ -263,6 +313,7 @@ You need **two files** on your `CIRCUITPY` drive: `motor_driver.py` (unchanged f
 # code.py -- complete Random Rover collision-avoidance project.
 import time
 import board
+import digitalio
 import pwmio
 import adafruit_hcsr04
 from adafruit_motor import servo
@@ -271,6 +322,13 @@ import motor_driver
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
 scan_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)  # recalibrate per servo if needed
+
+bump_switch = digitalio.DigitalInOut(board.GP5)
+bump_switch.direction = digitalio.Direction.INPUT
+bump_switch.pull = digitalio.Pull.UP
+
+ir_sensor = digitalio.DigitalInOut(board.GP13)
+ir_sensor.direction = digitalio.Direction.INPUT
 
 DRIVE_SPEED = 0.4
 SCAN_ANGLES = [30, 60, 90, 120, 150]
@@ -315,6 +373,12 @@ def turn_toward(angle):
     motor_driver.stop()
 
 
+def safety_override_triggered():
+    if not bump_switch.value or not ir_sensor.value:
+        return True
+    return False
+
+
 print("Random Rover running.")
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
@@ -322,6 +386,12 @@ last_scan_time = time.monotonic()
 while True:
     motor_driver.drive(DRIVE_SPEED, DRIVE_SPEED)
     while True:
+        if safety_override_triggered():
+            motor_driver.stop()
+            motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
+            time.sleep(0.3)
+            motor_driver.stop()
+            break
         distance = read_distance()
         if distance is not None and distance < STOP_DISTANCE_CM:
             break
@@ -348,6 +418,8 @@ go, entirely on its own. Specifically, you now know:
 * That "it didn't hit anything" isn't a very specific way to measure whether collision avoidance
     is actually working — you can do better with something like avoidances per run, distance
     maintained from obstacles, or consistency across repeated runs
+* Why a safety-critical decision like "stop the car" is stronger when backed by multiple
+    independent signals (ultrasonic, IR, physical bump) rather than trusting just one
 
 Next class isn't new concepts — it's finishing and tuning this exact rover, plus optional stretch
 goals that bring back your Class 1 encoder and Class 4 IMU if you want to go further.

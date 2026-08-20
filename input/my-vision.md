@@ -150,6 +150,8 @@ Tips for Students:
   prints a heartbeat count to the serial console, proving the board, firmware, and editor are all talking
   to each other.
   The Adafruit CircuitPython Library Bundle and editors [Mu](https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor) & [Thonny](https://learn.adafruit.com/circuitpython-libraries-on-micropython-using-the-raspberry-pi-pico/thonny-setup) will be installed for later use.
+  The Pre-Class homework also includes a standalone test of the IR obstacle sensor used later for the
+  Class 5 Random Rover, run without any rover hardware.
 * **Objective**: Get the student familiar with the tools they will be using in the class.
   Also discuss how this project was created from Internet resource and how they can do this too.
 * **Talking Points**:
@@ -378,9 +380,18 @@ Tips for Students:
   This design actively scans its surroundings before deciding how to move: it rescans on a periodic
   timer while otherwise driving straight, but if anything comes within a set stopping distance while
   driving, it interrupts that timer, stops immediately, and rescans right away instead of waiting.
-* **Wiring Continuity**: No new pins. Reconnects exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`) and
-  the Class 3 motor driver circuit (`GP9`-`GP12`) as they were left wired &mdash; nothing to move. The Class 1
-  and Class 4 circuits can stay on the breadboard unused or be set aside; neither is needed for this build.
+
+  Two extra safety layers back up the ultrasonic sweep: a fixed IR obstacle sensor mounted low and
+  forward gives a near-field check between scans (the ultrasonic sweep only re-checks periodically
+  or when triggered &mdash; the IR sensor closes that gap), and a mechanical limit switch mounted as a
+  physical bumper is the last-resort fallback &mdash; if the rover actually contacts something, the
+  switch fires an immediate stop-and-reverse regardless of what either sensor reported.
+* **Wiring Continuity**: Two new pins this class: `GP5` (limit switch, digital input with internal
+  pull-up, wired as a physical bumper on the chassis front) and `GP13` (IR obstacle sensor, digital
+  input, fixed forward-facing). Both are carried forward unchanged into Class 6. Otherwise, reconnects
+  exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit
+  (`GP9`-`GP12`) as they were left wired &mdash; nothing to move. The Class 1 and Class 4 circuits can
+  stay on the breadboard unused or be set aside; neither is needed for this build.
 * **Objective**: Create an autonomous car with wheel motors, operating at a constant speed,
   move around the room without hitting anything.
   Avoid collisions by using the servo-mounted ultrasonic distance sensor.
@@ -391,13 +402,18 @@ Tips for Students:
   * The rover steers toward whichever scan angle had the most clearance &mdash; can students design a room layout (e.g. a narrow gap with open space just beyond it) where "pick the largest reading" picks a bad direction?
   * The rover stops to scan instead of sensing continuously while driving &mdash; discuss the safety/simplicity vs. speed/smoothness tradeoff of that "stop-look-go" design.
   * Beyond eyeballing that it doesn't hit things, how would the class actually measure/test whether their rover's collision avoidance is working?
-* **Features/Capabilities**: Performance of the car is streamed to the terminal.
+  * Three different signals now decide "stop": ultrasonic distance, IR near-field, and the bump switch. What does each one catch that the others miss, and what's the risk of trusting only one?
+* **Features/Capabilities**: Performance of the car is streamed to the terminal. Reads the IR sensor
+  and limit switch every loop; either one true forces an immediate stop independent of the ultrasonic
+  scan/timer logic.
 * **Course Pseudocode**:
   * [`class-5-code.py`](./class-5-code.py) &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
     `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`). Drives forward at `DRIVE_SPEED`; sweeps
     the sensor across `SCAN_ANGLES` on a timer or immediately if anything comes within `STOP_DISTANCE_CM`,
-    turns toward the clearest heading (reusing Class 3's turn-time calibration), then continues. Streams
-    every scan reading, chosen heading, and drive state to the serial console.
+    turns toward the clearest heading (reusing Class 3's turn-time calibration), then continues. Also polls
+    the IR sensor (`GP13`) and limit switch (`GP5`) every loop; either going active forces an immediate
+    stop-and-reverse, overriding the normal scan-and-turn logic. Streams every scan reading, chosen heading,
+    drive state, and sensor-triggered stop event to the serial console.
 * **Potential Source Materials**:
   * [Raspberry Pi Pico W taught this car to avoid objects](https://www.raspberrypi.com/news/raspberry-pi-pico-w-taught-this-car-to-avoid-objects/)
   * [How to make an obstacle avoidance robot using Raspberry Pi Pico board](https://srituhobby.com/how-to-make-an-obstacle-avoidance-robot-using-raspberry-pi-pico-board/)
@@ -412,8 +428,9 @@ Tips for Students:
   distance/heading/speed status on the robot itself so it's readable without a USB cable attached.
 * **Wiring Continuity**: Stretch #1 and #2 need no new wiring &mdash; they reconnect the Class 1 encoder
   (`GP3`/`GP4`) and Class 4 IMU (`GP0`/`GP1`) exactly as already wired, right alongside the Class 5 rover
-  circuit (`GP6`-`GP12`). Stretch #3 is the only new wiring this class: a TFT on `GP18`-`GP22`, pins not
-  used by anything else in the course, so it drops in without disturbing the rover.
+  circuit (`GP6`-`GP12`). The Class 5 limit switch (`GP5`) and IR sensor (`GP13`) also carry forward
+  unchanged, needing no rewiring. Stretch #3 is the only new wiring this class: a TFT on `GP18`-`GP22`,
+  pins not used by anything else in the course, so it drops in without disturbing the rover.
 * **Objective**: Stretch Objectives are to
   1. Add a rotary encoder to control speed.
   1. Send IMU data via WiFi to a graphical historical display.
@@ -476,21 +493,21 @@ purchase (and any spares that come with it) noted below the table and priced in 
 | SG90 9g Micro Servo Motor | 1 | $2.00 | [Amazon][04] | sold in 10-pack ($19.99); Class 2 servo, reused Class 5-6 |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
 | IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
-| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 3 | $0.95 | [Adafruit][07] | I2C connections for the LSM9DS1 (Class 4 onward) |
+| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Tactile Push Button Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99); Class 1 button + spare |
 | Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course |
 | I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power |
 | 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
-| JST PH 2mm 4-Pin to Male Header Cable - I2C STEMMA Cable - 200mm | 2 | $1.50 | [Adafruit][14] | I2C wiring, Class 4 onward |
-| JST PH 2mm 4-Pin to Female Socket Cable - I2C STEMMA Cable - 200mm | 2 | $1.50 | [Adafruit][15] | I2C wiring, Class 4 onward |
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); onboard 5V power |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
 | USB A to Micro USB Charging Cable with Data Transfer | 9 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
+| Micro Limit Switch | 1 | $0.35 | [Amazon][26] | sold in 20-pack ($6.50); Class 5 rover bump sensor, reused Class 6 |
+| IR Obstacle Avoidance Sensor | 1 | $0.35 | [Amazon][27] | sold in 10-pack ($8.77); Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
 
-Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 3×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 2×1.50 + 2×1.50 + 1.50 + 0 + 0 + 1.00 ≈ **$83.55 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
+Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.35 + 0.35 ≈ **$74.41 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
 
 ##### Per-Student Optional
 
@@ -514,7 +531,7 @@ Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per
 
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
-| Adafruit Shipping | NA | $10.00 [estimated] | NA | flat estimate for the combined Adafruit order (Pico, DRV8833, LSM9DS1, STEMMA/JST cables, TFT) — confirm actual rate/free-shipping threshold before ordering |
+| Adafruit Shipping | NA | $10.00 [estimated] | NA | flat estimate for the combined Adafruit order (Pico, DRV8833, LSM9DS1, STEMMA cables, TFT) — confirm actual rate/free-shipping threshold before ordering |
 | Amazon Shipping | NA | $0.00 [estimated] | NA | assumes Amazon Prime free shipping on all Amazon-sourced items |
 
 Shipping Cost = 10.00 + 0.00 = $10.00 total (assumption — verify both vendors' actual shipping before purchasing)
@@ -525,17 +542,17 @@ Exact totals from whole-pack/whole-unit purchasing (9 people: 8 students + instr
 
 ```text
 Per-Student Required (bulk-purchase total) = $72.00 (Pico) + $125.91 (chassis) + $12.99 (HC-SR04 10-pack)
-    + $19.99 (SG90 10-pack) + $53.55 (DRV8833 ×9) + $179.55 (LSM9DS1 ×9) + $25.65 (STEMMA cable ×27)
+    + $19.99 (SG90 10-pack) + $53.55 (DRV8833 ×9) + $179.55 (LSM9DS1 ×9) + $17.10 (STEMMA cable ×18)
     + $25.98 (KY-040, 2× 8-packs) + $89.55 (TFT ×9) + $9.99 (button 500-pack) + $26.97 (breadboard, 3× 3-packs)
-    + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs) + $27.00 (JST male ×18)
-    + $27.00 (JST female ×18) + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
-    + $9.00 (USB backup cable ×9)
-    = $751.99 total (~$83.55 per person)
+    + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs)
+    + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
+    + $9.00 (USB backup cable ×9) + $6.50 (limit switch 20-pack) + $8.77 (IR sensor 10-pack)
+    = $704.71 total (~$78.30 per person)
 
 Shared Supplies = $21.98 total (~$2.44 per person)
 Shipping = $10.00 total (~$1.11 per person)
 
-Grand Total = $751.99 + $21.98 + $10.00 = $783.97 for the course (~$87.11 per person, 9 people)
+Grand Total = $704.71 + $21.98 + $10.00 = $736.69 for the course (~$81.85 per person, 9 people)
 ```
 
 
@@ -588,8 +605,6 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [11]:https://www.amazon.com/EL-CP-003-Breadboard-Solderless-Distribution-Connecting/dp/B01EV6LJ7G/?th=1
 [12]:https://www.amazon.com/LampVPath-Battery-Connector-Plastic-Housing/dp/B079HY8DD9?th=1
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1
-[14]:https://www.adafruit.com/product/3955
-[15]:https://www.adafruit.com/product/3950
 [16]:https://www.amazon.com/dp/B0FTF8P9DQ
 [18]:https://www.amazon.com/Connector-Solderless-Multicolor-Electronic-Breadboard/dp/B09FPGT7JT/?th=1
 [19]:https://www.amazon.com/Invisible-Mounting-Double-Sided-Permanent-Classroom/dp/B07LFRN1K8/
@@ -599,6 +614,8 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [23]:https://circuitpython.org/downloads
 [24]:https://docs.github.com/en
 [25]:https://www.amazon.com/Charging-Transfer-Charger-Speakers-Controllers/dp/B0GVBKRW6G?th=1
+[26]:https://www.amazon.com/dp/B07YKFX99S?th=1
+[27]:https://www.amazon.com/dp/B0DTJZ3432
 
 These items are removed from consideration after iterating on the lesson plans
 

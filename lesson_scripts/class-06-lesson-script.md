@@ -5,11 +5,11 @@
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
 * **Before You Start:** Your Class 5 Random Rover should be working, even if imperfectly —
-    Class 2's sensor+servo circuit (`GP6`-`GP8`) and Class 3's motor driver circuit (`GP9`-`GP12`)
-    combined into `class-5-code.py`'s stop-look-go loop, with `motor_driver.py` present on your
-    `CIRCUITPY` drive. Class 1's encoder circuit and Class 4's IMU circuit should still be intact on
-    your breadboard, even though unused since Class 5 — you'll reconnect them today if you attempt
-    the matching stretch goal.
+    Class 2's sensor+servo circuit (`GP6`-`GP8`), Class 3's motor driver circuit (`GP9`-`GP12`), and
+    Class 5's limit switch/IR sensor (`GP5`/`GP13`) combined into `class-5-code.py`'s stop-look-go
+    loop, with `motor_driver.py` present on your `CIRCUITPY` drive. Class 1's encoder circuit and
+    Class 4's IMU circuit should still be intact on your breadboard, even though unused since
+    Class 5 — you'll reconnect them today if you attempt the matching stretch goal.
 
 ---
 
@@ -415,6 +415,8 @@ in one place, so you can build straight to whichever combination you want.
 | SG90 servo signal | `GP8` | Core rover |
 | DRV8833 `AIN1`/`AIN2` | `GP9`/`GP10` | Core rover |
 | DRV8833 `BIN1`/`BIN2` | `GP11`/`GP12` | Core rover |
+| Limit switch (internal pull-up) | `GP5` | Core rover |
+| IR obstacle sensor `OUT` | `GP13` | Core rover |
 | Rotary encoder `CLK`/`DT` | `GP3`/`GP4` | Stretch 1 |
 | LSM9DS1 `SDA`/`SCL` | `GP0`/`GP1` | Stretch 2 |
 | TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP18`-`GP22` | Stretch 3 |
