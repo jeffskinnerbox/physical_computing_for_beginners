@@ -822,10 +822,15 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 
 ## References
 
-* Raspberry Pi Pico 2W Microcontroller
+* Documentation for Raspberry Pi Pico 2W Microcontroller
   * [GPIO pinout and pin function guide for the Raspberry Pi Pico 2 W][20]
-  * [Raspberry Pi Pico 2W Datasheet][21]
   * [Raspberry Pi Pico 2 W with Header — Product Page][14] — the board used throughout the course
+  * [Raspberry Pi Pico 2W Datasheet][21]
+* Learning Python
+  * [Python for Everybody][24]
+  * [freeCodeCamp][25]
+  * [The Python Handbook – Learn Python for Beginners][26]
+  * [CoddyTech: Learn Python][27]
 * CircuitPython
   * [What is CircuitPython?][15] — background on CircuitPython vs. MicroPython vs. Arduino C++
   * [CircuitPython Firmware for the Raspberry Pi Pico 2 W][03] — the firmware flashed onto the board tonight
@@ -833,18 +838,20 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
   * [CircuitPython Libraries][06] — what the Library Bundle is and how `/lib` gets used starting Class 1
   * [The CIRCUITPY Drive][04] — what the `CIRCUITPY` drive is and how it behaves
   * [The REPL][11] — using the interactive REPL prompt
-  * [flash_nuke.uf2 — erase the Pico's flash memory][18] — used in Section 9 to remove CircuitPython entirely
-* Mu / Thonny Editors
+  * [flash_nuke.uf2 — erase the Pico's flash memory][18] — used to remove flash memory entirely
+  * Mu / Thonny Editor
   * [codewith.mu — Mu Editor download][08] — where the Mu installer comes from
   * [Installing the Mu Editor][01] — step-by-step Mu install guide
   * [Creating and Editing Code][07] — saving and editing `code.py`
   * [Connecting to the Serial Console][09] — how to open the serial console in Mu/Thonny
   * [Thonny — official site and download][16] — where the Thonny installer comes from
   * [Thonny setup for CircuitPython][02] — step-by-step Thonny install guide
-* Sources Components & Projects
+* Sources of Components & Projects
   * [Instructables][12] — maker-community tutorials referenced throughout the course
   * [Adafruit Learn][13] — primary source for CircuitPython guides used across the course
   * [SparkFun Tutorials][22] — step-by-step guide on how to build with SparkFun products
+  * [Raspberry Pi Pico projects][28]
+  * [All3DP: Raspberry Pi Pico Projects][29]
 
 ---
 
@@ -872,4 +879,11 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [21]:https://pip-assets.raspberrypi.com/categories/1088-raspberry-pi-pico-2-w/documents/RP-008304-DS-3-pico-2-w-datasheet.pdf
 [22]:https://learn.sparkfun.com/tutorials
 [23]:https://github.com/
+[24]:https://www.py4e.com/
+[25]:https://www.freecodecamp.org/learn/python-v9/
+[26]:https://www.freecodecamp.org/news/the-python-handbook/
+[27]:https://coddy.tech/landing/python
+[28]:https://www.raspberrypi.com/news/raspberry-pi-pico-projects/
+[29]:https://all3dp.com/2/raspberry-pi-pico-projects/
+
 
