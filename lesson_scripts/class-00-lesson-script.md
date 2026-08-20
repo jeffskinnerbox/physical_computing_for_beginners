@@ -399,8 +399,8 @@ Do these steps in order. Each one has its own quick test, the same way the insta
 
 #### Step 1 — Uninstall Thonny
 
-1. Click **Start**, type `Apps`, and open **Installed apps** (or **Add or remove programs**).
-1. Find **Thonny** in the list, click the **⋯** next to it (or click it once), and choose
+1. Click **Start**, type `Add`, and open **Add or remove programs** (or **Add or remove programs**).
+1. Search for **Thonny** in the list, click the **⋯** next to it (or click it once), and choose
     **Uninstall**.
 1. Confirm the uninstall when Windows asks.
 
@@ -409,8 +409,8 @@ launch. The **Installed apps** list should no longer list it either.
 
 #### Step 2 — Uninstall the Mu Editor
 
-1. Click **Start**, type `Apps`, and open **Installed apps** (or **Add or remove programs**).
-1. Find **Mu** (sometimes listed as **Mu Editor**) in the list and choose **Uninstall**.
+1. Click **Start**, type `Add`, and open **Add or remove programs** (or **Add or remove programs**).
+1. Search for **Mu** (sometimes listed as **Mu Editor**) in the list and choose **Uninstall**.
 1. Confirm the uninstall when Windows asks.
 
     > If you installed Mu with `winget install --scope user -e --id Mu.Mu` back in Step 2 of
@@ -419,7 +419,28 @@ launch. The **Installed apps** list should no longer list it either.
 
 **Test it:** Click **Start** and type `Mu` again — it should no longer appear as an app to launch.
 
-#### Step 3 — Erase CircuitPython off the Pico 2 W (return it to factory firmware)
+
+#### Step 3 — Remove the Adafruit CircuitPython Library Bundle from your Downloads folder
+
+Step 4 of Section 4 unzipped the whole Library Bundle onto your laptop — the extracted `lib`
+folder full of `.mpy` files and folders is what you dragged individual libraries out of. That
+extracted copy lives entirely on your laptop's `Downloads` folder, separate from whatever you
+copied onto `CIRCUITPY`, so removing it from the Pico (Step 3 above) doesn't touch it — it has to
+be deleted here too.
+
+1. Open File Explorer and go to your `Downloads` folder.
+1. Find the extracted bundle folder, something like
+    `adafruit-circuitpython-bundle-10.x-mpy-20260115` (a plain folder, not a `.zip` — you unzipped
+    it back in Step 4 of Section 4).
+1. Right-click the folder and choose **Delete** (or select it and press the **Delete** key).
+1. Also delete the original `.zip` it came from, sitting next to the extracted folder — it's the
+    same content compressed, and Windows won't need it again once the folder is gone.
+
+**Test it:** Search `Downloads` for `adafruit-circuitpython-bundle` (File Explorer's search box,
+top-right) — it should return no results, confirming both the extracted folder and the `.zip` are
+gone.
+
+#### Step 4 — Erase CircuitPython off the Pico 2 W (return it to factory firmware)
 
 This is the one step that touches the board itself rather than your laptop. It's also the only
 one that's a little more involved than "click uninstall," since there's no uninstaller for
@@ -444,26 +465,6 @@ firmware — you overwrite it instead.
 — its presence confirms the board is back in bare bootloader mode with no CircuitPython installed.
 Unplug and replug the Pico normally (no BOOTSEL) — it should **not** show a `CIRCUITPY` drive
 anymore, just nothing, confirming the firmware really is gone.
-
-#### Step 4 — Remove the Adafruit CircuitPython Library Bundle from your Downloads folder
-
-Step 4 of Section 4 unzipped the whole Library Bundle onto your laptop — the extracted `lib`
-folder full of `.mpy` files and folders is what you dragged individual libraries out of. That
-extracted copy lives entirely on your laptop's `Downloads` folder, separate from whatever you
-copied onto `CIRCUITPY`, so removing it from the Pico (Step 3 above) doesn't touch it — it has to
-be deleted here too.
-
-1. Open File Explorer and go to your `Downloads` folder.
-1. Find the extracted bundle folder, something like
-    `adafruit-circuitpython-bundle-10.x-mpy-20260115` (a plain folder, not a `.zip` — you unzipped
-    it back in Step 4 of Section 4).
-1. Right-click the folder and choose **Delete** (or select it and press the **Delete** key).
-1. Also delete the original `.zip` it came from, sitting next to the extracted folder — it's the
-    same content compressed, and Windows won't need it again once the folder is gone.
-
-**Test it:** Search `Downloads` for `adafruit-circuitpython-bundle` (File Explorer's search box,
-top-right) — it should return no results, confirming both the extracted folder and the `.zip` are
-gone.
 
 #### Step 5 — Delete the other downloaded install files (optional cleanup)
 
@@ -656,21 +657,22 @@ instead of only blinking the LED, the board also runs a small web server that an
 can connect to and see the LED's current on/off status on a webpage, live, with no laptop cable
 required.
 
-Before running this, you need to create a **second file** on CIRCUITPY named `env.yaml` — this
-keeps your network name and password out of your actual code, which is good practice for any
-project you might later share or post online:
+Before running this, you need to create a **second file** on CIRCUITPY named `settings.toml` —
+this keeps your network name and password out of your actual code, which is good practice for any
+project you might later share or post online. `settings.toml` is a built-in CircuitPython feature
+(since CircuitPython 8) — no library needed to read it, just the `os` module that's already part
+of CircuitPython:
 
-```yaml
-# env.yaml — save this on CIRCUITPY, next to code.py
+```toml
+# settings.toml — save this on CIRCUITPY, next to code.py
 # WiFi credentials for the Pico's own access point (not your home WiFi)
-ap_ssid: "<your-name>"
-ap_password: "blinkblink"   # must be at least 8 characters — WiFi requirement, not a suggestion
+CIRCUITPY_WIFI_AP_SSID="<your-name>"
+CIRCUITPY_WIFI_AP_PASSWORD="blinkblink"   # must be at least 8 characters — WiFi requirement, not a suggestion
 ```
 
-> `env.yaml` needs the `adafruit_yaml` library copied into CIRCUITPY's `lib` folder the same way
+> This board also needs `adafruit_httpserver` copied into CIRCUITPY's `lib` folder the same way
 > you copied `neopixel.mpy` in Section 4 — grab it from the same Adafruit CircuitPython Library
-> Bundle you already downloaded. This board also needs `adafruit_httpserver` in `lib` for the web
-> server piece.
+> Bundle you already downloaded.
 
 ```python
 # code.py - WiFi Captive Portal Access Point showing onboard LED status on a webpage
@@ -679,12 +681,12 @@ import board
 import digitalio
 import wifi                      # controls the Pico 2W's WiFi radio directly
 import socketpool                # lets CircuitPython open network sockets over that radio
-import yaml                      # reads our env.yaml file so credentials aren't hardcoded here
+import os                        # reads settings.toml via os.getenv() so credentials aren't hardcoded here
 from adafruit_httpserver import Server, Request, Response
 
-# --- Load WiFi credentials from env.yaml instead of hardcoding them in this file ---
-with open("/env.yaml", "r") as f:
-    creds = yaml.safe_load(f)
+# --- Load WiFi credentials from settings.toml instead of hardcoding them in this file ---
+ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
+ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 
 # --- Set up the onboard LED, same as blink.py ---
 led = digitalio.DigitalInOut(board.LED)
@@ -692,8 +694,8 @@ led.direction = digitalio.Direction.OUTPUT
 
 # --- Turn the Pico's WiFi radio into its OWN network (an access point) ---
 # Anyone nearby can now see and join "<your-name>" like any other WiFi network.
-wifi.radio.start_ap(ssid=creds["ap_ssid"], password=creds["ap_password"])
-print("Access point started. Connect to:", creds["ap_ssid"])
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+print("Access point started. Connect to:", ap_ssid)
 print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
 
 # --- Start a tiny web server on the Pico itself ---
@@ -738,7 +740,7 @@ while True:
 
 **Test it:** Save this as `code.py` on CIRCUITPY, wait for it to reboot, then on your phone or
 laptop open WiFi settings and connect to the `<your-name>` network using the password from
-`env.yaml`. Open a browser and go to the address printed in the serial console (something like
+`settings.toml`. Open a browser and go to the address printed in the serial console (something like
 `http://192.168.4.1/`) — the page should show ON/OFF and flip once a second, matching the physical
 LED on the board.
 
