@@ -27,8 +27,8 @@ you'll draw from all course long, and write, save, and run your first real progr
 This is also where you learn a habit you'll use for the rest of the course, and probably the rest
 of your maker life: this entire project — the one you're building over the next six classes — was
 put together the same way real makers build things, by reading documentation and adapting
-examples from sites like Adafruit, GitHub, Instructables, and SparkFun. Whenever you get stuck
-later, those same sites are where you go, not just where the instructor goes.
+examples from sites like [Adafruit][13], [GitHub][23], [Instructables][12], and [SparkFun][22].
+Whenever you get stuck later, those same sites are where you go, not just where the instructor goes.
 
 ## 2. What You'll Need
 
@@ -383,8 +383,113 @@ rest of the course stands on. Specifically, you now know:
 Next class, this same chain gets its first real test with actual hardware: a pushbutton switch and
 a rotary encoder, wired to real GPIO pins for the first time. Nothing from tonight needs to be
 undone — tonight's `code.py` simply gets replaced by Class 1's.
-<br>
-## 9. Homework Assignment
+
+## 9. Uninstalling Everything (Optional)
+
+Everything you installed tonight lives entirely inside your own user account and on the Pico
+itself — nothing tonight touched Windows system files or needs admin rights to remove. **You do
+not need to do any of this.** Nothing here gets in the way of Class 1 or any later class; Mu,
+Thonny, and CircuitPython are meant to stay installed for the whole course. Only work through this
+section if you specifically want your laptop back to the state it was in before tonight — for
+example, it's a shared or borrowed laptop, or you're troubleshooting a reinstall from scratch.
+
+### Uninstall your software
+
+Do these steps in order. Each one has its own quick test, the same way the install steps did.
+
+#### Step 1 — Uninstall Thonny
+
+1. Click **Start**, type `Apps`, and open **Installed apps** (or **Add or remove programs**).
+1. Find **Thonny** in the list, click the **⋯** next to it (or click it once), and choose
+    **Uninstall**.
+1. Confirm the uninstall when Windows asks.
+
+**Test it:** Click **Start** and type `Thonny` again — it should no longer appear as an app to
+launch. The **Installed apps** list should no longer list it either.
+
+#### Step 2 — Uninstall the Mu Editor
+
+1. Click **Start**, type `Apps`, and open **Installed apps** (or **Add or remove programs**).
+1. Find **Mu** (sometimes listed as **Mu Editor**) in the list and choose **Uninstall**.
+1. Confirm the uninstall when Windows asks.
+
+    > If you installed Mu with `winget install --scope user -e --id Mu.Mu` back in Step 2 of
+    > Section 4, you can instead open a regular (non-admin) Windows Terminal and run
+    > `winget uninstall --scope user -e --id Mu.Mu` — it removes the same install either way.
+
+**Test it:** Click **Start** and type `Mu` again — it should no longer appear as an app to launch.
+
+#### Step 3 — Erase CircuitPython off the Pico 2 W (return it to factory firmware)
+
+This is the one step that touches the board itself rather than your laptop. It's also the only
+one that's a little more involved than "click uninstall," since there's no uninstaller for
+firmware — you overwrite it instead.
+
+1. With the Pico 2 W plugged in and `CIRCUITPY` visible, open the drive in File Explorer and
+    delete `code.py` and everything inside the `lib` folder. This clears out your program and the
+    libraries from Step 4, but the board is still running CircuitPython underneath.
+1. To remove CircuitPython itself, unplug the Pico, hold **BOOTSEL**, plug it back in (same as
+    Step 1 of Section 4), and release BOOTSEL once **RPI-RP2** appears in File Explorer.
+1. Download [`flash_nuke.uf2`][18] from Raspberry Pi's own datasheets site — a small utility that
+    does one thing: wipe the flash chip back to blank. Drag it onto the **RPI-RP2** drive the same
+    way you dragged the CircuitPython `.uf2` earlier. The drive disappears, the onboard LED flashes
+    for a few seconds while it wipes the flash memory, then **RPI-RP2** reappears on its own.
+
+    > `flash_nuke.uf2` doesn't install anything — it erases the flash chip back to blank, which is
+    > what the board looked like before you ever touched it tonight. If you'd rather leave the
+    > board with *some* firmware than fully blank, you can skip this and just re-flash the
+    > CircuitPython `.uf2` from Step 1 of Section 4 instead — either is a legitimate "reset."
+
+**Test it:** With **RPI-RP2** still showing, open it in File Explorer and look for `INFO_UF2.TXT`
+— its presence confirms the board is back in bare bootloader mode with no CircuitPython installed.
+Unplug and replug the Pico normally (no BOOTSEL) — it should **not** show a `CIRCUITPY` drive
+anymore, just nothing, confirming the firmware really is gone.
+
+#### Step 4 — Remove the Adafruit CircuitPython Library Bundle from your Downloads folder
+
+Step 4 of Section 4 unzipped the whole Library Bundle onto your laptop — the extracted `lib`
+folder full of `.mpy` files and folders is what you dragged individual libraries out of. That
+extracted copy lives entirely on your laptop's `Downloads` folder, separate from whatever you
+copied onto `CIRCUITPY`, so removing it from the Pico (Step 3 above) doesn't touch it — it has to
+be deleted here too.
+
+1. Open File Explorer and go to your `Downloads` folder.
+1. Find the extracted bundle folder, something like
+    `adafruit-circuitpython-bundle-10.x-mpy-20260115` (a plain folder, not a `.zip` — you unzipped
+    it back in Step 4 of Section 4).
+1. Right-click the folder and choose **Delete** (or select it and press the **Delete** key).
+1. Also delete the original `.zip` it came from, sitting next to the extracted folder — it's the
+    same content compressed, and Windows won't need it again once the folder is gone.
+
+**Test it:** Search `Downloads` for `adafruit-circuitpython-bundle` (File Explorer's search box,
+top-right) — it should return no results, confirming both the extracted folder and the `.zip` are
+gone.
+
+#### Step 5 — Delete the other downloaded install files (optional cleanup)
+
+Not strictly part of "uninstalling," but if you want your `Downloads` folder fully tidy: delete
+the `.msi` (Mu) and `.exe` (Thonny) installers, and the `.uf2` (CircuitPython firmware) you
+downloaded in Section 4. Unlike the Library Bundle in Step 4, none of these do anything just
+sitting in `Downloads` — this step is purely cosmetic.
+
+### Validation checklist
+
+Confirm all of the following to be sure the uninstall was complete and correct:
+
+* [ ] **Start → type `Thonny`** shows no matching app.
+* [ ] **Start → type `Mu`** shows no matching app.
+* [ ] **Settings → Apps → Installed apps** no longer lists Thonny or Mu.
+* [ ] Pico 2 W plugged in normally (no BOOTSEL) shows **no** `CIRCUITPY` drive.
+* [ ] Pico 2 W plugged in while holding BOOTSEL shows `INFO_UF2.TXT` on **RPI-RP2**, confirming
+    bare bootloader mode.
+* [ ] Searching `Downloads` for `adafruit-circuitpython-bundle` returns no results, confirming the
+    extracted Library Bundle folder and its `.zip` are both gone.
+
+If every box checks out, your laptop and Pico are both back to their pre-Pre-Class state. If you
+ever want to pick the course back up, Section 4 walks through every one of these steps again from
+scratch.
+
+## 10. Homework Assignment
 
 Everything above got your dev environment running and proved the chain works with a one-line
 blink. The exercises below are **homework, not required class content** — optional problems that
@@ -807,6 +912,7 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
   * [CircuitPython Libraries][06] — what the Library Bundle is and how `/lib` gets used starting Class 1
   * [The CIRCUITPY Drive][04] — what the `CIRCUITPY` drive is and how it behaves
   * [The REPL][11] — using the interactive REPL prompt
+  * [flash_nuke.uf2 — erase the Pico's flash memory][18] — used in Section 9 to remove CircuitPython entirely
 * Mu / Thonny Editors
   * [codewith.mu — Mu Editor download][08] — where the Mu installer comes from
   * [Installing the Mu Editor][01] — step-by-step Mu install guide
@@ -839,8 +945,10 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [15]:https://learn.adafruit.com/welcome-to-circuitpython/what-is-circuitpython
 [16]:https://thonny.org
 [17]:https://circuitpython.org/libraries
+[18]:https://datasheets.raspberrypi.com/soft/flash_nuke.uf2
 [19]:https://www.proculustech.com/tft-vs-lcd
 [20]:https://pico2w.pinout.xyz/
 [21]:https://pip-assets.raspberrypi.com/categories/1088-raspberry-pi-pico-2-w/documents/RP-008304-DS-3-pico-2-w-datasheet.pdf
 [22]:https://learn.sparkfun.com/tutorials
+[23]:https://github.com/
 

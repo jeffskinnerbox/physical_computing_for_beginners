@@ -415,10 +415,18 @@ The script should check first if git or github is already being used and only ma
 Place this executable Bash script in @tech_setup_check/setup-gethub.sh
 Don't execute, I wish to inspect it.
 
+----
+
+# My 12 Prompt - Create Uninstall Script for Pre-Class Tools
+After the "What You Learned" section in @lesson_scripts/class-00-lesson-script.md,
+create a new section that describes how all the code, tools, libraries, etc. that that we installed can be uninstall from the Windows 11 PC.
+Point out that this not generally necessary but only if you want to return the PC to its ordinal condition.
+Us the same writing style used in the installation sections.
+Also give the user a way to assure the install was done completely & correctly (aka validation of the uninstall).
 
 ----
 
-# My XXX Prompt - Create `lesson_script_generator` Skil:> [!WARNING]
+# My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----
 
