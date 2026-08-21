@@ -44,6 +44,18 @@ for the Pico 2 W, and the [Adafruit CircuitPython Library Bundle][05] (a giant f
 pre-written code for sensors and motors you'll use starting in Class 1). Section 4 below walks
 through every install step in order — you don't need to go anywhere else tonight.
 
+**Additional components for the Homework Assignments** (Section 10) — not needed for tonight's
+class itself, only if you choose to do Homework 3 or Homework 4 at home:
+
+| Component | Quantity | Purpose (Homework #) |
+| :---------- | :--------: | :---------------------- |
+| 1.14" 240x135 Color TFT Display (ST7789) | 1 | Bouncing shape animation (Homework 3) — also used in Class 6's stretch goal |
+| IR Obstacle Avoidance Sensor | 1 | Digital proximity detection (Homework 4) — also used on the Random Rover in Class 5 |
+| Breadboard and jumper wires | as needed | Wiring the TFT display and IR sensor to the Pico 2 W for Homework 3 and 4 |
+
+Homework 1 (internal chip temperature) and Homework 2 (WiFi captive portal) need no additional
+hardware beyond the Pico 2 W itself.
+
 ## 3. Meet the Hardware
 
 **Raspberry Pi Pico 2 W.** This is a full microcontroller — a tiny, self-contained computer —
@@ -833,6 +845,8 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
   * [CoddyTech: Learn Python][27]
 * CircuitPython
   * [What is CircuitPython?][15] — background on CircuitPython vs. MicroPython vs. Arduino C++
+  * [Prof. G's Circuit Python Tutorials][31] - A full and free university course on using CircuitPython to program electronics.
+  * [Prof. G's CircuitPython School][32] - A Playlist containing all of the lessons & projects in Prof. John Gallaugher's course "Physical Computing: Art, Robotics, and Tech for Good".
   * [CircuitPython Firmware for the Raspberry Pi Pico 2 W][03] — the firmware flashed onto the board tonight
   * [CircuitPython.org — Libraries download][17] — where to get the version-matched Library Bundle
   * [CircuitPython Libraries][06] — what the Library Bundle is and how `/lib` gets used starting Class 1
@@ -886,6 +900,8 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [27]:https://coddy.tech/landing/python
 [28]:https://www.raspberrypi.com/news/raspberry-pi-pico-projects/
 [29]:https://all3dp.com/2/raspberry-pi-pico-projects/
-[30]:https://www.dfrobot.com/
+[30]:https://www.dfrobot.https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2com/
+[31]:https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2
+[32]:https://www.youtube.com/playlist?list=PLBJJ76R_ry5T3X72OIDkMOXQIdmcvSkue
 
 
