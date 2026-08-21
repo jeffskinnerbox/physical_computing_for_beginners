@@ -850,6 +850,7 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
   * [Instructables][12] — maker-community tutorials referenced throughout the course
   * [Adafruit Learn][13] — primary source for CircuitPython guides used across the course
   * [SparkFun Tutorials][22] — step-by-step guide on how to build with SparkFun products
+  * [DFRobot][30]
   * [Raspberry Pi Pico projects][28]
   * [All3DP: Raspberry Pi Pico Projects][29]
 
@@ -885,5 +886,6 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [27]:https://coddy.tech/landing/python
 [28]:https://www.raspberrypi.com/news/raspberry-pi-pico-projects/
 [29]:https://all3dp.com/2/raspberry-pi-pico-projects/
+[30]:https://www.dfrobot.com/
 
 
