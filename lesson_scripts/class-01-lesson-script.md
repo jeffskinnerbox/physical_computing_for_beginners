@@ -45,8 +45,16 @@ your robot car in Class 6.
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 
-**Additional components for the Homework Assignments** (Section 9) — no homework has been written
-for this class yet; this section will be filled in when that content is added.
+**Additional components for the Homework Assignments** (Section 9) — not needed for tonight's class
+itself, only if you choose to do Homework 4 at home:
+
+| Component | Quantity | Purpose (Homework #) |
+| :---------- | :--------: | :---------------------- |
+| IR Obstacle Avoidance Sensor | 1 | Digital proximity detection run through the same `Debouncer` pattern as the button (Homework 4) — also used on the Random Rover in Class 5 |
+
+Homework 1 (long-press detection), Homework 2 (encoder acceleration), and Homework 3 (persistent
+press counter) need no additional hardware beyond the button + rotary encoder circuit already on
+your breadboard.
 
 ## 3. Meet the Hardware
 
@@ -457,10 +465,269 @@ with today's circuit untouched right next to it.
 
 ## 9. Homework Assignment
 
-No homework assignments have been written for this class yet. This section will be filled in with
-optional take-home exercises, following the same format as the Pre-Class homework in
-[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
-does, full commented code, and real-world examples).
+Today's circuit and code stay on your breadboard — the exercises below are **homework, not
+required class content**, and each one builds directly on the button + rotary encoder circuit and
+the debouncing patterns you just learned tonight. Do them in any order. For each one you'll find:
+what the code teaches and why it's useful, the full commented code to save as `code.py` on your
+`CIRCUITPY` drive, what to expect when you test it, and a couple of real-world examples of where
+this exact technique shows up outside a classroom. Only Homework 4 needs a part beyond tonight's
+circuit — see [Section 2](#2-what-youll-need).
+
+### Homework 1 — Long-Press vs. Short-Press Detection
+
+**What this teaches:** So far you've only asked the button one question: "did you just get
+pressed?" (`.fell`). Real buttons usually need to answer a second question too: "*how long* were
+you held?" This exercise uses `Debouncer.fell` and `Debouncer.rose` together with
+`time.monotonic()` to time the gap between the press and the release, then classifies the result as
+a quick tap or a long hold.
+
+```python
+# code.py - Class 1 Homework 1: distinguish a quick tap from a held press
+import time
+import board
+import digitalio
+from adafruit_debouncer import Debouncer
+
+button_pin = digitalio.DigitalInOut(board.GP2)
+button_pin.direction = digitalio.Direction.INPUT
+button_pin.pull = digitalio.Pull.UP
+button = Debouncer(button_pin)
+
+LONG_PRESS_SECONDS = 0.6  # hold longer than this and it counts as a "long press"
+press_started = None
+
+print("Class 1 Homework 1 -- tap the button briefly, then hold it past 0.6s.")
+
+while True:
+    button.update()
+
+    if button.fell:
+        # Button just went down -- start the clock. We won't know the total
+        # hold time until it comes back up.
+        press_started = time.monotonic()
+
+    if button.rose and press_started is not None:
+        # Button just came back up -- now we know the full hold duration.
+        held_for = time.monotonic() - press_started
+        if held_for >= LONG_PRESS_SECONDS:
+            print(f"LONG PRESS ({held_for:.2f}s)")
+        else:
+            print(f"short press ({held_for:.2f}s)")
+        press_started = None
+
+    time.sleep(0.001)
+```
+
+**Test it:** Tap the button quickly — you should see `short press`. Hold it down for over half a
+second before releasing — you should see `LONG PRESS` instead, with the actual hold time printed.
+Try changing `LONG_PRESS_SECONDS` and see how it changes where the line falls.
+
+**Real-world examples:**
+
+* Phone and laptop power buttons use exactly this distinction — a tap wakes the screen, a
+    multi-second hold force-shuts-down the device.
+* Camera shutter buttons: a tap takes one photo, a held press triggers burst mode on many cameras.
+
+### Homework 2 — Encoder Acceleration (Speed-Sensitive Stepping)
+
+**What this teaches:** Tonight's Phase 2 encoder code already measures the time between accepted
+steps (`MIN_STEP_INTERVAL`) to filter out bounce. This exercise reuses that same timing measurement
+for a second purpose: instead of just accepting or rejecting a step, it scales *how big* each step
+is based on how fast you're turning the knob — a fast spin jumps the position by more than a slow,
+deliberate turn, exactly like a volume knob or a mouse scroll wheel that speeds up under a fast
+flick.
+
+```python
+# code.py - Class 1 Homework 2: rotary encoder that jumps by more than 1
+# per detent when spun quickly, like a volume knob or a scroll wheel.
+import time
+import board
+import digitalio
+import pwmio
+
+encoder_clk = digitalio.DigitalInOut(board.GP3)
+encoder_clk.direction = digitalio.Direction.INPUT
+encoder_clk.pull = digitalio.Pull.UP
+
+encoder_dt = digitalio.DigitalInOut(board.GP4)
+encoder_dt.direction = digitalio.Direction.INPUT
+encoder_dt.pull = digitalio.Pull.UP
+
+encoder_led = pwmio.PWMOut(board.GP14, frequency=5000, duty_cycle=0)
+
+encoder_position = 0
+last_clk_state = encoder_clk.value
+last_step_time = 0.0
+MIN_STEP_INTERVAL = 0.02  # same debounce filter as tonight's Phase 2
+
+print("Class 1 Homework 2 -- turn the knob slowly, then turn it fast, and compare.")
+
+while True:
+    clk_state = encoder_clk.value
+    now = time.monotonic()
+    if clk_state != last_clk_state and (now - last_step_time) >= MIN_STEP_INTERVAL:
+        # The faster consecutive steps arrive, the bigger a jump we apply.
+        time_since_last_step = now - last_step_time
+        if time_since_last_step < 0.05:
+            step_size = 5      # very fast turn
+        elif time_since_last_step < 0.15:
+            step_size = 2      # medium turn
+        else:
+            step_size = 1      # slow, deliberate turn
+
+        if encoder_dt.value != clk_state:
+            encoder_position += step_size
+        else:
+            encoder_position -= step_size
+        encoder_position = max(0, min(100, encoder_position))
+        encoder_led.duty_cycle = int(encoder_position / 100 * 65535)
+        last_step_time = now
+        print("encoder_position:", encoder_position, " step_size:", step_size)
+    last_clk_state = clk_state
+
+    time.sleep(0.001)
+```
+
+**Test it:** Turn the knob one slow detent at a time — `encoder_position` should climb by 1 each
+time, same as tonight's Phase 2. Now spin it quickly through several detents — watch
+`step_size` jump to 2 or 5 and `encoder_position` (and the LED brightness) race up much faster.
+
+**Real-world examples:**
+
+* Mouse and trackpad scroll wheels accelerate the same way — a slow scroll moves a few lines, a
+    fast flick jumps a whole page.
+* Car radio and thermostat volume/temperature knobs often speed up their response the faster you
+    turn them, so a big adjustment doesn't take dozens of individual clicks.
+
+### Homework 3 — Persistent Press Counter (Survives Power-Off)
+
+**What this teaches:** Every variable in your code so far has lived in RAM, which means it resets
+to its starting value the instant the board loses power — unplug it and `press_count` goes back to
+0. This exercise introduces `microcontroller.nvm`, a small block of memory built into the chip that
+is specifically designed to *keep* its contents across power loss and resets. You'll store
+`press_count` there instead of in a normal variable, so the count survives being unplugged.
+
+```python
+# code.py - Class 1 Homework 3: press_count that survives unplugging the board
+import time
+import board
+import digitalio
+import microcontroller  # gives access to microcontroller.nvm, a small chunk of memory
+                         # that survives power loss and resets, unlike a normal variable
+from adafruit_debouncer import Debouncer
+
+button_pin = digitalio.DigitalInOut(board.GP2)
+button_pin.direction = digitalio.Direction.INPUT
+button_pin.pull = digitalio.Pull.UP
+button = Debouncer(button_pin)
+
+# press_count is stored as 4 bytes (a 32-bit integer) at the very start of nvm.
+def load_press_count():
+    stored = microcontroller.nvm[0:4]
+    return int.from_bytes(stored, "big")
+
+def save_press_count(value):
+    microcontroller.nvm[0:4] = value.to_bytes(4, "big")
+
+press_count = load_press_count()
+print("Class 1 Homework 3 -- press_count loaded from NVM:", press_count)
+print("Press a few times, unplug the board, plug it back in, and watch the count pick up where it left off.")
+
+while True:
+    button.update()
+    if button.fell:
+        press_count += 1
+        save_press_count(press_count)
+        print("press_count:", press_count)
+
+    time.sleep(0.001)
+```
+
+**Test it:** Note the starting `press_count` printed at boot (it should be 0 the very first run),
+press the button a handful of times, then unplug the USB cable and plug it back in. The count
+printed at startup should now match the last value you saw before unplugging — not reset to 0.
+NVM has a large but finite number of writes (roughly 100,000 cycles), plenty for this exercise, and
+it's separate from `code.py` itself — re-flashing CircuitPython firmware does clear it.
+
+**Real-world examples:**
+
+* Car odometers and appliance cycle counters (washing machines, coffee makers) use the same idea —
+    a small persistent memory that survives being unplugged, separate from the device's main program.
+* Video games save your progress to persistent storage (a save file or memory card) for exactly the
+    same reason: the console's RAM forgets everything the instant it powers off.
+
+### Homework 4 — Add the IR Obstacle Sensor as a Second Debounced Input
+
+**What this teaches:** *(Requires the IR Obstacle Avoidance Sensor — already in the course's bill
+of materials for the Random Rover in Class 5, see [Section 2](#2-what-youll-need).)* Tonight you
+learned that debouncing fixes noisy readings from a mechanical switch. This exercise proves the
+technique isn't button-specific: the IR sensor is a completely different kind of digital input
+(an optical proximity detector, not a mechanical contact), and it gets wired through the exact same
+`Debouncer` class as the pushbutton, with no changes to the debouncing logic at all. This is the
+same sensor, same pin, and same read pattern you'll reuse on the Random Rover in Class 5.
+
+**Wiring — Pico 2 W to IR Obstacle Avoidance Sensor:**
+
+| Component | Pico 2 W Pin |
+| :---------- | :------------- |
+| IR sensor `VCC` | `3V3` (or `VBUS`) |
+| IR sensor `GND` | `GND` |
+| IR sensor `OUT` | `GP13` |
+
+```python
+# code.py - Class 1 Homework 4: run the IR Obstacle Avoidance Sensor through
+# the SAME Debouncer pattern used for the pushbutton -- proof that debouncing
+# isn't a "button-only" trick, it's a general technique for noisy digital
+# inputs. This exact sensor and pin comes back in Class 5 on the Random Rover.
+import time
+import board
+import digitalio
+from adafruit_debouncer import Debouncer
+
+# --- Pushbutton (unchanged from tonight's main project) ---
+button_pin = digitalio.DigitalInOut(board.GP2)
+button_pin.direction = digitalio.Direction.INPUT
+button_pin.pull = digitalio.Pull.UP
+button = Debouncer(button_pin)
+
+# --- IR obstacle sensor -- the module drives OUT itself, so no pull-up needed ---
+ir_pin = digitalio.DigitalInOut(board.GP13)
+ir_pin.direction = digitalio.Direction.INPUT
+ir_sensor = Debouncer(ir_pin)
+
+press_count = 0
+obstacle_count = 0
+
+print("Class 1 Homework 4 -- press the button, then wave your hand in front of the IR sensor.")
+
+while True:
+    button.update()
+    if button.fell:
+        press_count += 1
+        print("press_count:", press_count)
+
+    ir_sensor.update()
+    # The sensor's OUT pin goes LOW when it sees an obstacle, so a debounced
+    # "fell" event means an obstacle just appeared.
+    if ir_sensor.fell:
+        obstacle_count += 1
+        print("obstacle_count:", obstacle_count)
+
+    time.sleep(0.001)
+```
+
+**Test it:** Press the button a few times and confirm `press_count` still increments cleanly.
+Then slowly move your hand toward the IR sensor from about arm's length — `obstacle_count` should
+increment by exactly 1 per approach, with no double-counting, the same clean behavior you saw from
+the debounced button tonight.
+
+**Real-world examples:**
+
+* Automatic doors and elevator door edges use debounced IR/optical sensors so a single person
+    walking through registers as one clean "obstacle present" event, not a flickering mess.
+* Robot vacuums use several cheap IR proximity sensors around their edge as an always-on backup to
+    their main sensors — the same redundancy idea your Random Rover will use in Class 5, pairing
+    this sensor with the ultrasonic sensor and a physical bump switch.
 
 ## References
 
