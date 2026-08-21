@@ -39,6 +39,9 @@ square-and-circle problem on its own.
 | Laptop with Mu or Thonny | 1 | Where you write/save the Pico's code |
 | Laptop with Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
 
+**Additional components for the Homework Assignments** (Section 9) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 **LSM9DS1 9-DOF IMU.** "9-DOF" means nine degrees of freedom — this one breakout board actually
@@ -504,6 +507,13 @@ And critically: you also confirmed that knowing which way something is pointed s
 same as knowing how far it has traveled. That's exactly why Class 5 doesn't use the IMU at all to
 solve the navigation problem — it takes a completely different approach, using the sensor and
 servo you built back in Class 2.
+
+## 9. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 

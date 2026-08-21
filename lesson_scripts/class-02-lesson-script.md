@@ -38,6 +38,9 @@ obstacles starting in Class 5.
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 
+**Additional components for the Homework Assignments** (Section 10) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 **HC-SR04 ultrasonic distance sensor.** This sensor has four pins: `VCC`, `GND`, `TRIG`, and
@@ -362,6 +365,13 @@ This exact circuit — sensor riding on the servo, sweeping and reporting — is
 stand-in for something later; it's the unchanged "look around" behavior your Random Rover uses
 starting in Class 5. Next class, you add the piece that's still missing: a motor driver that can
 actually act on what the sensor sees.
+
+## 10. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 

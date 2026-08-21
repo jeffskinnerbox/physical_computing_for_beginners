@@ -47,6 +47,9 @@ their working rover to the group.
 | Laptop with Mu or Thonny | 1 | Where you write/save code |
 | Laptop with a web browser | 1 | Views the stretch 2 live WiFi chart |
 
+**Additional components for the Homework Assignments** (Section 11) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 **Core rover:** no new hardware — you're tuning the exact circuit from Class 5.
@@ -449,6 +452,13 @@ More broadly, you built a complete physical computing system from a bare microco
 working piece at a time, over six classes: a debounced switch, a servo-swept sensor, a motor
 driver, an IMU, and finally a robot that senses, decides, and acts on its own. That's the whole
 discipline of physical computing, and you've now done it for real, with your own hands.
+
+## 11. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 

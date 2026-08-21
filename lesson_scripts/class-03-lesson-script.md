@@ -39,6 +39,9 @@ just say "it's not accurate."
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | Marked 12" square / 12"-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
 
+**Additional components for the Homework Assignments** (Section 9) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 **DRV8833 dual H-bridge motor driver.** A DC motor spins one direction when current flows through
@@ -442,6 +445,13 @@ it *precisely* is harder than it sounds. Specifically, you now know:
 
 That gap — no way to check where you actually are against where you meant to be — is exactly what
 an IMU (inertial measurement unit) starts to address. That's next class.
+
+## 9. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 

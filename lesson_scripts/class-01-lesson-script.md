@@ -45,6 +45,9 @@ your robot car in Class 6.
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 
+**Additional components for the Homework Assignments** (Section 9) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 **Pushbutton switch.** A pushbutton is just two metal contacts that touch when you press it and
@@ -451,6 +454,13 @@ Leave this circuit on your breadboard — you'll use the rotary encoder again, c
 in Class 6 as a live speed control for your robot car. Next class, you'll meet a new kind of
 "noisy real-world signal" problem: an ultrasonic distance sensor, wired fresh on brand-new pins,
 with today's circuit untouched right next to it.
+
+## 9. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 

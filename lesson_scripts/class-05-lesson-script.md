@@ -46,6 +46,9 @@ you touching it — the central milestone of the whole course.
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | Open floor area with soft obstacles | shared | Test space for autonomous driving runs |
 
+**Additional components for the Homework Assignments** (Section 8) — no homework has been written
+for this class yet; this section will be filled in when that content is added.
+
 ## 3. Meet the Hardware
 
 There's no new hardware today — this class is about combining two circuits you've already built
@@ -423,6 +426,13 @@ go, entirely on its own. Specifically, you now know:
 
 Next class isn't new concepts — it's finishing and tuning this exact rover, plus optional stretch
 goals that bring back your Class 1 encoder and Class 4 IMU if you want to go further.
+
+## 8. Homework Assignment
+
+No homework assignments have been written for this class yet. This section will be filled in with
+optional take-home exercises, following the same format as the Pre-Class homework in
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
+does, full commented code, and real-world examples).
 
 ## References
 
