@@ -28,12 +28,11 @@ exact invocation pattern and skill combination that produced the current version
 (class vs. course vs. workshop, external articles on applying coding agents to non-programming
 work) — background context, not a generated doc.
 
-`input/spec-kit-methodology.md` and `input/script-methodology.md` are personal background notes
-on the two authoring methodologies this user applies with Claude Code — Spec-Kit (for software)
-and a parallel "Script Methodology" (for course material, where `my-vision.md`, BOM, syllabus,
-and lesson plans act as executable contracts). They're context for *how* this repo is meant to be
-worked, not generated docs themselves — don't regenerate or reconcile them the way you would
-syllabus/lesson-plan/BOM content.
+`input/spec-kit-methodology.md` is a personal background note comparing the two authoring
+methodologies this user applies with Claude Code — Spec-Kit (for software) and a parallel "Script
+Methodology" (for course material, where `my-vision.md`, BOM, syllabus, and lesson plans act as
+executable contracts). It's context for *how* this repo is meant to be worked, not a generated
+doc itself — don't regenerate or reconcile it the way you would syllabus/lesson-plan/BOM content.
 
 Generation pipeline, per `my-vision.md`'s "Course Documentation" table:
 
