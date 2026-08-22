@@ -436,15 +436,14 @@ does, full commented code, and real-world examples).
 
 ## References
 
-* [Raspberry Pi Pico W taught this car to avoid objects][01] — a real-world example of Pico-based
-    obstacle avoidance, similar in spirit to this project
-* [How to make an obstacle avoidance robot using Raspberry Pi Pico board][02] — a step-by-step
-    obstacle-avoidance build guide, useful as a cross-reference
-* [Obstacle Avoidance Robot Using Raspberry Pi Pico][03] — another worked example combining a
-    distance sensor and motor driver for collision avoidance
+* [IR Obstacle Avoidance Module][04] - documentation of the breakout board layout and operating principles
+* [Raspberry Pi Pico W taught this car to avoid objects][01] — a real-world example of Pico-based obstacle avoidance, similar in spirit to this project
+* [How to make an obstacle avoidance robot using Raspberry Pi Pico board][02] — a step-by-step obstacle-avoidance build guide, useful as a cross-reference
+* [Obstacle Avoidance Robot Using Raspberry Pi Pico][03] — another worked example combining a distance sensor and motor driver for collision avoidance
 
 ---
 
 [01]:https://www.raspberrypi.com/news/raspberry-pi-pico-w-taught-this-car-to-avoid-objects/
 [02]:https://srituhobby.com/how-to-make-an-obstacle-avoidance-robot-using-raspberry-pi-pico-board/
 [03]:https://circuitdiagrams.in/obstacle-avoidance-robot-using-raspberry-pi/
+[04]:https://osoyoo.com/2018/12/21/ir-obstacle-avoidance-module/
