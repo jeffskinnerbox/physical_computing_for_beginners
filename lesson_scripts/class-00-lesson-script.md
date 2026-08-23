@@ -731,7 +731,8 @@ display.root_group = main_group
 # anchor_point=(0.5, 0.0) means "the point we position is the horizontal
 # center, vertical top" of the text -- so it stays centered no matter what
 # the text says or how wide it is.
-text_label = label.Label(terminalio.FONT, text="Hello World!", color=0xFFFFFF)
+text_label = label.Label(terminalio.FONT, text="Hello World!", color=0xFFFF00)
+text_label.scale = 2  # doubles the built-in font to 12x16px per character
 text_label.anchor_point = (0.5, 0.0)
 text_label.anchored_position = (display.width // 2, 2)
 main_group.append(text_label)
