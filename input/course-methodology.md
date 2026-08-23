@@ -44,6 +44,14 @@ Tutorials are intimate, practical problem-solving sessions focusing on specific 
 
 ----
 
+# Claude Code Methodology
+* [Navigating Claude Code](https://hackernoon.com/tagged/claude-code)
+  * [The Bare Minimum Setup](https://hackernoon.com/navigating-claude-code-the-bare-minimum-setup?ref=hackernoon.com)
+  *
+  *
+  *
+  * [The Full Workflow](https://hackernoon.com/navigating-claude-code-the-full-workflow)
+
 # Course Creation Methodology
 I have come to believe the following:
 Coding agents are a way I can interact with basically any tasks that I work on.

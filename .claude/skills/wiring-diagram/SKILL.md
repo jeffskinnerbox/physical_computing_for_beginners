@@ -15,8 +15,8 @@ Given a table like:
 | `GND` | `GND` | Common ground |
 | `GP13` | `OUT` | Digital output |
 
-Produce one static, single-artboard `.dc.html` (see `reference/example.dc.html` for a
-full worked example built from this exact table) with:
+Using the `/design` skill, produce one static, single-artboard `.dc.html`
+(see `reference/example.dc.html` for a full worked example built from this exact table) with:
 
 - **Left**: a simple silhouette of the board (rectangle + a couple of identifying
   details), with the used pins marked on its right edge and labeled with their exact
