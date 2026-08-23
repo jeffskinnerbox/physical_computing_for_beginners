@@ -154,8 +154,12 @@ one-click serial console.
 > stops working someday.
 
 **Test it:** Click **Start**, type `Mu`, and launch it (first launch can take a moment — be
-patient). A dialog asks you to pick a mode — choose **CircuitPython**. Once the main window opens,
-Mu is ready to talk to a board.
+patient). A dialog asks you to pick a mode — choose **CircuitPython**.
+Once the main window opens, Mu is ready to talk to a board.
+
+>**NOTE:** A somewhat common Mu-on-Windows limitation within the serial terminal screen
+>is that it doesn't always forward `Ctrl+C` or `Ctrl-D` keys to the microcontroller.
+>To do a restart, press the **Save** button on on the top menu.
 
 #### Step 3 — Install Thonny and connect it to the Pico 2 W
 
@@ -580,7 +584,7 @@ of CircuitPython:
 # settings.toml — save this on CIRCUITPY, next to code.py
 # WiFi credentials for the Pico's own access point (not your home WiFi)
 CIRCUITPY_WIFI_AP_SSID="<your-name>"
-CIRCUITPY_WIFI_AP_PASSWORD="blinkblink"   # must be at least 8 characters — WiFi requirement, not a suggestion
+CIRCUITPY_WIFI_AP_PASSWORD="password"   # must be at least 8 characters — WiFi requirement, not a suggestion
 ```
 
 > This board also needs `adafruit_httpserver` copied into CIRCUITPY's `lib` folder the same way
@@ -673,36 +677,44 @@ LED on the board.
 exercise draws a simple shape on the TFT and makes it bounce off the screen's edges, like the
 classic "DVD logo" screensaver. It introduces `displayio` (CircuitPython's graphics framework),
 a coordinate system with an X/Y origin, and the core game-physics idea of updating a position by a
-velocity every frame and reversing that velocity on collision with a boundary.
+velocity every frame and reversing that velocity on collision with a boundary. It also introduces
+`adafruit_display_text`, adding a "Hello World!" label centered along the top edge — since the
+square is added to the `displayio.Group` *after* the label, it draws on top and visually covers
+the text each time it passes over it, uncovering it again once it moves on.
 
 This uses the same TFT and the same pins (`GP18`-`GP22`) documented for the Class 6 stretch goal,
 so if you've already wired the display for that class, this program will run on it as-is with no
 rewiring.
 
-**Wiring — Pico 2W to ST7789 1.14" 240x135 TFT:**
+**Wiring — Raspberry Pi Pico 2W to ST7789 1.14" 240x135 TFT:**
+* [Raspberry Pi Pico 2w Pinout][20]
+* [Adafruit 1.14" 240x135 Color Newxie TFT DisplayT Pinout][33]
 
 | Pico 2W Pin | TFT Pin | Signal / Function |
 | ------------- | --------- | -------------------- |
-| `3V3(OUT)` | `VIN` | 3.3V power to the display |
-| `GND` | `GND` | Common ground |
-| `GP18` | `SCK` | SPI clock |
-| `GP19` | `MOSI` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
+| `3V3 OUT` | `VIN` / `V+` | To power the board, give it the same power as the logic level of your microcontroller 3.3 volts |
+| `GND` | `GND` / `G` | Common ground |
+| `GP18` | `SCK` / `CL` | SPI clock |
+| `GP19` | `MOSI` / `DA` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
 | `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
 | `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
-| `GP22` | `RST` | Reset (lets CircuitPython force the display back to a known state on startup) |
+| `GP22` | `RST` / `BL` | Reset (lets CircuitPython force the display back to a known state on startup) |
 
 > Double-check your specific TFT board's silkscreen labels against this table — some boards
 > label the reset pin `RESET` or `RST`, and the data/command pin `DC` or `A0`, but they're the
 > same signal either way.
 
 ```python
-# code.py - bounces a square around the TFT display, DVD-logo style
+# code.py - bounces a square around the TFT display, DVD-logo style,
+# passing over (and briefly covering) a "Hello World!" label at the top
 import time
 import board
 import busio
 import displayio
 import fourwire
 import vectorio
+import terminalio
+from adafruit_display_text import label
 from adafruit_st7789 import ST7789   # matches the TFT used later in this course (Class 6)
 
 # --- Wire up and initialize the TFT display over SPI ---
@@ -710,12 +722,24 @@ from adafruit_st7789 import ST7789   # matches the TFT used later in this course
 displayio.release_displays()  # frees up the display in case code.py has run before
 spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
-display = ST7789(display_bus, width=240, height=135, rotation=270)
+display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 
-# --- Build the shape we'll bounce: a small filled square ---
 main_group = displayio.Group()
 display.root_group = main_group
 
+# --- "Hello World!" label, centered along the top edge ---
+# anchor_point=(0.5, 0.0) means "the point we position is the horizontal
+# center, vertical top" of the text -- so it stays centered no matter what
+# the text says or how wide it is.
+text_label = label.Label(terminalio.FONT, text="Hello World!", color=0xFFFFFF)
+text_label.anchor_point = (0.5, 0.0)
+text_label.anchored_position = (display.width // 2, 2)
+main_group.append(text_label)
+
+# --- Build the shape we'll bounce: a small filled square ---
+# Added to the group AFTER the label, so it draws on top of the text and
+# visually "erases" (covers) it while passing over, revealing it again once
+# it moves on -- the text itself is never actually deleted.
 palette = displayio.Palette(1)
 palette[0] = 0x00AAFF  # a bright cyan-blue square
 
@@ -753,9 +777,21 @@ while True:
     time.sleep(0.02)  # ~50 frames per second — fast enough to look smooth
 ```
 
-**Test it:** Save as `code.py` with the TFT wired per Class 6's wiring notes. The square should
-glide around the screen and visibly change direction each time it touches an edge, without ever
-disappearing off the side.
+**Test it:** Save as `code.py` with the TFT wired per Class 6's wiring notes. You should see
+"Hello World!" centered at the top of the screen, and the square should glide around the screen,
+visibly change direction each time it touches an edge, and briefly cover the text each time it
+passes underneath, without ever disappearing off the side.
+
+> You'll also need `adafruit_display_text` copied into `CIRCUITPY`'s `lib` folder (the same way
+> you copied `neopixel.mpy` back in Section 4) — grab the `adafruit_display_text` folder from the
+> Adafruit CircuitPython Library Bundle. `terminalio`, used for the built-in font, ships with
+> CircuitPython already, so it needs no copying.
+>
+>**NOTE:** This specific panel (Adafruit's 1.14" 240×135 ST7789, product 4383) has a controller with more RAM (240×320)
+>than visible glass (240×135). The visible window doesn't start at RAM address (0,0) — it's offset within the buffer.
+>Without telling the driver that offset (rowstart/colstart, sometimes x_offset/y_offset depending on library version),
+>display.width/display.height still report 240×135 correctly, so your bounce math (x<=0, y<=0, etc.) is logically fine
+>— but the pixels you draw at low x/y land in the controller's off-glass border, not on the visible screen.
 
 **Real-world examples:**
 
@@ -903,5 +939,6 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [30]:https://www.dfrobot.https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2com/
 [31]:https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2
 [32]:https://www.youtube.com/playlist?list=PLBJJ76R_ry5T3X72OIDkMOXQIdmcvSkue
+[33]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
 
 
