@@ -508,6 +508,7 @@ same as knowing how far it has traveled. That's exactly why Class 5 doesn't use 
 solve the navigation problem — it takes a completely different approach, using the sensor and
 servo you built back in Class 2.
 
+----
 ## 9. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
@@ -524,6 +525,8 @@ does, full commented code, and real-world examples).
 * [9-DOF LSM9DS1 Breakout Board — Product Page][03] — the IMU used this project
 
 ---
+
+
 
 [01]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/python-circuitpython
 [02]:https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html

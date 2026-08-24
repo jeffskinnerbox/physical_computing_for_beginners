@@ -446,6 +446,7 @@ it *precisely* is harder than it sounds. Specifically, you now know:
 That gap — no way to check where you actually are against where you meant to be — is exactly what
 an IMU (inertial measurement unit) starts to address. That's next class.
 
+----
 ## 9. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
@@ -462,6 +463,8 @@ does, full commented code, and real-world examples).
 * [Driving A DC Motor With CircuitPython][03] — background on PWM-based DC motor speed control
 
 ---
+
+
 
 [01]:https://docs.circuitpython.org/projects/motor/en/latest/api.html
 [02]:https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board

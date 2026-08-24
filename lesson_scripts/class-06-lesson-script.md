@@ -453,6 +453,7 @@ working piece at a time, over six classes: a debounced switch, a servo-swept sen
 driver, an IMU, and finally a robot that senses, decides, and acts on its own. That's the whole
 discipline of physical computing, and you've now done it for real, with your own hands.
 
+----
 ## 11. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
@@ -472,6 +473,8 @@ does, full commented code, and real-world examples).
   for the same type of robot
 
 ---
+
+
 
 [01]:https://learn.adafruit.com/adafruit-1-14-240x135-color-newxie-tft-display/circuitpython
 [02]:https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/

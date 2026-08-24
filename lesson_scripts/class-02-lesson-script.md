@@ -366,6 +366,7 @@ stand-in for something later; it's the unchanged "look around" behavior your Ran
 starting in Class 5. Next class, you add the piece that's still missing: a motor driver that can
 actually act on what the sensor sees.
 
+----
 ## 10. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with

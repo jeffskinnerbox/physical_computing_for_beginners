@@ -426,6 +426,22 @@ Also give the user a way to assure the install was done completely & correctly (
 
 ----
 
+# My 13 Prompt - For a class-xx-lesson-script.md, Create HomeWork Project Candidates
+For the @lesson_scripts/class-xx-lesson-script.md (called here the "current class"),
+use a sub-agent to identify 6 projects for the "Homework Assignments" section.
+These projects can only use devices & breakout boards used in this class or prior classes.
+These projects should demonstrate / teach something not yet done for the current class
+and should not repeat what was done in previous classes.
+Review the candidate project with me, one at a time in detail, for my approval, rejection, or modification.
+
+Once all the homework projects have been reviewed, add the projects to the "Homework Assignments" section
+using the lesson_scripts/class-00-lesson-script.md document as a template for content and format.
+
+Using a sub-agent, compare the current class to lesson_scripts/class-00-lesson-script.md.
+Identify inconstancies and recommend  modifications to the current class.
+
+----
+
 # My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----

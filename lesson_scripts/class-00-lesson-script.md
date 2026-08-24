@@ -1,6 +1,5 @@
 # Lesson Script: Pre-Class — Prepare Your Laptop and Pico
 
-
 * **Class:** Pre-Class (Phase 0 — Setup), before Class 1 of 6
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
@@ -400,7 +399,7 @@ Next class, this same chain gets its first real test with actual hardware: a pus
 a rotary encoder, wired to real GPIO pins for the first time. Nothing from tonight needs to be
 undone — tonight's `code.py` simply gets replaced by Class 1's.
 
-## 9. Uninstalling Everything (Optional)
+## 9. Uninstalling Everything (When Needed)
 
 Everything you installed tonight lives entirely inside your own user account and on the Pico
 itself — nothing tonight touched Windows system files or needs admin rights to remove. **You do
@@ -506,6 +505,7 @@ If every box checks out, your laptop and Pico are both back to their pre-Pre-Cla
 ever want to pick the course back up, Section 4 walks through every one of these steps again from
 scratch.
 
+----
 ## 10. Homework Assignment
 
 Everything above got your dev environment running and proved the chain works with a one-line
@@ -553,12 +553,13 @@ while True:
     time.sleep(1)  # wait a second between readings so the console stays readable
 ```
 
+#### What You Observe
 **Test it:** Save as `code.py`, open the Serial console (Mu) or Shell pane (Thonny), and watch
 readings print once per second. Try cupping your hand around the board (without touching any
 pins) for a minute — the reading should climb slightly, confirming the sensor is live and
 responsive, not a fixed/fake number.
 
-**Real-world examples:**
+#### Real World Examples
 
 * Laptops, phones, and game consoles all read an internal chip temperature sensor like this one to
     decide when to spin up a fan or throttle performance before overheating causes damage.
@@ -655,13 +656,14 @@ while True:
         last_blink = time.monotonic()
 ```
 
+#### What You Observe
 **Test it:** Save this as `code.py` on CIRCUITPY, wait for it to reboot, then on your phone or
 laptop open WiFi settings and connect to the `<your-name>` network using the password from
 `settings.toml`. Open a browser and go to the address printed in the serial console (something like
 `http://192.168.4.1/`) — the page should show ON/OFF and flip once a second, matching the physical
 LED on the board.
 
-**Real-world examples:**
+#### Real World Examples
 
 * This is exactly how a smart plug, WiFi light bulb, or new WiFi router gets set up for the first
     time — you connect to a small network the device broadcasts, then configure it from a webpage,
@@ -670,7 +672,7 @@ LED on the board.
     same pattern to let a technician walk up, connect directly, and check status without carrying a
     laptop cable or router.
 
-### Homework 3 — Bouncing Shape Animation on the TFT Display
+### Homework 3 — Bouncing Square Animation on the TFT Display
 
 **What this teaches:** *(Requires the [TFT display][19] used later in this course — see the "1.14"
 240x135 Color TFT Display" in the course's bill of materials, Class 6's stretch goal.)* This
@@ -688,7 +690,7 @@ rewiring.
 
 **Wiring — Raspberry Pi Pico 2W to ST7789 1.14" 240x135 TFT:**
 * [Raspberry Pi Pico 2w Pinout][20]
-* [Adafruit 1.14" 240x135 Color Newxie TFT DisplayT Pinout][33]
+* [Adafruit 1.14" 240x135 Color Newxie TFT Display Pinout][33]
 
 | Pico 2W Pin | TFT Pin | Signal / Function |
 | ------------- | --------- | -------------------- |
@@ -778,6 +780,7 @@ while True:
     time.sleep(0.02)  # ~50 frames per second — fast enough to look smooth
 ```
 
+#### What You Observe
 **Test it:** Save as `code.py` with the TFT wired per Class 6's wiring notes. You should see
 "Hello World!" centered at the top of the screen, and the square should glide around the screen,
 visibly change direction each time it touches an edge, and briefly cover the text each time it
@@ -794,7 +797,7 @@ passes underneath, without ever disappearing off the side.
 >display.width/display.height still report 240×135 correctly, so your bounce math (x<=0, y<=0, etc.) is logically fine
 >— but the pixels you draw at low x/y land in the controller's off-glass border, not on the visible screen.
 
-**Real-world examples:**
+#### Real World Examples
 
 * This exact bounce-and-reverse-velocity pattern is the starting point for real game physics
     engines — Pong, Breakout, and any game with objects that ricochet off walls all extend this same
@@ -813,6 +816,8 @@ distance. Reading it is a single `digitalio` input, the same pattern you'll reus
 Class 1 and for this exact sensor again in Class 5, just wired to a different pin.
 
 **Wiring — Pico 2W to IR Obstacle Avoidance Sensor:**
+* [Raspberry Pi Pico 2w Pinout][20]
+* [IR Obstacle Avoidance Sensor Pinout][34]
 
 | Pico 2W Pin | Sensor Pin | Signal / Function |
 | ------------- | ------------- | -------------------- |
@@ -859,7 +864,71 @@ at some distance it should switch to `OBSTACLE DETECTED` and the onboard LED sho
 switch back to `clear` and the LED off when you pull your hand away. If it never triggers, or
 triggers constantly with nothing nearby, adjust the sensitivity potentiometer and try again.
 
-**Real-world examples:**
+```python
+# code.py - reads the IR obstacle sensor and shows its status on the TFT,
+# independent of the serial console (requires the TFT wired per Homework 3)
+import time
+import board
+import busio
+import digitalio
+import displayio
+import fourwire
+import terminalio
+from adafruit_display_text import label
+from adafruit_st7789 import ST7789
+
+# Release any display left registered from a prior program (e.g. Homework 3)
+# before setting up our own -- this also stops the automatic console mirroring
+# once we assign our own root_group below.
+displayio.release_displays()
+spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
+display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
+
+status_label = label.Label(terminalio.FONT, text="Starting...", color=0xFFFFFF)
+status_label.scale = 2
+status_label.anchor_point = (0.5, 0.5)
+status_label.anchored_position = (display.width // 2, display.height // 2)
+
+main_group = displayio.Group()
+main_group.append(status_label)
+#display.root_group = main_group  # setting this is what stops the console mirroring
+
+ir_sensor = digitalio.DigitalInOut(board.GP13)
+ir_sensor.direction = digitalio.Direction.INPUT
+
+led = digitalio.DigitalInOut(board.LED)
+led.direction = digitalio.Direction.OUTPUT
+
+while True:
+    obstacle_detected = not ir_sensor.value
+    led.value = obstacle_detected
+
+    if obstacle_detected:
+        status_label.text = "OBSTACLE\nDETECTED"
+        status_label.color = 0xFF0000
+    else:
+        status_label.text = "clear"
+        status_label.color = 0x00FF00
+
+    time.sleep(0.2)
+```
+
+#### What You Observe
+If you're doing this homework on the same breadboard as Homework 3 (TFT display still
+wired), you may notice the TFT starts mirroring the exact same text you see in the serial console.
+That's not a bug — it's a built-in CircuitPython behavior: any `displayio` display stays
+registered as the active display across a save/reload until something either releases it
+(`displayio.release_displays()`) or gives it its own `root_group`.
+Homework 3's code registered the TFT and set a `root_group`;
+this program never touches `displayio` at all, so CircuitPython
+falls back to showing its console output on the still-registered display.
+
+To stop that and show your own independent text instead, add a small `displayio` block that sets `root_group`,
+and once set, the console mirroring stops.
+In the code above, printing sensor status to the TFT instead of (or in addition to) the serial console.
+
+#### Real World Examples
 
 * Automatic paper towel dispensers, touchless soap dispensers, and hand dryers all use this exact
     kind of digital IR proximity sensor to detect "something is here" without needing a precise
@@ -941,5 +1010,6 @@ triggers constantly with nothing nearby, adjust the sensitivity potentiometer an
 [31]:https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2
 [32]:https://www.youtube.com/playlist?list=PLBJJ76R_ry5T3X72OIDkMOXQIdmcvSkue
 [33]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
+[34]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
 
 

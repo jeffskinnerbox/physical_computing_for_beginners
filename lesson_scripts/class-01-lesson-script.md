@@ -463,6 +463,7 @@ in Class 6 as a live speed control for your robot car. Next class, you'll meet a
 "noisy real-world signal" problem: an ultrasonic distance sensor, wired fresh on brand-new pins,
 with today's circuit untouched right next to it.
 
+----
 ## 9. Homework Assignment
 
 Today's circuit and code stay on your breadboard — the exercises below are **homework, not

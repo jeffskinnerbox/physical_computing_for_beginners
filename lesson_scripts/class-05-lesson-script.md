@@ -427,6 +427,7 @@ go, entirely on its own. Specifically, you now know:
 Next class isn't new concepts — it's finishing and tuning this exact rover, plus optional stretch
 goals that bring back your Class 1 encoder and Class 4 IMU if you want to go further.
 
+----
 ## 8. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
@@ -442,6 +443,8 @@ does, full commented code, and real-world examples).
 * [Obstacle Avoidance Robot Using Raspberry Pi Pico][03] — another worked example combining a distance sensor and motor driver for collision avoidance
 
 ---
+
+
 
 [01]:https://www.raspberrypi.com/news/raspberry-pi-pico-w-taught-this-car-to-avoid-objects/
 [02]:https://srituhobby.com/how-to-make-an-obstacle-avoidance-robot-using-raspberry-pi-pico-board/
