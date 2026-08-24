@@ -406,7 +406,7 @@ Here are some overriding desires when doing this merge:
 
 ----
 
-# My 11 Prompt - Create Create GitHUb Repository
+# My 11th Prompt - Create Create GitHUb Repository
 I want to start using git within this project and create a Github repository for this project.
 Create for me a Bash script that will prompts me for all the required information,
 and at the end, prints out the information for me to validate and then performs the task.
@@ -417,7 +417,7 @@ Don't execute, I wish to inspect it.
 
 ----
 
-# My 12 Prompt - Create Uninstall Script for Pre-Class Tools
+# My 12th Prompt - Create Uninstall Script for Pre-Class Tools
 After the "What You Learned" section in @lesson_scripts/class-00-lesson-script.md,
 create a new section that describes how all the code, tools, libraries, etc. that that we installed can be uninstall from the Windows 11 PC.
 Point out that this not generally necessary but only if you want to return the PC to its ordinal condition.
@@ -426,7 +426,7 @@ Also give the user a way to assure the install was done completely & correctly (
 
 ----
 
-# My 13 Prompt - For a class-xx-lesson-script.md, Create HomeWork Project Candidates
+# My 13th Prompt - For a class-xx-lesson-script.md, Create HomeWork Project Candidates
 For the @lesson_scripts/class-xx-lesson-script.md (called here the "current class"),
 use a sub-agent to identify 6 projects for the "Homework Assignments" section.
 These projects can only use devices & breakout boards used in this class or prior classes.
@@ -439,6 +439,40 @@ using the lesson_scripts/class-00-lesson-script.md document as a template for co
 
 Using a sub-agent, compare the current class to lesson_scripts/class-00-lesson-script.md.
 Identify inconstancies and recommend  modifications to the current class.
+
+----
+
+# My 14th Prompt - Using the `/explainer` skill, create `micropython-vs-circuitpython.md`
+using the /explainer skill, create a document located @explainer/micropython-vs-circuitpython.md
+discussing the use, origins, and current state of MicroPython and CircuitPython.
+Point out what MicroPython and CircuitPython share in common and what makes them different.
+Point out when one is preferred over the other.
+Point out who are the typical users and how MicroPython & CircuitPython differ from languages like C++.
+My target audience are the students for my class.
+
+----
+
+# My 15th Prompt - Using the `/explainer` skill, create `microprocessor-vs-microcontroller.md`
+Using the /explainer skill, create a document located @explainer/microprocessor-vs-microcontroller.md
+discussing the origins of microprocessor & microcontrollers, the problem they are intended to solve,
+and what makes them different.
+Give specific examples of where they are used and how the user experience may be similar and different.
+Point out when one is preferred over the other.
+My target audience are the students for my class.
+
+----
+
+# My 16th Prompt - Using the `/explainer` skill, create `what-is-the-random-rover.md`
+
+Using the /explainer skill, create a document located @explainer/what-is-the-random-rover.md
+that describes the Random Rover, which is the end product of this series of classes.
+Point out this type of robot is a popular first robot for a new student of robotics.
+Point out that it has a simple "brain" much like a insect.
+Point out that it meets the definition of a robot because it senses its environment, makes a plan for its movement, moves, and sense once again.
+Point out that its an autonomous robot and explain what this means.
+Point out that while it meets the definition of an autonomous robotic,
+and is similar to a Roomba vacuum cleaner,
+it is far from what industrial, self-driving cars, and humanoid robots require.
 
 ----
 
@@ -455,11 +489,11 @@ Identify inconstancies and recommend  modifications to the current class.
 
 
 
-# My XXX Prompt - Create `circuitpython-class-script` Skill
+# My XXX Prompt - Create `circuitpython_class_script` Skill
 
 ## Context
 Using your your `SKILL.md` creation skills,
-I want to create a Claude `SKILL.md` file with the name `circuitpython-class-script`.
+I want to create a Claude `SKILL.md` file with the name `circuitpython_class_script`.
 The skill is for the generation of script used by a 12 to 18 year old person.
 This person has elementary understanding of Bash, PowerShell, Python commands.
 

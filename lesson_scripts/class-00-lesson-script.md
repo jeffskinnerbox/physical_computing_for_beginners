@@ -29,6 +29,9 @@ put together the same way real makers build things, by reading documentation and
 examples from sites like [Adafruit][13], [GitHub][23], [Instructables][12], and [SparkFun][22].
 Whenever you get stuck later, those same sites are where you go, not just where the instructor goes.
 
+>**NOTE:** If you want to learn more about CircuitPython, and its close friend MicroPython,
+>checkout the document in the [explainers folder][35].
+
 ## 2. What You'll Need
 
 | Component | Quantity | Purpose This Project |
@@ -54,6 +57,8 @@ class itself, only if you choose to do Homework 3 or Homework 4 at home:
 
 Homework 1 (internal chip temperature) and Homework 2 (WiFi captive portal) need no additional
 hardware beyond the Pico 2 W itself.
+
+>**NOTE:** For those who do not have a computer at home, there is an alternative.
 
 ## 3. Meet the Hardware
 
@@ -1011,5 +1016,6 @@ In the code above, printing sensor status to the TFT instead of (or in addition 
 [32]:https://www.youtube.com/playlist?list=PLBJJ76R_ry5T3X72OIDkMOXQIdmcvSkue
 [33]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
 [34]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
+[35]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers
 
 
