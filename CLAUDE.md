@@ -101,9 +101,11 @@ installed.
 ## Skills available in `.claude/skills/`
 
 `bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
-`lesson_plan_generator`, `syllabus_generator`, `teen-install-instructions`, `theory_of_operation`.
-These are the primary tools for generating course content — prefer invoking the matching skill
-over freehand-writing a new syllabus/lesson-plan/install-guide/BOM section from scratch.
+`lesson_plan_generator`, `syllabus_generator`, `teen-install-instructions`, `theory_of_operation`,
+`wiring-diagram`. These are the primary tools for generating course content — prefer invoking the
+matching skill over freehand-writing a new syllabus/lesson-plan/install-guide/BOM section from
+scratch. `wiring-diagram` generates a labeled schematic PNG from a "Wiring — <Board> to <Module>"
+markdown table and embeds it in the doc.
 
 ## Other directories
 
