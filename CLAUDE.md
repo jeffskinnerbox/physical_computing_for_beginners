@@ -101,11 +101,13 @@ installed.
 ## Skills available in `.claude/skills/`
 
 `bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
-`lesson_plan_generator`, `syllabus_generator`, `teen-install-instructions`, `theory_of_operation`,
-`wiring-diagram`. These are the primary tools for generating course content — prefer invoking the
-matching skill over freehand-writing a new syllabus/lesson-plan/install-guide/BOM section from
-scratch. `wiring-diagram` generates a labeled schematic PNG from a "Wiring — <Board> to <Module>"
-markdown table and embeds it in the doc.
+`lesson_plan_generator`, `readme_generator`, `syllabus_generator`, `teen-install-instructions`,
+`theory_of_operation`, `wiring-diagram`. These are the primary tools for generating course content
+— prefer invoking the matching skill over freehand-writing a new syllabus/lesson-plan/install-
+guide/BOM/README section from scratch. `wiring-diagram` generates a labeled schematic PNG from a
+"Wiring — <Board> to <Module>" markdown table and embeds it in the doc. `readme_generator`
+generates/refreshes a `README.md` for one specified directory, using any existing README in that
+directory as a content directive and `grill-me` to resolve ambiguities before writing.
 
 ## Other directories
 
@@ -113,6 +115,8 @@ markdown table and embeds it in the doc.
 names, emails, phone numbers, and addresses — treat `communications/registration.md` as sensitive
 PII, not course content; don't quote or propagate it into generated docs or elsewhere.
 
-`expenses/`, `explainers/`, and `handouts/` are new/mostly-empty working directories (as of this
-writing `handouts/` has a draft definitions outline, the other two are empty) — no established
-conventions yet.
+`explainers/` holds standalone explainer docs generated via the `/explainer` skill (e.g.
+microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
+`README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has a
+per-class handout (`class-00-handout.md` so far) plus a `README.md` outline. `expenses/` is still
+empty — no established conventions yet.
