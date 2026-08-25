@@ -81,15 +81,57 @@ own skip-and-assume rule).
 
 ## Step 5: Write the file
 
+Use this response style:
+
+- Start with the big picture before diving into details
+- Use conversational, friendly tone
+- Offer to explain subsections in more depth
+- Use bullet points sparingly—prefer flowing narrative prose
+- Include concrete examples with specific details
+- Connect concepts to real-world applications
+- Be economical with words—every sentence should add value
+
 Follow this repo's markdown conventions from `CLAUDE.md`:
 
 - Unordered-list indent is 4 spaces, not 2.
-- 2 blank lines above headings, 0 below.
+- 1 blank lines above headings, zero below.
 - Any URLs use reference-style links (`[text][01]`) with numbered definitions at the bottom —
   never raw/inline URLs.
 
 If a same-name `.bak` backup convention applies (per the user's global instructions), back up an
 existing `README.md` to `README.md.bak` before overwriting it.
+
+Link management:
+All URLs must use **reference-style markdown links**.
+This keeps the document body clean and readable while collecting all URLs in one place at the bottom.
+
+**Rules:**
+1. In the document body, use numbered reference tags: `[link text][01]`, `[link text][02]`, etc.
+2. Collect all reference definitions at the **very bottom** of the file, after all content sections.
+3. Number references sequentially with zero-padded two-digit numbers: `[01]`, `[02]`, `[03]`, ... `[10]`, `[11]`, etc.
+4. **No duplicate URLs.** If the same URL is referenced multiple times in the document, reuse the same reference number.
+5. Preserve all URLs found in source documents (syllabus, course documents, BOM). Do not drop links.
+6. Every reference definition must follow this format with no space before the colon:
+
+   ```text
+   [01]:https://example.com/page
+   [02]:https://example.com/other-page
+   ```
+
+**Example in document body:**
+
+```markdown
+Wire the [Pololu QTR-8A Reflectance Sensor Array][01] to the [Raspberry Pi Pico W][02].
+Refer to the [SparkFun Line Follower Array Hookup Guide][03] for wiring details.
+```
+
+**Example at bottom of file:**
+
+```markdown
+[01]:https://www.pololu.com/product/960
+[02]:https://www.raspberrypi.com/products/raspberry-pi-pico/
+[03]:https://learn.sparkfun.com/tutorials/sparkfun-line-follower-array-hookup-guide
+```
 
 ## Step 6: Lint and correct
 
