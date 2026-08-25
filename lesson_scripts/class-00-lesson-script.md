@@ -27,7 +27,7 @@ This is also where you learn a habit you'll use for the rest of the course, and 
 of your maker life: this entire project — the one you're building over the next six classes — was
 put together the same way real makers build things, by reading documentation and adapting
 examples from sites like [Adafruit][13], [GitHub][23], [Instructables][12], and [SparkFun][22].
-d Whenever you get stuck later, those same sites are where you go, not just where the instructor goes.
+Whenever you get stuck later, those same sites are where you go, not just where the instructor goes.
 
 >**NOTE:** If you want to learn more about CircuitPython, and its close friend MicroPython,
 >checkout the document in the [explainers folder][35].
