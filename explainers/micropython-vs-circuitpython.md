@@ -163,11 +163,13 @@ learning and iteration speed out of *you*, the programmer, at a modest cost in r
 a cost your Pico 2 W has plenty of headroom to absorb for everything you'll build in this
 class.
 
-To learn more, subscribe to [The Python on Microcontrollers Newsletter][03]
+- To learn more, subscribe to [The Python on Microcontrollers Newsletter][03]
+- [MicroPython and CircuitPython: Pythons Quiet Takeover of IoT and Robotics][04]
 
 
 
 [01]:https://www.kickstarter.com/projects/214379695/micro-python-python-for-microcontrollers
 [02]:https://www.adafruit.com/
 [03]:https://www.adafruitdaily.com/
+[04]:https://arxiv.org/pdf/2608.18160
 

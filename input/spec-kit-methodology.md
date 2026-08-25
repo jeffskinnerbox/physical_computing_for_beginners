@@ -1,4 +1,8 @@
 
+## For Python
+* [How to Write an AGENTS.md File for a Python Project](https://realpython.com/agents-md/)
+
+
 ---
 
 # My Claude Code Methodology

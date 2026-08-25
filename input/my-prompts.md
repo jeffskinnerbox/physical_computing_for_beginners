@@ -476,6 +476,40 @@ it is far from what industrial, self-driving cars, and humanoid robots require.
 
 ----
 
+# My 17th Prompt - Create a README.md File Creation Skill
+Using your your `SKILL.md` creation skills,
+create a skill that will generate a README.md file for a specified directory.
+Call this skill `readme_generator`.
+The skill should read the @CLAUDE.md document for context and then focus only on the directories specified by the user.
+Read the contents in the specified directory, and any existing README.md file in the directory.
+If a README.md file exist, use the contents of the README.md file as a directive or guide for the contents to be created.
+
+If no README.md file exist use the following format:
+
+```markdown
+# README
+{Purpose of this specific folder/module}
+
+## Usage
+{How it fits into the larger project (often linking back to root README)}
+
+## Build Process
+{Local build/test instructions if they differ from root}
+
+## Contents
+{summaries the directory using a table like this}
+
+| Topic | File/Diectory Name | Description/Summary |
+|:------|:----------|:------------|
+{The "Description/Summary" should be no more than 50 words.}
+```
+
+Before writing the README.md file, use the `\grill-me` skill to clarify any ambiguities.
+
+Once the README.md file is created, lint the file and make corrections as needed.
+
+----
+
 # My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----
