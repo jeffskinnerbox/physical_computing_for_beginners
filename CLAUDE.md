@@ -24,11 +24,11 @@ sync with `my-vision.md` without also reconciling.
 exact invocation pattern and skill combination that produced the current version. Root-level
 `junk.md`/`junk2.md` are stray scratch copies, not canonical — use `input/my-prompts.md` instead.
 
-`input/course-methodology.md` has definitions/background the user reads before working the repo
-(class vs. course vs. workshop, external articles on applying coding agents to non-programming
+`methodology/course-methodology.md` has definitions/background the user reads before working the
+repo (class vs. course vs. workshop, external articles on applying coding agents to non-programming
 work) — background context, not a generated doc.
 
-`input/spec-kit-methodology.md` is a personal background note comparing the two authoring
+`methodology/spec-kit-methodology.md` is a personal background note comparing the two authoring
 methodologies this user applies with Claude Code — Spec-Kit (for software) and a parallel "Script
 Methodology" (for course material, where `my-vision.md`, BOM, syllabus, and lesson plans act as
 executable contracts). It's context for *how* this repo is meant to be worked, not a generated

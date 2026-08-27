@@ -22,6 +22,7 @@ I have two distinct development methodologies when using Claude Code:
 
 ## My Spec-Kit Based Workflow
 
+* ["Software Fundamentals Matter More Than Ever" — Matt Pocock](https://www.youtube.com/watch?v=v4F1gFy-hqg)
 * [Spec-Driven Development in Action with GitHub Speckit](https://pub.towardsai.net/spec-driven-development-in-action-with-github-speckit-44190f2a7c57)
 * [Specification Engineering: The New Skill After Prompt Engineering](https://www.kdnuggets.com/specification-engineering-the-new-skill-after-prompt-engineering)
 * [GitHub Spec Kit Tutorials](https://www.youtube.com/playlist?list=PL4cUxeGkcC9h9RbDpG8ZModUzwy45tLjb)
