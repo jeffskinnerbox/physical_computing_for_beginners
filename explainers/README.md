@@ -12,8 +12,8 @@ about *why* something was invented than a spec sheet about *what* it is.
 
 ## Usage
 
-There's no root `README.md` in this repo — the full course documentation map lives in
-`CLAUDE.md`, and it's worth a look if you want to see how everything here connects. Explainers
+See the root [README][01] for the full course map, and `CLAUDE.md` for the generation pipeline
+behind it. Explainers
 sit off to the side of the main syllabus/lesson-plan/BOM generation pipeline: they're
 supplementary reading, not something a student needs to get through before a class. Think of them
 as the answer to a question a curious student might ask mid-build — "wait, why CircuitPython and
@@ -49,3 +49,6 @@ a question one of them would answer:
 - definition-of-terms-for-microcontrollers.md
 - all-about-microcontroller-memory.md
 - what-is-git-and-github.md
+
+
+[01]:../README.md

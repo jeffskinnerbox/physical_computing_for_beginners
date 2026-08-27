@@ -6,8 +6,8 @@ the bill of materials, and one lesson plan per class (Pre-Class through Class 6)
 
 ## Usage
 
-This repo has no root `README.md` — see the project's `CLAUDE.md` for the full course
-documentation map. Every file here is generated *from* `input/my-vision.md` via a dedicated skill
+See the root [README][01] for the full course documentation map, and the project's `CLAUDE.md`
+for the generation pipeline behind it. Every file here is generated *from* `input/my-vision.md` via a dedicated skill
 (`/syllabus_generator`, `/lesson_plan_generator`, `/bill_of_materials_generator`) and must stay
 consistent with it and with each other — when `my-vision.md` changes, these docs need to be
 regenerated or reconciled, not hand-edited out of sync. Lesson plans must follow the class outline
@@ -40,3 +40,6 @@ been hand-edited since being generated.
 | Class 4 lesson plan | `class-04-lesson-plan.md` | LSM9DS1 9-DOF IMU read over I2C; raw accelerometer/gyroscope readings are fused with a Mahony filter into stable roll/pitch/yaw, streamed to a live 3D viewer. |
 | Class 5 lesson plan | `class-05-lesson-plan.md` | Combines Class 2's sensor/servo sweep and Class 3's motor driver into the autonomous Random Rover, plus two new fixed safety sensors (limit switch, IR). |
 | Class 6 lesson plan | `class-06-lesson-plan.md` | Finishes and tunes the Random Rover, then offers three optional stretch goals reconnecting earlier circuits: encoder speed control, WiFi IMU chart, TFT status display. |
+
+
+[01]:../README.md

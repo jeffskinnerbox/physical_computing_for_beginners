@@ -7,8 +7,8 @@ CircuitPython built up in phases, with the complete final code listed at the end
 
 ## Usage
 
-This repo has no root `README.md` — see the project's `CLAUDE.md` for the full course
-documentation map. Lesson scripts are distinct from the instructor-facing lesson plans in
+See the root [README][01] for the full course documentation map, and the project's `CLAUDE.md`
+for the generation pipeline behind it. Lesson scripts are distinct from the instructor-facing lesson plans in
 `lesson_plans/`: the lesson plan is the teaching guide an instructor works from, while the lesson
 script is the detailed, student-readable walkthrough a student can follow on their own. Neither is
 generated from the other via a dedicated skill — they're written ad-hoc (see "My 8th Prompt" in
@@ -37,3 +37,6 @@ been hand-edited since being generated.
 | Class 4 lesson script | `class-04-lesson-script.md` | Walkthrough for the LSM9DS1 9-DOF IMU over I2C; fuses raw accelerometer/gyroscope data into stable roll/pitch/yaw with a Mahony filter, streamed to a live 3D viewer. |
 | Class 5 lesson script | `class-05-lesson-script.md` | Walkthrough for combining the Class 2 sensor/servo sweep and Class 3 motor driver into the autonomous Random Rover, with two new fixed safety sensors. |
 | Class 6 lesson script | `class-06-lesson-script.md` | Walkthrough for finishing/tuning the Random Rover, then three optional stretch goals: encoder speed control, WiFi IMU chart, and TFT status display. |
+
+
+[01]:../README.md
