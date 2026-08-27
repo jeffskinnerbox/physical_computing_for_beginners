@@ -102,12 +102,14 @@ installed.
 
 `bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
 `lesson_plan_generator`, `readme_generator`, `syllabus_generator`, `teen-install-instructions`,
-`theory_of_operation`, `wiring-diagram`. These are the primary tools for generating course content
+`theory_of_operation`, `wiring-diagram`, `workbench_voice`. These are the primary tools for generating course content
 — prefer invoking the matching skill over freehand-writing a new syllabus/lesson-plan/install-
 guide/BOM/README section from scratch. `wiring-diagram` generates a labeled schematic PNG from a
 "Wiring — <Board> to <Module>" markdown table and embeds it in the doc. `readme_generator`
 generates/refreshes a `README.md` for one specified directory, using any existing README in that
 directory as a content directive and `grill-me` to resolve ambiguities before writing.
+`workbench_voice` rewrites existing prose into a direct, hands-on explainer voice — invoke it only
+when explicitly requested, not automatically alongside the other generators.
 
 ## Other directories
 

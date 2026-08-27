@@ -4,6 +4,8 @@
 To create the course materials for.the course [Physical Computing for Beginners](https://www.makersmiths.org/event-6785489)
 the series of Claude Code prompts were used.
 
+* [10 Rules for Getting Better Results from AI Coding Agents](https://www.kdnuggets.com/10-rules-for-getting-better-results-from-ai-coding-agents)
+
 ----
 
 # My 1st Prompt - Create `teen-install-instruction` Skill
