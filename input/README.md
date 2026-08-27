@@ -28,7 +28,7 @@ and isn't itself an authored source.
 
 ## Contents
 
-| Topic | File/Diectory Name | Description/Summary |
+| Topic | File/Directory Name | Description/Summary |
 | :------ | :---------- | :------------ |
 | Course vision (seed document) | `my-vision.md` | The single source of truth: course description, 6-class curriculum outline (objectives, talking points, wiring continuity, code pseudocode), the BOM, and the Course Documentation table mapping each generated doc to its skill. |
 | Prompt history | `my-prompts.md` | Chronological log of the actual Claude Code prompts ("My Nth Prompt" sections) used to generate each artifact in the repo — check before regenerating something to see the exact invocation pattern used. |

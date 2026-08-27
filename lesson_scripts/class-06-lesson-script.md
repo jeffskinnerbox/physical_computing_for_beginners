@@ -23,7 +23,7 @@ already built in an earlier class rather than introducing new hardware:
 
 * **Stretch 1** — bring back your Class 1 rotary encoder to control the rover's drive speed live,
     while it's driving.
-* **Stretch 2** — stream your Class 4 IMU's tilt data over the Pico W's WiFi to a live chart in
+* **Stretch 2** — stream your Class 4 IMU's tilt data over the Pico 2 W's WiFi to a live chart in
     your browser, no cable needed.
 * **Stretch 3** — add a small screen right on the robot showing its distance/heading/speed status,
     readable without a laptop attached at all.
@@ -62,7 +62,7 @@ it just gives the decision loop more distance-per-scan margin, which can make a 
 `SCAN_INTERVAL` behave more safely without touching the scanning code itself.
 
 **Stretch 2 — WiFi web server (new concept).** Class 4 streamed IMU data over a USB serial cable.
-Today's stretch replaces that cable with the Pico W's built-in WiFi: the board joins the classroom
+Today's stretch replaces that cable with the Pico 2 W's built-in WiFi: the board joins the classroom
 network, runs a small web server using `adafruit_httpserver`, and serves a page with a
 live-updating chart that polls the board for fresh data every 200ms — readable from any browser on
 the same network, no cable required. This isn't a strict upgrade over Class 4's approach: WiFi is
@@ -208,7 +208,7 @@ CIRCUITPY_WIFI_PASSWORD = "your-network-password"
 
 ### What this code does
 
-This joins your classroom WiFi, starts a small web server on the Pico W, and serves a page with a
+This joins your classroom WiFi, starts a small web server on the Pico 2 W, and serves a page with a
 JavaScript chart that polls the board every 200ms for the latest tilt reading and draws a rolling
 history of it — all readable from any browser on the same network, no USB cable needed.
 
@@ -298,7 +298,7 @@ while True:
 ### Try it / what you should see
 
 The console should print `connected, IP address: ...` followed by a URL to browse to. Open that
-URL on a laptop connected to the *same* WiFi network as the Pico W. You should see a page with a
+URL on a laptop connected to the *same* WiFi network as the Pico 2 W. You should see a page with a
 line chart that updates as you tilt the board — no cable connecting the laptop to the Pico at all.
 
 ### Checkpoint
@@ -396,8 +396,8 @@ allows.
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch 1: `current_speed` never changes | Encoder wiring drifted since Class 1, or the code wasn't actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was done, not just run standalone |
 | Stretch 1: speed changes but the rover jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
-| Stretch 2: Pico W never connects to WiFi | Wrong SSID/password in `settings.toml`, or a network requiring a captive-portal login | Double-check `settings.toml`; use a dedicated open/guest network if available |
-| Stretch 2: browser can't reach the page | Laptop is on a different network/subnet than the Pico W | Confirm both devices are on the exact same WiFi network |
+| Stretch 2: Pico 2 W never connects to WiFi | Wrong SSID/password in `settings.toml`, or a network requiring a captive-portal login | Double-check `settings.toml`; use a dedicated open/guest network if available |
+| Stretch 2: browser can't reach the page | Laptop is on a different network/subnet than the Pico 2 W | Confirm both devices are on the exact same WiFi network |
 | Stretch 2: chart looks flat or frozen | `/data.json` erroring, or the JavaScript poll loop stopped after an exception | Check the Pico's serial console for server errors; reload the browser page |
 | Stretch 3: blank/garbled TFT screen | SPI pins mismatched, or `displayio.release_displays()` was omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch 3: TFT shows only demo values | Demo variables never replaced with the real rover variables | Expected unless full integration was completed — not a bug, just an unfinished integration step |
@@ -443,7 +443,7 @@ further with genuinely new capabilities. Specifically, you now know:
     building it fresh
 * (If attempted) How reusing an existing input (the encoder) to drive a *live* control-loop value,
     instead of a fixed constant, changes a system's behavior without changing its core logic
-* (If attempted) How to replace a wired USB serial connection with a Pico W-hosted WiFi web
+* (If attempted) How to replace a wired USB serial connection with a Pico 2 W-hosted WiFi web
     server, and the real tradeoffs (latency, complexity) that come with doing so
 * (If attempted) How SPI, a third communication protocol alongside the I2C and PWM/GPIO you've
     already used, drives a display — and that a display is only as useful as the data it's fed

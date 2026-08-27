@@ -33,7 +33,7 @@ someone a Word doc or PDF instead of a markdown file, pandoc will convert any of
 
 ## Contents
 
-| Topic | File/Diectory Name | Description/Summary |
+| Topic | File/Directory Name | Description/Summary |
 | :------ | :---------- | :------------ |
 | CircuitPython vs. MicroPython | `micropython-vs-circuitpython.md` | Compares the two Python variants used on microcontrollers — their shared origins, where they diverge (upload workflow, libraries, governance), and why this course picks CircuitPython. Also contrasts both with C/C++. |
 | The Random Rover | `what-is-the-random-rover.md` | Explains what kind of robot the course's capstone project is, why obstacle-avoiding rovers are a common first robotics build, and how its sense-decide-act loop compares to a Roomba and to more advanced autonomous machines. |

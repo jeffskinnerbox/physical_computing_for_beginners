@@ -119,7 +119,7 @@ All free — no paid software is required anywhere in this course.
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 6 stretch #2, to view the live WiFi chart served by `class-6-code-2.py` |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico W and the student's laptop can both reach the rover's web server |
+| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico 2 W and the student's laptop can both reach the rover's web server |
 
 ----
 

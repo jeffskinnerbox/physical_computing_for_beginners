@@ -39,7 +39,7 @@ repository backstops every Class with build guides and copy-paste-ready code, so
 stuck without a starting point ("leave no soldier behind").
 
 The skills and hardware built here are also the on-ramp to a future Makersmiths course, where
-students design, build, and competitively race a line-following robot on the same Pico W platform
+students design, build, and competitively race a line-following robot on the same Pico 2 W platform
 with N20 geared motors.
 
 ## 2. Learning Objectives
@@ -231,7 +231,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 
 **Class 5 — Build the Random Rover: Collision Avoidance**
 
-* Combine the servo-mounted ultrasonic sensor, motor driver, and Pico W into one autonomous car
+* Combine the servo-mounted ultrasonic sensor, motor driver, and Pico 2 W into one autonomous car
 * Sweep left-right on a timer (and immediately if something gets close) to find the clearest direction before steering
 * Drive at constant speed around the room, avoiding obstacles
 * Discuss: what does each component contribute to the collision-avoidance decision? How would you
@@ -242,7 +242,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 
 * Finish and tune the Random Rover from Class 5
 * Optional stretch goals: reconnect the Class 1 rotary encoder for live speed control, stream IMU
-  data over the Pico W's WiFi to a graphical history display in a browser, add the TFT display for
+  data over the Pico 2 W's WiFi to a graphical history display in a browser, add the TFT display for
   real-time distance/heading/speed status on the rover itself
 * Discuss: looking back across the course's "what's missing?" questions, which single improvement
   would most help the rover's real-world reliability?

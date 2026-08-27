@@ -22,13 +22,14 @@ prices.
 No build process — this directory holds static markdown source files. `syllabus-physical-
 computing-for-beginners-Aug-16.docx` is a dated pandoc export of the syllabus
 (`pandoc -f gfm input.md -o output.docx`) kept for sharing/printing, not an authored source in its
-own right. `class-01-lesson-plan.md.bak` and `BOM.md.bak` are mechanical backups of the current
-`.md` files, made per this user's file-change convention.
+own right. Per this user's file-change convention, editing a `.md` file here also writes/updates a
+matching `.md.bak` mechanical backup alongside it; none currently exist because these files haven't
+been hand-edited since being generated.
 
 
 ## Contents
 
-| Topic | File/Diectory Name | Description/Summary |
+| Topic | File/Directory Name | Description/Summary |
 | :------ | :---------- | :------------ |
 | Course syllabus | `syllabus-physical-computing-for-beginners.md` | Course description, schedule, audience, and class-by-class outline for the 1 Pre-Class + 6 Class series, generated via `/syllabus_generator`. |
 | Bill of materials | `BOM.md` | Single source of truth for cost and sourcing: per-student required/optional hardware, shared supplies, shipping, software, code blocks, and tools, with full cost math. |

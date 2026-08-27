@@ -20,7 +20,7 @@ and tuning the Random Rover from Class 5 — no new concepts, just calibration, 
 polishing whatever each student's rover still needs to reliably avoid obstacles. The second half
 offers three independent stretch goals, each reconnecting a circuit from earlier in the course rather
 than introducing new hardware concepts: reconnecting Class 1's rotary encoder for live speed control,
-sending Class 4's IMU orientation over the Pico W's WiFi to a browser chart, and adding an on-board
+sending Class 4's IMU orientation over the Pico 2 W's WiFi to a browser chart, and adding an on-board
 TFT display showing the rover's live status. Students choose which stretch goal(s) to attempt based
 on time and interest — none is required. The Class, and the course, ends with every student
 demonstrating their working Random Rover to the group in a final showcase, and a closing discussion
@@ -32,7 +32,7 @@ connecting what was built here to Makersmiths' future line-following robot cours
   cycle
 * (Stretch, optional) Reconnect the Class 1 rotary encoder to control the rover's drive speed live,
   while it drives
-* (Stretch, optional) Stream IMU tilt data from the Pico W over WiFi to a live-updating chart in a
+* (Stretch, optional) Stream IMU tilt data from the Pico 2 W over WiFi to a live-updating chart in a
   browser, with no USB cable attached
 * (Stretch, optional) Wire and program a TFT display to show the rover's distance/heading/speed
   status directly on the robot
@@ -140,7 +140,7 @@ between scans, which can make a fixed `SCAN_INTERVAL` behave more safely without
 
 **Concept 2 — Stretch #2: why a web server instead of just printing to serial.**
 Everything the IMU streamed in Class 4 went over a USB serial cable to Mu/Thonny's console. Today's
-stretch replaces that cable with the Pico W's built-in WiFi: the board joins the classroom network,
+stretch replaces that cable with the Pico 2 W's built-in WiFi: the board joins the classroom network,
 runs a small web server (`adafruit_httpserver`), and serves a page with a live-updating chart that
 polls the board for fresh data every 200ms — readable from any browser on the network, no cable
 required. Ask: "What's the actual tradeoff here — is WiFi strictly better than the USB serial
@@ -324,7 +324,7 @@ while True:
 ```
 
 **What to watch for:** A blank page or connection refused almost always means the laptop is on a
-different network than the Pico W, or `wifi.radio.ipv4_address` printed `None` (failed to join) —
+different network than the Pico 2 W, or `wifi.radio.ipv4_address` printed `None` (failed to join) —
 verify network name/password before debugging the web server code itself.
 
 **Stretch #3 wiring (the only new wiring this Class):**
@@ -428,7 +428,7 @@ sensors gather data, a microcontroller decides, actuators act. You've now done t
 multiple times, with your own hands."
 
 **Preview what's next:** No further Classes in this course — point interested students toward
-Makersmiths' future line-following robot course, which reuses the same Pico W platform and motor
+Makersmiths' future line-following robot course, which reuses the same Pico 2 W platform and motor
 driver skills built here, with N20 geared motors and a new competitive line-sensor challenge.
 
 ## 6. Troubleshooting Guide
@@ -438,8 +438,8 @@ driver skills built here, with N20 geared motors and a new competitive line-sens
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch #1: `current_speed` never changes | Encoder wiring drifted since Class 1, or `class-6-code-1.py` not actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was actually done, not just run standalone |
 | Stretch #1: rover speed changes but jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
-| Stretch #2: Pico W never connects to WiFi | Wrong SSID/password in `settings.toml`, or on a network requiring a captive-portal login | Double check `settings.toml` values; use a dedicated open/guest network for the classroom if available |
-| Stretch #2: browser can't reach the page | Laptop on a different network/subnet than the Pico W | Confirm both devices are on the exact same classroom WiFi network |
+| Stretch #2: Pico 2 W never connects to WiFi | Wrong SSID/password in `settings.toml`, or on a network requiring a captive-portal login | Double check `settings.toml` values; use a dedicated open/guest network for the classroom if available |
+| Stretch #2: browser can't reach the page | Laptop on a different network/subnet than the Pico 2 W | Confirm both devices are on the exact same classroom WiFi network |
 | Stretch #2: chart looks flat or frozen | `/data.json` erroring, or the JavaScript poll loop stopped after an exception | Check the Pico's serial console for server errors; reload the browser page |
 | Stretch #3: blank/garbled TFT screen | `SPI`/`command`/`chip_select`/`reset` pins mismatched, or `displayio.release_displays()` omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch #3: TFT shows only demo values, never real rover data | Demo variables never replaced with the actual `class-5-code.py`/`class-6-code-1.py` variables | This is expected unless full integration was completed — note as a partial-credit milestone, not a bug |

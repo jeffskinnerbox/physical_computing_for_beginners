@@ -33,7 +33,7 @@ It uses three main parts: inputs (sensors), processing (microcontrollers), and o
 In this course, students will build physical computing projects.
 The goal is for the student to:
 
-1. Learn physical computing with Raspberry Pi Pico W and CircuitPython.
+1. Learn physical computing with Raspberry Pi Pico 2 W and CircuitPython.
 1. Learn CircuitPython, and its firmware build procedures on the Raspberry Pi Pico,
    so the student can create project without the help of an instructor.
 1. The student should learn how to use the Internet
@@ -376,7 +376,7 @@ Tips for Students:
 
 * **Description:** An obstacle-avoiding robot car that mounts the ultrasonic sensor on a micro
   servo so it can sweep left-right and "look" for the clearest direction before choosing which
-  way to steer, driven by a Pico W and a motor driver.
+  way to steer, driven by a Pico 2 W and a motor driver.
   This design actively scans its surroundings before deciding how to move: it rescans on a periodic
   timer while otherwise driving straight, but if anything comes within a set stopping distance while
   driving, it interrupts that timer, stops immediately, and rescans right away instead of waiting.
@@ -423,7 +423,7 @@ Tips for Students:
 
 * **Description:** Continue building an obstacle-avoiding robot car and complete the project.
   Then add the stretch objectives outlined in "Objective": a rotary encoder that lets students speed
-  the rover up or down live while it drives, an IMU that streams tilt data over the Pico W's WiFi to a
+  the rover up or down live while it drives, an IMU that streams tilt data over the Pico 2 W's WiFi to a
   chart in a browser instead of only the serial console, and a TFT screen that shows the rover's
   distance/heading/speed status on the robot itself so it's readable without a USB cable attached.
 * **Wiring Continuity**: Stretch #1 and #2 need no new wiring &mdash; they reconnect the Class 1 encoder
@@ -440,14 +440,14 @@ Tips for Students:
   * Looking back across all 6 classes' "what's missing?" discussions (wheel/heading feedback in Class 3, orientation-vs-distance in Class 4), which single improvement would most help the rover's real-world reliability, and what would it take to add it?
   * This is the last class before the future line-following robot course &mdash; which skills/parts built here (motor driver, calibration mindset, sensor fusion) will carry forward, and what's genuinely new there (line sensor, competitive track) that this course didn't cover?
 * **Features/Capabilities**: Stretch #1 prints the new drive speed to the terminal each time the encoder
-  changes it. Stretch #2 serves a live-updating chart in a web browser (no cable needed, just the Pico W's
+  changes it. Stretch #2 serves a live-updating chart in a web browser (no cable needed, just the Pico 2 W's
   IP address) that scrolls a rolling history of IMU tilt as the Pico streams it over WiFi. Stretch #3 shows
   the rover's distance/heading/speed directly on its own on-board TFT screen, readable with no laptop or
   cable attached at all.
 * **Course Pseudocode**:
   * [`class-6-code-1.py`](./class-6-code-1.py) &mdash; stretch #1. Reuses the Class 1 rotary encoder (`GP3`/`GP4`)
     to raise/lower `current_speed` live and feeds it to `motor_driver.drive()`.
-  * [`class-6-code-2.py`](./class-6-code-2.py) &mdash; stretch #2. Pico W joins WiFi (credentials in `settings.toml`),
+  * [`class-6-code-2.py`](./class-6-code-2.py) &mdash; stretch #2. Pico 2 W joins WiFi (credentials in `settings.toml`),
     runs an `adafruit_httpserver` web server, and serves a page with a hand-drawn HTML5 canvas chart that
     polls `/data.json` every 200ms and keeps a rolling ~150-sample history of roll/pitch from the LSM9DS1
     (accelerometer-only tilt estimate; port class-4-code-1.py's Mahony filter in for full yaw).
@@ -503,7 +503,7 @@ purchase (and any spares that come with it) noted below the table and priced in 
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); onboard 5V power |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
-| USB A to Micro USB Charging Cable with Data Transfer | 9 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
+| USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
 | Micro Limit Switch | 1 | $0.35 | [Amazon][26] | sold in 20-pack ($6.50); Class 5 rover bump sensor, reused Class 6 |
 | IR Obstacle Avoidance Sensor | 1 | $0.35 | [Amazon][27] | sold in 10-pack ($8.77); Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
 
@@ -511,9 +511,10 @@ Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 
 
 ##### Per-Student Optional
 
-None. All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status display) are
-treated as in-scope/required for this course rather than optional add-ons; their hardware (KY-040, LSM9DS1, TFT)
-already appears in Per-Student Required above.
+None. All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status display) have
+their hardware (KY-040, LSM9DS1, TFT) purchased/stocked for every student — treated as in-scope/required for
+procurement purposes. Whether a given student *attempts* all three builds in class is a pedagogical choice (see
+syllabus/class-06 lesson plan), not a procurement one; this section only concerns what's bought, not what's built.
 
 ##### Shared Supplies
 
@@ -569,7 +570,7 @@ All free.
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 6 stretch #2, to view the live WiFi chart served by `class-6-code-2.py` |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico W and the student's laptop can both reach the rover's web server |
+| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico 2 W and the student's laptop can both reach the rover's web server |
 
 #### Code Blocks
 
@@ -642,7 +643,7 @@ These documents
 | :--------- | :--------: | :------------ |
 | syllabus | student | High-level course map that tells students what to expect: topics, schedule, materials, objectives, and how progress is measured. |
 | lesson plan | instructor | A step-by-step teaching guide that tells the instructor exactly how to run a single class: what to prep, what to say, what to build, how to handle problems, and how to wrap up. It covers the *how* — the syllabus covers the *what* and *when*. |
-| lesson script | student | TBD |
+| lesson script | student | A detailed, student-facing build+code walkthrough for a single class: explanatory text plus fully-commented CircuitPython built up in phases, with the complete final code listed at the end. Complements the instructor-facing lesson plan. |
 | install instructions | student | A step-by-step software install guide, written at a level a 12-18 year old with basic Bash/PowerShell/Python literacy can follow without hand-holding. |
 | theory of operation | student | Explain how a technology, software program, machine, electronic circuit, or system works. Document contains brief overview and detailed step-by-step decomposition of the system's operation. |
 | explainer | student | Makes complex ideas accessible to teens through plain English, use of examples & analogies, and narrative structure. It provides the What → Why → How. Explain simple concepts that are unfamiliar. |

@@ -20,14 +20,15 @@ class at a time, stopping for review, rather than all six at once.
 ## Build Process
 
 No build process — this directory holds static markdown source files plus the CircuitPython code
-they walk through inline as fenced code blocks (no standalone `.py` files). Every script has a
-matching `.bak` backup (e.g. `class-00-lesson-script.md.bak`) made per this user's file-change
-convention — these are mechanical backups, not authored content.
+they walk through inline as fenced code blocks (no standalone `.py` files). Per this user's
+file-change convention, editing a script here also writes/updates a matching `.md.bak` mechanical
+backup (e.g. `class-00-lesson-script.md.bak`); none currently exist because these files haven't
+been hand-edited since being generated.
 
 
 ## Contents
 
-| Topic | File/Diectory Name | Description/Summary |
+| Topic | File/Directory Name | Description/Summary |
 | :------ | :---------- | :------------ |
 | Pre-Class lesson script | `class-00-lesson-script.md` | Walkthrough for flashing CircuitPython onto the Pico 2 W, installing Mu/Thonny, downloading the library bundle, and writing a first blink+heartbeat program. No wiring yet. |
 | Class 1 lesson script | `class-01-lesson-script.md` | Walkthrough for wiring a pushbutton and KY-040 rotary encoder to two LEDs; builds without debouncing first so the reader sees the raw problem, then adds it. |
