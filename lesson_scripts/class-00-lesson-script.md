@@ -516,7 +516,7 @@ If every box checks out, your laptop and Pico are both back to their pre-Pre-Cla
 ever want to pick the course back up, Section 4 walks through every one of these steps again from
 scratch.
 
-----
+---
 ## 10. Homework Assignment
 
 Everything above got your dev environment running and proved the chain works with a one-line
