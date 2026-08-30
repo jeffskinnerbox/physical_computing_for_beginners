@@ -351,7 +351,7 @@ every project for the rest of the course:
 | Edits to `code.py` don't seem to take effect | Editor hadn't finished writing before the drive was ejected, or you edited a copy somewhere else | Close and reopen the file directly from the `CIRCUITPY` drive to confirm what's actually saved |
 | A traceback appears after an edit | Likely a real syntax error you introduced (e.g. the missing-colon exercise above) | Read the traceback's line number and message — this is expected, not a failure; fix the line and save again |
 
-## 7. Put It All Together
+## 7. Build It: Put It All Together
 
 There's no separate "combined" build for the Pre-Class — the single program below already is the
 complete project. It's repeated here so you have everything in one place if you're building from
