@@ -700,8 +700,8 @@ so if you've already wired the display for that class, this program will run on 
 rewiring.
 
 **Wiring — Raspberry Pi Pico 2W to ST7789 1.14" 240x135 TFT:**
-* [Raspberry Pi Pico 2w Pinout][20]
-* [Adafruit 1.14" 240x135 Color Newxie TFT Display Pinout][33]
+* [Raspberry Pi Pico 2w Pinout][20] - turn-off SPI/I2C/UART/Custom/Advanced/Flip/Rotate buttons at the top
+* [Adafruit 1.14" 240x135 Color Newxie TFT Display Pinout][33] - see page 7
 
 | Pico 2W Pin | TFT Pin | Signal / Function |
 | ------------- | --------- | -------------------- |
@@ -745,9 +745,9 @@ display.root_group = main_group
 # center, vertical top" of the text -- so it stays centered no matter what
 # the text says or how wide it is.
 text_label = label.Label(terminalio.FONT, text="Hello World!", color=0xFFFF00)  # font color is yellow
-text_label.scale = 2  # doubles the built-in font to 12x16px per character
-text_label.anchor_point = (0.5, 0.0)
-text_label.anchored_position = (display.width // 2, 2)
+text_label.scale = 2                                     # doubles the built-in font to 12x16px per character
+text_label.anchor_point = (0.5, 0.0)                     # (x,y) screen position
+text_label.anchored_position = (display.width // 2, 2)   # (x,y) screen position, display.width // 2 = integer division, so it's the y-corr center of the display, rounded down to a whole pixel
 main_group.append(text_label)
 
 # --- Build the shape we'll bounce: a small filled square ---
@@ -771,6 +771,7 @@ main_group.append(square)
 x, y = 10, 10
 dx, dy = 2, 2  # positive = moving right/down; flips sign on each bounce
 
+print("Entering main loop")
 while True:
     x += dx
     y += dy
@@ -827,8 +828,8 @@ distance. Reading it is a single `digitalio` input, the same pattern you'll reus
 Class 1 and for this exact sensor again in Class 5, just wired to a different pin.
 
 **Wiring — Pico 2W to IR Obstacle Avoidance Sensor:**
-* [Raspberry Pi Pico 2w Pinout][20]
-* [IR Obstacle Avoidance Sensor Pinout][34]
+* [Raspberry Pi Pico 2w Pinout][20] - turn-off SPI/I2C/UART/Custom/Advanced/Flip/Rotate buttons at the top
+* [IR Obstacle Avoidance Sensor Pinout][34] - see PINOUT section
 
 | Pico 2W Pin | Sensor Pin | Signal / Function |
 | ------------- | ------------- | -------------------- |
