@@ -435,7 +435,7 @@ launch. The **Installed apps** list should no longer list it either.
 
 #### Step 2 — Uninstall the Mu Editor
 
-1. Click **Start**, type `Add`, and open **Add or remove programs** (or **Add or remove programs**).
+1. Click **Start**, type `Add or`, and open **Add or remove programs** (or **Add or remove programs**).
 1. Search for **Mu** (sometimes listed as **Mu Editor**) in the list and choose **Uninstall**.
 1. Confirm the uninstall when Windows asks.
 
@@ -677,11 +677,11 @@ LED on the board.
 #### Real World Examples
 
 * This is exactly how a smart plug, WiFi light bulb, or new WiFi router gets set up for the first
-    time — you connect to a small network the device broadcasts, then configure it from a webpage,
-    before it ever joins your real home network.
+  time — you connect to a small network the device broadcasts, then configure it from a webpage,
+  before it ever joins your real home network.
 * Field sensors deployed somewhere without existing WiFi (a garden, a remote enclosure) use this
-    same pattern to let a technician walk up, connect directly, and check status without carrying a
-    laptop cable or router.
+  same pattern to let a technician walk up, connect directly, and check status without carrying a
+  laptop cable or router.
 
 ### Homework 3 — Bouncing Square Animation on the TFT Display
 
