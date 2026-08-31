@@ -33,9 +33,9 @@ your robot car in Class 6.
 ## 2. What You'll Need
 
 | Component | Quantity | Purpose This Project |
-| :---------- | :--------: | :---------------------- |
+|:----------|:--------:|:---------------------|
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
-| Tactile push button switch | 1 | Digital input — the thing you press |
+| Momentary Push Button Tactile Switch | 1 | Digital input — the thing you press |
 | KY-040 rotary encoder module | 1 | Rotational input — the knob you turn |
 | LED | 2 | One lights up on button press, one dims/brightens with the knob |
 | Current-limiting resistor (220-330 ohm) | 2 | Protects each LED from too much current |
@@ -48,7 +48,7 @@ your robot car in Class 6.
 itself, only if you choose to do Homework 4 or Homework 6 at home:
 
 | Component | Quantity | Purpose (Homework #) |
-| :---------- | :--------: | :---------------------- |
+|:----------|:--------:|:---------------------|
 | IR Obstacle Avoidance Sensor | 1 | Digital proximity detection run through the same `Debouncer` pattern as the button (Homework 4) — also used on the Random Rover in Class 5 |
 | 1.14" 240x135 Color TFT Display (ST7789) | 1 | Live bar-gauge display driven by the rotary encoder (Homework 6) — also used in the Pre-Class homework and Class 6's stretch goal |
 
@@ -59,7 +59,7 @@ circuit already on your breadboard.
 
 ## 3. Meet the Hardware
 
-**Pushbutton switch.** A pushbutton is just two metal contacts that touch when you press it and
+**Pushbutton switch.** A push-button is just two metal contacts that touch when you press it and
 separate when you release it. It has no "smarts" — it's a plain on/off switch. In CircuitPython
 you read it with the `digitalio` module, which lets you treat any GPIO pin as a simple input or
 output. We wire the button so one leg goes to a GPIO pin and the other leg goes to `GND`
@@ -67,6 +67,9 @@ output. We wire the button so one leg goes to a GPIO pin and the other leg goes 
 reads `True` (high) when the button is *not* pressed, and `False` (low) when it *is* pressed —
 this wiring style is called **active-low**, and it's the standard, recommended way to wire a
 simple switch to a microcontroller because it needs no external resistor for the switch itself.
+
+>**NOTE:** Momentary Push Button Tactile Switch work best in a printed circuit board (PCB)
+>but can be used on a solderless breadboard as shown in [this tutorial][36].
 
 **KY-040 rotary encoder.** This looks like a volume knob, and internally it's two switches (called
 `CLK` and `DT`) arranged so that as you turn the shaft, they trip in a specific order — `CLK`
@@ -94,15 +97,27 @@ motor driver in Class 3, so this is your first look at a pattern you'll reuse al
 | `GP4` | Encoder `DT` input |
 | `GP14` | Encoder brightness LED output (PWM) |
 | `GP15` | Button LED output (plain on/off) |
-| `3V3` | Encoder `+`/VCC power |
+| `VSYS 5V` | Encoder `+`/VCC power |
 | `GND` | Encoder `GND`, button's second leg, both LED cathodes |
 
 ## 4. Build It: Phase 1 — See the Bounce
 
 ### Wiring for this phase
 
-This is the complete wiring for the whole project — nothing changes between Phase 1 and Phase 2,
+This is the complete wiring for this whole build — nothing changes between Phase 1 and Phase 2,
 only the code does.
+**Wiring — Raspberry Pi Pico 2W to push-button switch, rotary encoder, LED, resistor:**
+* [Raspberry Pi Pico 2w Pinout][20] - turn-off SPI/I2C/UART/Custom/Advanced/Flip/Rotate buttons at the top
+* [Tactile Push Button Switch PINOUT][35]
+* [KY-040 Rotary Encoder PINOUT][38]
+* [LED PINOUT][39]
+
+[35]:https://components101.com/switches/push-button
+[36]:https://learn.adafruit.com/adafruit-arduino-lesson-6-digital-inputs
+[37]:https://www.electronics-tutorials.ws/logic/pull-up-resistor.html
+[38]:https://www.datasheethub.com/ky-040-rotary-encoder-sensor-module/
+[39]:https://www.build-electronic-circuits.com/what-is-an-led/
+
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
@@ -110,15 +125,38 @@ only the code does.
 | Pushbutton switch, other leg | `GND` |
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
-| Rotary encoder `+`/VCC | `3V3` |
+| Rotary encoder `SW` | not used |
+| Rotary encoder `+` / `VCC` | `VSYS 5V` |
 | Rotary encoder `GND` | `GND` |
 | Button LED anode, through resistor | `GP15` |
 | Button LED cathode | `GND` |
 | Encoder brightness LED anode, through resistor | `GP14` |
 | Encoder brightness LED cathode | `GND` |
 
+>**NOTE:** Identifying an LED Anode** The positive anode is always the longer wire leg.
+>The short leg, near the flat notch on the plastic rim, is the negative cathode.
+
 Before writing any code, trace your own wiring against this table out loud — wiring mistakes are
 much faster to catch now than after you're staring at confusing code output.
+
+### Understanding Pull-Up & Pull-Down Resistors
+[Pull-up and pull-down resistors][37] are basic electronic components used in digital circuits
+to give an input pin a clear, default voltage state and prevent a "floating" (unpredictable) condition
+
+**Why Are They Important?**
+* **Prevents Floating Inputs:** Without these resistors,
+  an unconnected pin picks up stray electrical noise from the air,
+  causing random and false logic switching.
+* **Limits Current:** They provide high resistance (commonly 10 kΩ) so that when a button is pressed,
+  it does not create a dangerous direct short circuit between power and ground.
+
+>**NOTE:** You can use internal pull-up or pull-down resistors on the Raspberry Pi Pico 2W via software configuration,
+>though early hardware revisions require caution with pull-downs due to an errata chip bug.
+
+### Important Hardware Note for Pico 2W
+* **RP2350 Errata Bug:**
+  The initial RP2350 silicon revision has an internal pull-down bug (RP2350-E9) that can cause
+  pins configured with internal pull-downs to falsely read HIGH.
 
 ### What this code does
 
@@ -126,7 +164,7 @@ This first version reads the button and encoder in the most straightforward way 
 the pin, and if it changed, count it. No filtering, no waiting, nothing fancy. It's deliberately
 naive so you can see exactly what goes wrong.
 
-### The code
+### The code - No Debouncing
 
 Save this as `code.py` on your `CIRCUITPY` drive.
 
@@ -148,7 +186,7 @@ button.direction = digitalio.Direction.INPUT
 # the button connects it to GND. This is "active-low" wiring.
 button.pull = digitalio.Pull.UP
 
-# --- Rotary encoder setup ---
+# --- Rotary Encoder setup ---
 # Both CLK and DT are wired the same way as the button: active-low with a pull-up.
 encoder_clk = digitalio.DigitalInOut(board.GP3)
 encoder_clk.direction = digitalio.Direction.INPUT
@@ -163,7 +201,7 @@ encoder_dt.pull = digitalio.Pull.UP
 button_led = digitalio.DigitalInOut(board.GP15)
 button_led.direction = digitalio.Direction.OUTPUT
 
-# --- Encoder LED setup ---
+# --- Rotary Encoder LED setup ---
 # pwmio.PWMOut lets us control brightness instead of just on/off.
 # frequency=5000 means the pin switches on/off 5000 times per second -- fast
 # enough that your eye only sees the average brightness, not any flicker.
@@ -180,15 +218,15 @@ print("Class 1, Phase 1 -- raw (bouncy) readings starting...")
 print("Press the button and turn the knob. Watch the counts jump around.")
 
 while True:
-    # --- Button: count every time the pin reads "pressed" (False) ---
+    # --- Push Button: count every time the pin reads "pressed" (False) ---
     if not button.value:
         press_count += 1
         button_led.value = True
-        print("RAW press_count:", press_count)
+        print("RAW push count:", press_count)
     else:
         button_led.value = False
 
-    # --- Encoder: naive quadrature read ---
+    # --- Rotary Encoder: naive quadrature read ---
     clk_state = encoder_clk.value
     if clk_state != last_clk_state:
         # If DT differs from the NEW clk_state, we turned one direction;
@@ -296,7 +334,8 @@ last_step_time = 0.0
 # Ignore encoder edges that arrive less than this many seconds after the last
 # accepted one. Raise this if your encoder is still jittery; lower it if fast
 # turns feel like they're getting missed.
-MIN_STEP_INTERVAL = 0.02
+#MIN_STEP_INTERVAL = 0.02
+MIN_STEP_INTERVAL = 0.5
 
 print("Class 1, Phase 2 -- debounced readings starting...")
 print("Press the button and turn the knob. Each action should now print exactly once.")
@@ -346,7 +385,7 @@ Press the button five separate times, one at a time. `press_count` should read e
 afterward — not 4, not 11. Turn the knob three detents in the same direction. `encoder_position`
 should have changed by exactly 3. If both of those hold, Phase 2 is working correctly.
 
-## 6. Try It Yourself
+## 6. Build It: Try Making Modifications Yourself
 
 Once Phase 2 is passing its checkpoint, make a few small, deliberate changes and watch what
 happens each time — this "change one thing, test it, see the result" habit is the same one you
@@ -376,7 +415,7 @@ used in the Pre-Class and will keep using for the rest of the course:
 | Serial console shows nothing at all | Wrong COM/serial port selected, or a charge-only USB cable/port | Reselect the correct port in Mu/Thonny; try a different cable or USB port |
 | Button LED stays on permanently | Wiring assumes active-low but the switch's other leg is on `3V3` instead of `GND` | Move that leg to `GND`; confirm `pull = digitalio.Pull.UP` in the code |
 
-## 8. Put It All Together
+## 8. Build It: Put It All Together
 
 This is the finished project in one place — everything you need to build it from scratch without
 following the phase-by-phase walkthrough above.
@@ -389,7 +428,8 @@ following the phase-by-phase walkthrough above.
 | Pushbutton switch, other leg | `GND` |
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
-| Rotary encoder `+`/VCC | `3V3` |
+| Rotary encoder `SW` | not used |
+| Rotary encoder `+` / `VCC` | `VSYS 5V` |
 | Rotary encoder `GND` | `GND` |
 | Button LED anode, through resistor | `GP15` |
 | Button LED cathode | `GND` |
@@ -435,6 +475,7 @@ encoder_position = 0
 last_clk_state = encoder_clk.value
 last_step_time = 0.0
 MIN_STEP_INTERVAL = 0.02  # seconds; raise if your encoder is still jittery
+#MIN_STEP_INTERVAL = 0.5
 
 print("Class 1 project running -- button + rotary encoder, debounced.")
 
@@ -480,7 +521,7 @@ in Class 6 as a live speed control for your robot car. Next class, you'll meet a
 "noisy real-world signal" problem: an ultrasonic distance sensor, wired fresh on brand-new pins,
 with today's circuit untouched right next to it.
 
-----
+---
 ## 10. Homework Assignment
 
 Today's circuit and code stay on your breadboard — the exercises below are **homework, not
@@ -578,6 +619,7 @@ encoder_position = 0
 last_clk_state = encoder_clk.value
 last_step_time = 0.0
 MIN_STEP_INTERVAL = 0.02  # same debounce filter as tonight's Phase 2
+#MIN_STEP_INTERVAL = 0.5
 
 print("Class 1 Homework 2 -- turn the knob slowly, then turn it fast, and compare.")
 
@@ -628,6 +670,24 @@ a small block of memory built into the chip that
 is specifically designed to *keep* its contents across power loss and resets. You'll store
 `press_count` there instead of in a normal variable, so the count survives being unplugged.
 
+Let's first initialize the NVM with the value zero
+so that we don't get a random value from the NVM memory on the microcontroller:
+
+```python
+# use this to initialize the NVM in the microcontroller to the value "0"
+
+import microcontroller  # gives access to microcontroller.nvm, a small chunk of memory
+                         # that survives power loss and resets, unlike a normal variable
+
+def save_press_count(value):
+    microcontroller.nvm[0:4] = value.to_bytes(4, "big")
+
+save_press_count(0)
+```
+
+After you do the initialization with the code above,
+load and run the code below:
+
 ```python
 # code.py - press_count that survives unplugging the board
 import time
@@ -649,6 +709,8 @@ def load_press_count():
 
 def save_press_count(value):
     microcontroller.nvm[0:4] = value.to_bytes(4, "big")
+
+# you must initialise the NVM with this statement
 
 press_count = load_press_count()
 print("Class 1 Homework 3 -- press_count loaded from NVM:", press_count)
