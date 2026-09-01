@@ -33,7 +33,7 @@ your robot car in Class 6.
 ## 2. What You'll Need
 
 | Component | Quantity | Purpose This Project |
-|:----------|:--------:|:---------------------|
+| :---------- | :--------: | :--------------------- |
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
 | Momentary Push Button Tactile Switch | 1 | Digital input — the thing you press |
 | KY-040 rotary encoder module | 1 | Rotational input — the knob you turn |

@@ -512,6 +512,108 @@ Once the README.md file is created, lint the file and make corrections as needed
 
 ----
 
+# My 18th Prompt - Using the `/explainer` skill, create `raspberry-pi-pico-2w-pinout.md`
+Using the /explainer skill, create a document located at @explainer/raspberry-pi-pico-2w-pinout.md
+discussing what is a pinout (reference wikipedia as a source), what is it used for, how is its use communicated,
+where can I find it for the raspberry pi 2W (reference <https://pico2w.pinout.xyz/#i=ph>) as one of your sources,
+and how do I find the pinout for for other devices.
+My target audience are the students for my course.
+
+----
+
+# My 19th Prompt - Using the `/explainer` skill, create `spi-i2c-uart-serial-communications.md`
+Using the /explainer skill, create a document located at @explainer/spi-i2c-uart-serial-communications.md
+discuss what serial communication and what its important within microcontrollers.
+Discuss what SPI, I2C, and UART abbreviations stand for,
+what these protocols are used for, how they operate,
+and how they are accessed on the Raspberry Pi Pico 2W via CircuitPython.
+
+Still using the /explainer skill, cross reference this document within @explainer/raspberry-pi-pico-2w-pinout.md.
+Make sure you reference both ways, using URL links, and do it multiple place when useful.
+Modify the text in both, as necessary, for optimal impact.
+
+My target audience are the students for my course.
+
+----
+
+# My 20th Prompt - Using the `/explainer` skill, create `types-of-pins-on-raspberry-pi-pico-2w.md`
+Using the /explainer skill, create a document located at @explainer/types-of-pins-on-raspberry-pi-pico-2w.md
+and discuss all the pin functions and what the abbreviation stands for (reference <https://pico2w.pinout.xyz/#i=ph>):
+SPI, I2C, UART, Ground, VBUS 5V, VSYS 5V, 3V3 En, 3V3 Out, ADC VRef, GP28 A2, ADC Gnd, GP27 A1, GP26 A0, RUN.
+Discuss what these pins are used for, how they operate,
+and how they are accessed on the Raspberry Pi Pico 2W via CircuitPython.
+
+Still using the /explainer skill, cross reference this document within
+@explainer/raspberry-pi-pico-2w-pinout.md and @explainer/spi-i2c-uart-serial-communications.md.
+Make sure you reference both ways, using URL links, and do it multiple place when useful.
+Modify the text in all, as necessary, for optimal impact.
+
+My target audience are the students for my course.
+
+----
+
+# My 21st Prompt - Using the `/explainer` skill, create `glossary-of-terms-for-microcontrollers.md`
+Using the /explainer skill, create a document located at @explainer/glossary-of-terms-for-microcontrollers.md
+providing definitions / descriptions / uses of the following:
+microcontroller (MCU),
+ADC (Analog-to-Digital Converter),
+CPU (Central Processing Unit),
+EEPROM (Electrically Erasable Programmable Read-Only Memory),
+Firmware,
+Flash Memory,
+GPIO (General Purpose Input/Output),
+I2C (Inter-Integrated Circuit),
+Interrupt,
+RAM (Random Access Memory),
+SPI (Serial Peripheral Interface),
+UART (Universal Asynchronous Receiver/Transmitter),
+PWM, DMA, Watchdog Timers,
+NVM (Non-Volatile Memory),
+DMA (Direct Memory Access),
+DAC (Digital-to-Analog Converter),
+ISR (Interrupt Service Routine),
+NVM (Non-Volatile Memory),
+PWM (Pulse Width Modulation),
+Register,
+RTOS (Real-Time Operating System),
+SRAM (Static Random Access Memory),
+Timers/Counters,
+WDT (Watchdog Timer),
+low-power mode definitions (like Sleep, Deep Sleep, or Brown-out Reset).
+Organize these by topics areas with a few sentences about the topic area as a common introduction.
+
+My target audience are the students for my course.
+
+I added later the prompt ... Using the /explainer skill, add to @glossary-of-terms-for-microcontrollers.md the term pull up/down resistor
+
+----
+
+# My 22nd Prompt - Using the `/explainer` skill, create `what-are-breadboards-and-dupont-wires.md`
+
+Using the /explainer skill, create a document located at @explainer/what-are-breadboards-and-dupont-wires.md
+Explain the origins of the name "breadboard",
+providing definitions / descriptions of a breadboard wire (give link to wikipedia),
+why are the used,
+they typically come in 3 inch & 6 inch boards (some smaller),
+they have a channel down the middle & say way its there,
+discuss the purpose of the rail down the left&right sides,
+discuss how the holes are interconnected,
+and when should you not use a breadboard.
+
+Explain the origins of the name "Dupont wire" (also known as jumper, jump wire, jumper wire),
+providing definitions / descriptions DuPont wire (give link to wikipedia),
+what are they used for,
+discus how you can purchase them in multiple lengths (typically 10cm, 15cm, 20cm),
+come multiple terminal types (male-male / male-female / female-female),
+come in multiple colors, you can even make your own if you wish to crimp them,
+and you can do without an just use solid 22 AWG wire,
+and when should you not use a Dupont wires.
+
+My target audience are the students for my course.
+
+----
+
+
 # My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----

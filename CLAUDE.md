@@ -120,5 +120,11 @@ PII, not course content; don't quote or propagate it into generated docs or else
 `explainers/` holds standalone explainer docs generated via the `/explainer` skill (e.g.
 microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
 `README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has a
-per-class handout (`class-00-handout.md` so far) plus a `README.md` outline. `expenses/` is still
-empty — no established conventions yet.
+per-class handout (`class-00-handout.md` so far); its `README.md` is scratch notes and reference
+links (a glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` is
+still empty — no established conventions yet.
+
+`tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated
+install guides it has hand-maintained docs (`git-worktree-multitasking.md`,
+`python-virtual-environments.md`, `set-up-ssh-key-authentication.md`) and a `setup-github.sh`
+script — don't assume everything there came from the skill.
