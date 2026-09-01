@@ -6,12 +6,12 @@ of standard "languages" called serial protocols. This doc explains what serial c
 why microcontrollers depend on it, and breaks down the three you'll actually touch in this
 course — UART, I2C, and SPI — including exactly how to reach each one from CircuitPython on the
 Pico 2 W. For the physical pins these protocols run over, see the companion doc,
-[Raspberry Pi Pico 2 W pinout][10] or reference the [Raspberry Pi Pico 2 W Pinout website][15].
+[Raspberry Pi Pico 2 W pinout][01] or reference the [Raspberry Pi Pico 2 W Pinout website][02].
 For every other pin label on the board that *isn't* SPI, I2C, or UART — power pins like `GND`,
-`VBUS`, and `3V3 OUT`, plus the analog and reset pins — see [Types of Pins on the Pico 2 W][16].
+`VBUS`, and `3V3 OUT`, plus the analog and reset pins — see [Types of Pins on the Pico 2 W][03].
 For a shorter, one-paragraph-per-term version of SPI, I2C, and UART alongside every other
 microcontroller abbreviation this course uses, see the [Glossary of Terms for
-Microcontrollers][17].
+Microcontrollers][04].
 
 ## The problem: a chip only has so many legs
 
@@ -99,11 +99,11 @@ uart.write(b"hello\n")
 
 **What it's used for:** I2C is built for wiring up multiple sensors and small peripherals onto
 the same two wires without needing a dedicated pair of pins for each one. This course uses I2C
-for exactly one device — the [9-DOF LSM9DS1 IMU breakout board][11] you wire up in Class 4 — but
+for exactly one device — the [9-DOF LSM9DS1 IMU breakout board][05] you wire up in Class 4 — but
 I2C's real strength is that it doesn't stop at one. Because every device on an I2C bus gets its
 own address, you can wire up several I2C sensors to the *same two pins* and the Pico can tell
 them apart and talk to each one individually. That's why the LSM9DS1 breakout connects over a
-[STEMMA QT cable][12] — Adafruit's snap-together I2C connector standard — instead of individual
+[STEMMA QT cable][06] — Adafruit's snap-together I2C connector standard — instead of individual
 jumper wires: it's designed to be one link in a chain of I2C devices you could plug together.
 
 **How it operates:** I2C uses exactly two wires, no matter how many devices are on the bus:
@@ -122,7 +122,7 @@ that lets I2C scale from 1 device to a dozen without adding a single extra wire.
 
 **How to access it on the Pico 2 W in CircuitPython:** CircuitPython's `board` module exposes
 default I2C pins directly — on the Pico 2 W in this course's wiring, `SCL` is `GP1` and `SDA` is
-`GP0` (see [Wiring Continuity in the Class 4 lesson plan][13]):
+`GP0` (see [Wiring Continuity in the Class 4 lesson plan][07]):
 
 ```python
 import board
@@ -136,7 +136,7 @@ sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 Notice the sensor's library (`adafruit_lsm9ds1`) already knows the LSM9DS1's fixed I2C address
 internally — you don't have to look it up or type it yourself for a standard Adafruit breakout.
 `SDA` and `SCL` only carry data, though — the LSM9DS1 still needs power and ground wired to
-`3V3 OUT` and `GND` to actually turn on; see [Types of Pins on the Pico 2 W][16] for what those
+`3V3 OUT` and `GND` to actually turn on; see [Types of Pins on the Pico 2 W][03] for what those
 pins are and how they work.
 
 ## SPI — Serial Peripheral Interface
@@ -147,7 +147,7 @@ pins are and how they work.
 much more speed." It's the protocol of choice whenever a device needs to move a lot of data
 quickly — the textbook example being a display, which has to redraw potentially thousands of
 pixels many times a second. This course's Class 6 stretch goal — the [1.14" 240×135 ST7789 TFT
-status screen][14] — talks to the Pico over SPI for exactly that reason: I2C is too slow to
+status screen][08] — talks to the Pico over SPI for exactly that reason: I2C is too slow to
 redraw a screen smoothly, but SPI easily keeps up.
 
 **How it operates:** Where I2C uses 2 wires total, SPI typically uses 4: a shared clock (`SCK`,
@@ -194,11 +194,11 @@ many devices need to share the bus and how fast the data needs to move.
 
 
 
-[10]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/raspberry-pi-pico-2w-pinout.md
-[11]:https://www.adafruit.com/product/4634
-[12]:https://learn.adafruit.com/introducing-adafruit-stemma-qt
-[13]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/lesson_plans/class-04-lesson-plan.md
-[14]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/lesson_plans/class-06-lesson-plan.md
-[15]:https://pico2w.pinout.xyz/#i=siuph
-[16]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/types-of-pins-on-raspberry-pi-pico-2w.md
-[17]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/glossary-of-terms-for-microcontrollers.md
+[01]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/raspberry-pi-pico-2w-pinout.md
+[02]:https://pico2w.pinout.xyz/#i=siuph
+[03]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/types-of-pins-on-raspberry-pi-pico-2w.md
+[04]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/glossary-of-terms-for-microcontrollers.md
+[05]:https://www.adafruit.com/product/4634
+[06]:https://learn.adafruit.com/introducing-adafruit-stemma-qt
+[07]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/lesson_plans/class-04-lesson-plan.md
+[08]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/lesson_plans/class-06-lesson-plan.md
