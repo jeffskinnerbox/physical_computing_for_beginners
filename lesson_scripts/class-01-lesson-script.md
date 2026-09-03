@@ -1346,9 +1346,9 @@ capped at 10.
 #### Real World Examples
 
 * Vehicle "black box" event recorders keep only the most recent stretch of data (crash sensors,
-    speed, braking) in a fixed-size buffer, overwriting older data as new events come in.
+  speed, braking) in a fixed-size buffer, overwriting older data as new events come in.
 * Appliance fault-code logs (washing machines, HVAC systems, industrial equipment) store the last N
-    error codes for a technician to read later, the same fixed-size, oldest-overwritten pattern.
+  error codes for a technician to read later, the same fixed-size, oldest-overwritten pattern.
 
 ## References
 
