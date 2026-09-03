@@ -167,6 +167,7 @@ part of the course budget above.
 | Slim Rubber Rotary Encoder Knob - 11.5mm x 14.5mm D-Shaft | [Adafruit](https://www.adafruit.com/product/5093) | single | 1 | 3 | 1 | $0.75 | $2.25 |
 | I2C Stemma QT Rotary Encoder Breakout with Encoder | [Adafruit](https://www.adafruit.com/product/5880) | single | 1 | 3 | 1 | $7.95 | $23.85 |
 | Monochrome 1.12" 128x128 OLED Graphic Display - STEMMA QT / Qwiic | [Adafriuit](https://www.adafruit.com/product/5297) | single | 1 | 1 | 1 | $17.50 | $17.50 |
+| Slot Type IR Optocoupler for Motor Speed | [Amazon][28] | multiple | 10 | 2 | 2 | $8.99 | $17.98 |
 
 ----
 
@@ -194,4 +195,5 @@ part of the course budget above.
 [25]:https://www.amazon.com/Charging-Transfer-Charger-Speakers-Controllers/dp/B0GVBKRW6G?th=1
 [26]:https://www.amazon.com/dp/B07YKFX99S?th=1
 [27]:https://www.amazon.com/dp/B0DTJZ3432
+[28]:https://www.amazon.com/dp/B0B2NSQJDL
 

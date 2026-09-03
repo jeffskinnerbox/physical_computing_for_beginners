@@ -1,35 +1,4 @@
 
-## Create a hierarchy of definitions
-
-* Microcontroller
-* microProcessor
-* Microcontroller vs microProcessor
-* operating system
-* BOOTSEL
-* Firmware
-* Embedded Firmware
-* Program Memory (Non-Volatile)
-  * Flash memory
-  * Mask ROM / OTP ROM
-* Data Memory (Volatile & Non-Volatile)> [!WARNING]
-  * SRAM (Static RAM)
-  * EEPROM
-  * FRAM (Ferroelectric RAM)
-* Processor Internal Storage
-  * CPU Registers
-* microcontroller firmware runs directly on the bare metal hardware
-* Non-Volatile Memory
-* Updated via "Flashing":watch
-* Main Loop
-* Peripherals
-  * GPIO
-  * Interrupts
-  * Timers
-  * ADC
-  * Serial Interface
-    * UART
-    * SPI
-    * I2C
 
 * [Embedded Firmware Explained in Simple Terms](https://www.youtube.com/watch?v=MqFqF-kGQGA&t=51s)
 * [All About Microcontroller Memory - Flash, RAM, EEPROM | Embedded Systems Explained](https://www.youtube.com/watch?v=lPFZsCDTIfw&t=103s)

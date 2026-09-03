@@ -17,9 +17,31 @@ W's chip is an RP2350. This section covers the words for that chip and what's in
 **Microcontroller (MCU).** A single chip that packs a processor, memory, and input/output pins
 all onto one piece of silicon — a complete tiny computer, sized and priced to be built directly
 into a single-purpose device rather than run a general operating system. The Pico 2 W's RP2350 is
-the MCU this whole course is built around. See [Microprocessors vs.
+the MCU this whole course is built around. Because everything it needs is already on the chip,
+its firmware (below) runs directly on the bare-metal hardware — no operating system sits between
+your `code.py` and the silicon. See [Microprocessors vs.
 microcontrollers][03] for the fuller history of why MCUs exist as a separate category from
 desktop-computer CPUs.
+
+**Microprocessor.** Just the CPU core on its own chip, with no memory or input/output built in —
+the kind of chip inside a laptop or a Raspberry Pi 4/5. Unusable by itself, a microprocessor has
+to be wired up to separate RAM chips, separate flash or hard-drive storage, and separate I/O
+chips to do anything, and it's normally paired with a full operating system that juggles many
+programs at once. See [Microprocessors vs. microcontrollers][03] for the full history.
+
+**Microcontroller vs. Microprocessor.** The short version: a microcontroller is self-contained
+(CPU, memory, and I/O on one chip, running one program forever) while a microprocessor is just
+the CPU, needing a whole board of supporting chips and a full operating system around it. That's
+why the Pico 2 W's RP2350 — cheap, low-power, and running your `code.py` the instant it's
+plugged in — is a microcontroller, while the chip in your laptop is a microprocessor. See
+[Microprocessors vs. microcontrollers][03] for the complete comparison, including cost, power,
+and real-time response tradeoffs.
+
+**Operating System (OS).** The background software on a general-purpose computer — Windows,
+macOS, Linux — that manages hardware and juggles multiple programs running at once, deciding
+which one gets the CPU's attention at any instant. The Pico 2 W has no operating system:
+CircuitPython *is* essentially the whole environment, and there's exactly one program (your
+`code.py`) running in an endless loop, so there's nothing to schedule or switch between.
 
 **CPU (Central Processing Unit).** The part of the MCU that actually executes your code — it
 reads each instruction in your CircuitPython program (translated down to machine instructions),
@@ -60,12 +82,36 @@ off — that's exactly why it's the right place for a program: you want your cod
 next time you plug the board in, not erased. Saving a file to your `CIRCUITPY` drive is writing
 to flash.
 
+**Mask ROM / OTP ROM.** Two even more permanent forms of program memory than flash. **Mask ROM**
+has its contents baked into the silicon at the factory — it can never be changed afterward, which
+only makes economic sense for chips made by the millions running code that will never update.
+**OTP (One-Time Programmable) ROM** is blank until it leaves the factory, but can be written to
+exactly once by the manufacturer or an early boot step, after which it's permanently locked. The
+RP2350 uses a small amount of OTP ROM to hold its boot-time security and configuration settings,
+but everything you interact with in this course — CircuitPython and your `code.py` — lives in the
+rewritable flash memory above, not mask or OTP ROM.
+
 **EEPROM (Electrically Erasable Programmable Read-Only Memory).** An older, smaller, and slower
 non-volatile memory technology than flash, historically used for small amounts of settings or
 configuration data that a program needs to remember between power cycles — a saved calibration
 value, for instance. Flash memory has mostly replaced EEPROM in modern chips like the RP2350
 because it can be erased and rewritten faster and in larger chunks, but you'll still see "EEPROM"
 in older datasheets and tutorials as the generic term for "a small non-volatile settings store."
+
+**FRAM (Ferroelectric RAM).** A less common memory technology that behaves like non-volatile
+EEPROM/flash — it keeps its contents with the power off — but reads and writes at speeds close to
+regular RAM, with none of flash's "erase before rewrite" delay. It shows up in a handful of
+specialty microcontrollers and add-on boards where a program needs to save data constantly
+without wearing out flash (which only tolerates a limited number of rewrites). The RP2350 doesn't
+use FRAM — worth knowing the name exists mainly so it doesn't look like a typo for "RAM" or
+"EEPROM" when you spot it in a datasheet.
+
+> [!WARNING]
+> It's easy to assume "memory" always means the same thing, but a microcontroller's memory is
+> split by one hard question — does it survive when the power goes off? Volatile memory (RAM/
+> SRAM) doesn't; non-volatile memory (flash, EEPROM, mask/OTP ROM, FRAM) does. Writing to the
+> wrong one for the job is a real bug: store a sensor calibration value in RAM instead of flash,
+> and it's gone the moment the board loses power.
 
 **NVM (Non-Volatile Memory).** The umbrella term covering any memory that keeps its contents with
 the power off — flash and EEPROM are both *kinds* of NVM. When a datasheet says "NVM," it's
@@ -79,6 +125,12 @@ RAM for what doesn't need to.
 An MCU is useless in isolation — the entire point of this course is wiring sensors, motors, and
 displays to one, so it needs standardized ways to send and receive both digital (on/off) and
 analog (continuously varying) signals through its physical pins.
+
+**Peripherals.** The umbrella term for all the built-in hardware on an MCU that isn't the CPU
+itself — GPIO pins, the ADC, timers, interrupt controllers, and the UART/I2C/SPI serial
+interfaces below are all peripherals. The CPU runs your code; peripherals are what let that code
+actually talk to the outside world (or measure it, or keep time) without the CPU having to
+bit-bang every signal by hand.
 
 **GPIO (General Purpose Input/Output).** Any pin on the board that your code can configure to
 either read a signal (input) or send one (output), for general use rather than one fixed job.
@@ -158,6 +210,14 @@ TFT screen.
 
 ## Reacting to events
 
+**Main Loop.** The `while True:` block at the bottom of every `code.py` in this course — the code
+that runs top to bottom, over and over, for as long as the board has power. Everything you've
+written so far lives in the main loop: read a sensor, decide something, act, repeat. It's the
+simplest possible way to structure a program, and it's why this course leans on polling (checking
+a pin's state yourself, every pass through the loop) rather than interrupts for something like
+the Class 1 pushbutton — one loop, checked on its own schedule, is easier to reason about than
+code that can be interrupted mid-step.
+
 So far, every piece of code you've written in this course runs top to bottom in a loop, checking
 things on its own schedule. But some events — a button press, a timer running out, a sensor
 finishing a reading — need the chip's attention *immediately*, not just whenever the main loop
@@ -209,11 +269,20 @@ The last group covers what happens at the edges of a program's life — how code
 in the first place, what keeps a chip from silently freezing forever, and how it saves power when
 it doesn't need to be fully awake.
 
-**Firmware.** The software permanently loaded onto a device to make its hardware work — on the
-Pico 2 W, CircuitPython itself is firmware, and it's what turns a bare RP2350 chip into something
-that can run your `code.py` at all. "Flashing firmware" (a term you saw in the Pre-Class) means
-writing that low-level software into the board's flash memory (above), typically by dragging a
-`.uf2` file onto the board while it's in bootloader mode.
+**Firmware / Embedded Firmware.** The software permanently loaded onto a device to make its
+hardware work — on the Pico 2 W, CircuitPython itself is firmware, and it's what turns a bare
+RP2350 chip into something that can run your `code.py` at all. "Embedded firmware" is the same
+idea with the word that emphasizes *where* it runs: permanently built into a single-purpose
+device (an "embedded system"), as opposed to an app you install and remove on a general-purpose
+computer. "Flashing firmware" (a term you saw in the Pre-Class) means writing that low-level
+software into the board's flash memory (above), typically by dragging a `.uf2` file onto the
+board while it's in bootloader mode.
+
+**BOOTSEL.** The physical button on the Pico 2 W that puts it into bootloader mode — hold it down
+while plugging in the USB cable, and instead of running `code.py`, the board shows up on your
+computer as a plain USB drive (`RPI-RP2`) ready to accept a new `.uf2` firmware file. It's the
+mechanism behind "flashing firmware": BOOTSEL tells the chip "don't run your normal program yet,
+just wait for me to drop a new one in."
 
 **WDT / Watchdog Timer.** A safety timer that automatically resets the whole chip if your program
 ever gets stuck — hangs, freezes, or otherwise fails to "check in" within an expected window.

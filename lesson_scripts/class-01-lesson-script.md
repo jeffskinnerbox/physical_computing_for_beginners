@@ -112,13 +112,6 @@ only the code does.
 * [KY-040 Rotary Encoder PINOUT][38]
 * [LED PINOUT][39]
 
-[35]:https://components101.com/switches/push-button
-[36]:https://learn.adafruit.com/adafruit-arduino-lesson-6-digital-inputs
-[37]:https://www.electronics-tutorials.ws/logic/pull-up-resistor.html
-[38]:https://www.datasheethub.com/ky-040-rotary-encoder-sensor-module/
-[39]:https://www.build-electronic-circuits.com/what-is-an-led/
-
-
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
 | Pushbutton switch, one leg | `GP2` |
@@ -265,7 +258,7 @@ those bounces as a separate event.
 Before moving on, confirm: pressing the button turns `button_led` on, turning the knob changes
 `encoder_led`'s brightness, and both actions print erratic, multi-count output to the console. If
 nothing prints at all when you press/turn, check your wiring against the table above before
-touching the code — a miswired pin is far more likely than a code bug at this stage.
+touching the code — a miss-wired pin is far more likely than a code bug at this stage.
 
 ## 5. Build It: Phase 2 — Fix It With Debouncing
 
@@ -756,7 +749,7 @@ same sensor, same pin, and same read pattern you'll reuse on the Random Rover in
 
 | Pico 2 W Pin | Sensor Pin | Signal / Function |
 | :------------- | :----------- | :-------------------- |
-| `3V3` (or `VBUS`) | `VCC` | Power (most of these modules accept 3.3-5V) |
+| `3V3 Out` (or `VBUS 5V`) | `VCC` | Power (most of these modules accept 3.3-5V) |
 | `GND` | `GND` | Common ground |
 | `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
 
@@ -1120,9 +1113,9 @@ brightness should change immediately, and the page should reload showing the new
 #### Real World Examples
 
 * Smart-bulb apps like Philips Hue or LIFX work exactly this way — a slider in the app sends a
-    command over the local network that actually changes the bulb's brightness.
+  command over the local network that actually changes the bulb's brightness.
 * Any browser-based device dashboard (a 3D printer's web interface, a smart thermostat's local
-    admin page) uses the same request-triggers-hardware-change pattern.
+  admin page) uses the same request-triggers-hardware-change pattern.
 
 ### Homework 8 — Countdown Timer: Encoder Sets Duration, Button Starts, LED Counts Down
 
@@ -1232,6 +1225,32 @@ This exercise stores a small **ring buffer** of the last 10 button-press and enc
 instead, a structured log of multiple records rather than one value, printed back out in order at
 boot. This is a different, more general use of persistent storage: not "remember one number," but
 "remember recent history."
+
+Let's first initialize the NVM with the value zero
+so that we don't get a random value from the NVM memory on the microcontroller:
+
+```python
+# use this to initialize the NVM in the microcontroller to the value "0"
+
+import microcontroller  # gives access to microcontroller.nvm, a small chunk of memory
+                         # that survives power loss and resets, unlike a normal variable
+
+NVM_BASE = 4
+TOTAL_WRITES_OFFSET = NVM_BASE
+
+def save_press_count(value):
+    microcontroller.nvm[0:4] = value.to_bytes(4, "big")
+
+def save_total_writes(value):
+    microcontroller.nvm[TOTAL_WRITES_OFFSET : TOTAL_WRITES_OFFSET + 4] = value.to_bytes(
+        4, "big"
+    )
+
+save_total_writes(0)
+```
+
+After you do the initialization with the code above,
+load and run the code below:
 
 ```python
 # code.py - store the last 10 button/encoder events as
@@ -1360,3 +1379,10 @@ capped at 10.
 [20]:https://pico2w.pinout.xyz/
 [33]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
 [34]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
+[35]:https://components101.com/switches/push-button
+[36]:https://learn.adafruit.com/adafruit-arduino-lesson-6-digital-inputs
+[37]:https://www.electronics-tutorials.ws/logic/pull-up-resistor.html
+[38]:https://www.datasheethub.com/ky-040-rotary-encoder-sensor-module/
+[39]:https://www.build-electronic-circuits.com/what-is-an-led/
+
+

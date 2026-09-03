@@ -1,5 +1,5 @@
 ---
-name: wiring-diagram
+name: wiring_diagram
 description: Generate a labeled schematic wiring diagram (PNG) from a markdown pinout table and embed it in the doc. Use when a markdown file has a "Wiring — <Board> to <Module>" table (columns like Board Pin | Module Pin | Signal/Function) and the user wants a visual/diagram/picture of that wiring added to the doc.
 ---
 
@@ -94,6 +94,7 @@ diagram) — as long as the wire/color conventions stay consistent across both.
 
 If the user wants to be able to tweak the diagram visually afterward, seed and
 publish the same `.dc.html` as a design canvas via the `design` skill (`Main.dc.html`
+
 - `seed-canvas.mjs` + `Artifact` tool) in addition to the embedded PNG — keep the PNG
 as the doc's copy and the canvas as a separate link, and re-render the PNG from the
 canvas source (not the other way around) after any edit.
