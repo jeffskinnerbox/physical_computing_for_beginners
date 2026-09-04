@@ -50,7 +50,13 @@ someone a Word doc or PDF instead of a markdown file, pandoc will convert any of
 These are the topics on the list but not yet written — good candidates next time a student asks
 a question one of them would answer:
 
+* what-is-an-odometer.md
+* what-is-an-imu.md
+* what-is-a-buck-converter.md
+* what-are-the-types-of-displays.md
 * what-are-pull-up-pull-down-resistors.md
 * what-is-git-and-github.md
+
+
 
 [01]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/README.md

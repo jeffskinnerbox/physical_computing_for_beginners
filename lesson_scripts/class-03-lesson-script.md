@@ -454,6 +454,9 @@ optional take-home exercises, following the same format as the Pre-Class homewor
 [`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
 does, full commented code, and real-world examples).
 
+Add the following:
+* watchdog timer - [CircuitPython Watchdog Module](https://learn.adafruit.com/circuitpython-watchdog-module)
+
 ## References
 
 * [Adafruit CircuitPython Motor Library — API Reference][01] — the `adafruit_motor.motor.DCMotor`

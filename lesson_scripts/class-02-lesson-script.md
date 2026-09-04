@@ -1,6 +1,5 @@
 # Lesson Script: Class 2 — Ultrasonic Distance Sensor + Servo Motor
 
-
 * **Class:** 2 of 6 (plus Pre-Class)
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
@@ -9,7 +8,6 @@
     breadboard — you won't touch it today, just build next to it.
 
 ---
-
 
 ## 1. What This Project Is
 
@@ -23,6 +21,8 @@ sweeping alone, then physically tape the sensor onto the servo and combine them 
 scan-and-report circuit. That combined circuit is not a simplified preview of something later — it
 is, unchanged, the exact "look around for open space" behavior your Random Rover uses to avoid
 obstacles starting in Class 5.
+
+We will also begin the assembly of the Random Rover chassis.
 
 ## 2. What You'll Need
 
@@ -366,24 +366,37 @@ stand-in for something later; it's the unchanged "look around" behavior your Ran
 starting in Class 5. Next class, you add the piece that's still missing: a motor driver that can
 actually act on what the sensor sees.
 
-----
+---
+
 ## 10. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
-[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
-does, full commented code, and real-world examples).
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code does, full commented code, and real-world examples).
+
+### Homework 1 — Random Rover: Assemble the Chassis of Our Autonomous Robot
+Assemble the EMOZNY Smart Car Chassis Kit by following the included instruction sheet
+(there are helpful videos below).
+**BUT** also do the following:
+* **do not** attach any wiring (we will do this together in class)
+* **do not** attach the battery holder (we will be using a 9 volt battery instead)
+
+Assembly Videos
+* [How to assemble the 2WD Smart Robot Car Chassis Kit for Arduino](https://www.youtube.com/watch?v=H78t6dnSoG0)
+* [Complete Assembly And Review Of A DIY Robot Smart Car Chassis Kit For Arduino or Raspberry Pi](https://www.youtube.com/watch?v=Q4UmbjXwoZ4)
 
 ## References
 
 * [Python & CircuitPython — Ultrasonic Sonar Distance Sensors][01] — Adafruit's official guide to
-    wiring and reading the HC-SR04, including the voltage-divider caveat
+  wiring and reading the HC-SR04, including the voltage-divider caveat
 * [adafruit/Adafruit_CircuitPython_HCSR04][02] — the `adafruit_hcsr04` library used in this script
 * [CircuitPython Servo | CircuitPython Essentials][03] — PWM and `adafruit_motor.servo` basics
 * [DC, Servo, Stepper Motors and Solenoids with the Pico][04] — broader background on motor/servo
-    control from the Pico
+  control from the Pico
 
 ---
+
+
 
 [01]:https://learn.adafruit.com/ultrasonic-sonar-distance-sensors/python-circuitpython
 [02]:https://github.com/adafruit/Adafruit_CircuitPython_HCSR04
