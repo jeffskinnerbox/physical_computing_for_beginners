@@ -2,15 +2,18 @@
 
 * **Class:** 4 of 6 (plus Pre-Class)
 * **Phase:** Phase 2 — Outputs & Motion (Class 3-4: driving motors and reading orientation)
-* **Duration:** ~2 hours (120 min)
+* **Duration:** ~2 hours (120 min). Extending `rover_server.py` with orientation data fits inside
+  the original 120-min slot as a brisk third Guided Practice step, not a new build — see the "Class
+  Timeline" pacing note below for what to cut first if a group runs long.
 * **Prerequisites from prior Classes:** Classes 1-3 completed — every student has a working
   debounced pushbutton/rotary-encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`), a working HC-SR04 + SG90
-  sensor-sweep circuit (`GP6`-`GP8`), and a working DRV8833 motor driver circuit (`GP9`-`GP12`) on
-  their breadboard, and has just finished Class 3 having directly experienced how open-loop, timed
-  moves drift off target. Students should have Python installed on their laptop (from the Pre-Class)
-  and be comfortable running a script from a terminal. All three prior circuits stay on the
-  breadboard, powered but unused, all Class — nothing from Class 1, 2, or 3 is touched or rewired
-  today.
+  sensor-sweep circuit (`GP6`-`GP8`), and a working DRV8833 motor driver circuit (`GP9`-`GP12`,
+  `GP16`-`GP17`) on their breadboard, and has just finished Class 3 having directly experienced how
+  open-loop, timed moves drift off target. Students should have Python installed on their laptop
+  (from the Pre-Class) and be comfortable running a script from a terminal. All three prior circuits
+  stay on the breadboard, powered but unused, all Class — nothing from Class 1, 2, or 3 is touched or
+  rewired today. The Class 3 rover status website (`rover_server.py`) and its classroom WiFi
+  connection must still be working — a quick spot-check, not a rebuild.
 
 ---
 
@@ -23,10 +26,13 @@ that reports orientation (which way the car is pointed) rather than distance or 
 wire the IMU over I2C, read raw accelerometer and gyroscope values, and then fuse those two noisy,
 individually-flawed signals into a single stable roll/pitch/yaw orientation using a Mahony filter —
 streaming that orientation to a live 3D box rendered on their laptop, so they can watch their
-physical tilt reflected on screen in real time. The Class closes by pushing back on the excitement:
-orientation alone still doesn't solve Class 3's square/circle problem, because knowing which way
-you're pointed isn't the same as knowing how far you've traveled — a gap the students name explicitly
-before Class 5 combines everything into the Random Rover.
+physical tilt reflected on screen in real time. The same roll/pitch/yaw values are also posted into
+the Class 3 rover status website — `rover_server.py`'s `/data.json` route grows one new
+`orientation` field alongside the wheel-speed/direction fields already there, so a laptop browser can
+show both sensors' data together with no new website built. The Class closes by pushing back on the
+excitement: orientation alone still doesn't solve Class 3's square/circle problem, because knowing
+which way you're pointed isn't the same as knowing how far you've traveled — a gap the students name
+explicitly before Class 5 combines everything into the Random Rover.
 
 ## 2. Learning Goals
 
@@ -39,6 +45,8 @@ before Class 5 combines everything into the Random Rover.
   and jitter
 * Stream fused roll/pitch/yaw orientation from the Pico to a live 3D visualization running on the
   laptop
+* Extend the Class 3 rover status website (`rover_server.py`) with a new `orientation` field on the
+  same `/data.json` route, so wheel speed/direction and orientation are both visible on one webpage
 * Identify what information is still missing to fully solve Class 3's square/circle challenge, even
   with working orientation data
 
@@ -46,6 +54,9 @@ before Class 5 combines everything into the Random Rover.
 
 * **1-2 days before:** Confirm every student's Class 1, 2, and 3 circuits are still intact and
   power up — a quick visual/serial spot-check, not a rebuild. (~15 min)
+* **1-2 days before:** Confirm every student's `rover_server.py` from Class 3 still connects to the
+  classroom WiFi and serves `/data.json` — nothing new to set up here this Class, just confirm it
+  still works, since today's website change is a small edit to this same file. (~10 min)
 * **1-2 days before:** Verify `adafruit_lsm9ds1` is present in each student's Library Bundle folder;
   have a few copies on a USB stick as backup. (~10 min)
 * **1-2 days before:** Confirm every student laptop can run `pip install pyserial matplotlib numpy`
@@ -58,6 +69,9 @@ before Class 5 combines everything into the Random Rover.
 * Pre-build one reference circuit at the instructor bench and test `class-4-code-1.py` (on the
         Pico) together with `class-4-code-2.py` (on a laptop) end-to-end, confirming the 3D box
         responds correctly to physical tilting in all three axes. (~25 min)
+* Also test `class-4-code-3.py`'s edit to `rover_server.py` end-to-end: load it on the reference
+        Pico, confirm the same laptop browser that showed wheel speed/direction in Class 3 now also
+        shows an `orientation` field on `/data.json` and the webpage. (~10 min)
 * Note which serial port `class-4-code-2.py` needs (e.g. `COM5`) on the instructor's machine so
         you can show students how to find their own port quickly. (~5 min)
 * Project the instructor's live 3D box display so the whole class can see it respond to the
@@ -81,6 +95,7 @@ quantities, and sourcing.
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
 | Windows 11 laptop with Python 3 installed (student-supplied) | Runs `class-4-code-2.py` to display the live 3D box |
+| Classroom WiFi network (shared, from Class 3) | Already-joined network the Class 3 rover status website runs on; nothing new to set up |
 | Emo Smart Robot Car Chassis Kit | Optional: continue assembly if time remains |
 
 ## 5. Class Timeline
@@ -152,10 +167,21 @@ even though nothing moved — pure integration error.)
 Roll/pitch/yaw tells you which way something is pointed, right now — nothing about how far it has
 traveled or where it is. Ask: "Would knowing your car's exact heading, every instant, have been
 enough to nail the Class 3 square?" Draw out: heading alone still leaves distance unmeasured — you'd
-know you turned exactly 90 degrees, but not how far you drove before or after that turn. This sets up
-the "what's still missing?" discussion at Closing.
+know you turned exactly 90 degrees, but not how far you drove before or after that turn. Recall Class
+3's wheel odometry: it tells you how fast each wheel is spinning, but nothing about which way the car
+is pointed — the two sensors solve two different halves of the problem, and neither alone solves it.
+That's exactly why today's orientation data is being added to the *same* rover status website Class 3
+built, rather than a separate display — so a viewer can see wheel speed and heading side by side and
+judge for themselves whether that's enough to explain a square/circle attempt (it isn't quite —
+distance/position traveled is still unmeasured). This sets up the "what's still missing?" discussion
+at Closing.
 
 ### 5d. Guided Practice — ~40 min
+
+**Pacing note:** Three steps fit in 40 min because Step 3 is a brisk, small edit to a file students
+already have working (`rover_server.py`), not a new build. If a group is running behind, it is the
+first thing to shorten — have those students paste in the finished `class-4-code-3.py` instead of
+walking every line, and move on.
 
 Instructor builds along on the projector; students wire up and test in parallel.
 
@@ -342,6 +368,141 @@ closed first — only one program can hold a serial port open at a time.
 **What "done" looks like for this segment:** Tilting the physical board visibly and correctly tilts
 the on-screen 3D box in the matching direction, in real time.
 
+**Step 3 — extend the rover status website with orientation.**
+Recall `rover_server.py`'s `/data.json` route from Class 3: it returns a small dict —
+`speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right` — and the webpage just calls
+`JSON.stringify()` on whatever that dict contains, so it already displays any field the dict has,
+with no HTML/JavaScript changes needed. Today's edit only touches the Pico side: add the same
+sensor-read-and-fuse code from `class-4-code-1.py` into `rover_server.py`, and add three keys to the
+returned dict. Load `class-4-code-3.py` and save it over the existing `rover_server.py`.
+
+```python
+# class-4-code-3.py  (save over rover_server.py)
+# Extends the Class 3 rover status website with IMU orientation. Same server,
+# same /data.json route -- just three new keys. Reuses the Mahony filter code
+# from class-4-code-1.py rather than reinventing it.
+import os
+import math
+import time
+import board
+import busio
+import wifi
+import socketpool
+import adafruit_lsm9ds1
+from adafruit_httpserver import Server, Request, Response, JSONResponse
+import wheel_odometry
+
+wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
+print("rover server -- listening at", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool)
+
+i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-code-1.py
+imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
+
+MAHONY_KP = 2.0  # [VERIFY] -- same tuned value as class-4-code-1.py
+MAHONY_KI = 0.05  # [VERIFY]
+
+q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
+integral_fbx = integral_fby = integral_fbz = 0.0
+last_time = time.monotonic()
+
+
+def _mahony_update(ax, ay, az, gx, gy, gz, dt):
+    # Identical math to class-4-code-1.py's mahony_update() -- see Direct
+    # Teaching Concept 3 for why fusing accel+gyro this way works.
+    global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
+    norm = (ax * ax + ay * ay + az * az) ** 0.5
+    if norm == 0:
+        return
+    ax, ay, az = ax / norm, ay / norm, az / norm
+    vx = 2 * (q1 * q3 - q0 * q2)
+    vy = 2 * (q0 * q1 + q2 * q3)
+    vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3
+    ex = ay * vz - az * vy
+    ey = az * vx - ax * vz
+    ez = ax * vy - ay * vx
+    integral_fbx += MAHONY_KI * ex * dt
+    integral_fby += MAHONY_KI * ey * dt
+    integral_fbz += MAHONY_KI * ez * dt
+    gx += MAHONY_KP * ex + integral_fbx
+    gy += MAHONY_KP * ey + integral_fby
+    gz += MAHONY_KP * ez + integral_fbz
+    qa, qb, qc = q0, q1, q2
+    q0 += (-qb * gx - qc * gy - q3 * gz) * 0.5 * dt
+    q1 += (qa * gx + qc * gz - q3 * gy) * 0.5 * dt
+    q2 += (qa * gy - qb * gz + q3 * gx) * 0.5 * dt
+    q3 += (qa * gz + qb * gy - qc * gx) * 0.5 * dt
+    norm = (q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3) ** 0.5
+    q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
+
+
+def _read_orientation():
+    """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
+    global last_time
+    now = time.monotonic()
+    dt = now - last_time
+    last_time = now
+    ax, ay, az = imu.acceleration
+    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    _mahony_update(ax, ay, az, gx, gy, gz, dt)
+    roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
+    pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
+    yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
+    return roll, pitch, yaw
+
+
+STATUS_PAGE = """<!doctype html><html><body>
+<h1>Rover Status</h1>
+<pre id="data">loading...</pre>
+<script>
+setInterval(() => fetch('/data.json').then(r => r.json())
+    .then(d => document.getElementById('data').textContent =
+        JSON.stringify(d, null, 2)), 500);
+</script>
+</body></html>"""
+
+
+@server.route("/data.json")
+def data_json(request: Request):
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
+    roll, pitch, yaw = _read_orientation()  # the only new work this route does
+    return JSONResponse(request, {
+        "speed_left_cms": speed_left,
+        "dir_left": dir_left,
+        "speed_right_cms": speed_right,
+        "dir_right": dir_right,
+        "roll": roll,
+        "pitch": pitch,
+        "yaw": yaw,
+    })
+
+
+@server.route("/")
+def index(request: Request):
+    return Response(request, STATUS_PAGE, content_type="text/html")
+
+
+server.start(str(wifi.radio.ipv4_address))
+
+while True:
+    server.poll()
+```
+
+**What to watch for:** If `roll`/`pitch`/`yaw` show up as `0.0` and never change on the webpage, this
+is the same symptom as Step 1's flat-line output — check `SDA`/`SCL` wiring first, not the server
+code. If the webpage doesn't pick up the new fields at all, confirm the browser actually reloaded
+`rover_server.py`'s new version and not a cached page.
+
+**Checkpoint 3:** Every pair should be able to open their Pico's status webpage and see all seven
+fields — `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw` — update
+live, with wheel speed responding to driving and orientation responding to tilting the board by hand.
+
+**What "done" looks like for this segment:** The same webpage students used in Class 3 now shows
+orientation alongside wheel speed/direction, with no separate page or server — one browser tab, one
+set of live numbers.
+
 ### 5e. Independent Work — ~40 min
 
 **What to do:** Students (in pairs where possible) experiment with the live display, then run the
@@ -354,6 +515,9 @@ drift). Capture before/after observations in the build journal. Faster pairs can
 * Mount the IMU off to one side of a straight edge (like a ruler) versus centered, spin it around a
   fixed pivot point, and discuss whether the readings differ — connects to the Talking Points
   question about mounting position and turning.
+* Drive the car a short distance with a partner watching the rover status website (not the laptop
+  3D box) and describe out loud what wheel speed and orientation *together* tell you that either one
+  alone wouldn't — and what they still can't tell you (distance/position traveled).
 * Continue assembling the Emo Smart Robot Car Chassis Kit if the orientation milestone is working.
 
 **What to watch for:** The most common failure at this stage is a 3D box that moves but on the wrong
@@ -366,20 +530,26 @@ correctly to tilt?" Redirect instructor attention to pairs still stuck.
 
 ### 5f. Closing / Wrap-up — ~10 min
 
-**What to do:** Ask 2-3 volunteers to demo their live 3D box responding to physical tilts. Then run
-the "does this solve Class 3's problem?" discussion: ask the group directly whether orientation data
-alone would have gotten their square and circle attempts closer to 12 inches, and why or why not.
+**What to do:** Ask 2-3 volunteers to demo their live 3D box responding to physical tilts, then pull
+up the same student's rover status website on the projector and show wheel speed/direction and
+orientation updating together on one page. Then run the "does this solve Class 3's problem?"
+discussion: ask the group directly whether orientation data alone — or orientation plus wheel speed,
+now sitting side by side on the same website — would have gotten their square and circle attempts
+closer to 12 inches, and why or why not.
 
-**What to say:** "You now have a car that can move, and a sensor that knows which way it's pointed.
-That's real progress — but notice neither one, alone or together, tells you *how far* you've gone.
-That gap is exactly why Class 5 doesn't use the IMU or dead-reckoning distance at all — it solves
-navigation a completely different way, using the sensor and servo you built back in Class 2."
+**What to say:** "You now have a car that can move, a sensor that knows which way it's pointed, and
+one website that shows both at once. That's real progress — but notice neither one, alone or
+together, tells you *how far* you've gone or where you actually are. That gap is exactly why Class 5
+doesn't use the IMU or dead-reckoning distance at all — it solves navigation a completely different
+way, using the sensor and servo you built back in Class 2."
 
 **Preview next Class:** Class 5 reuses no new pins — it reconnects exactly the Class 2 sensor+servo
-circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit (`GP9`-`GP12`) as they were left wired,
-combining them into the Random Rover's collision-avoidance behavior. Today's IMU circuit and Class
-1's button/encoder circuit both stay untouched on the breadboard. Point students to the Class 5
-references in the syllabus if they want to read ahead.
+circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit (`GP9`-`GP12`, `GP16`-`GP17`) as they were
+left wired, combining them into the Random Rover's collision-avoidance behavior. Today's IMU circuit
+and Class 1's button/encoder circuit both stay untouched on the breadboard. The rover status website
+keeps growing too — Class 5 adds scan readings, chosen heading, and sensor-stop events to the same
+`rover_server.py`, alongside the wheel-speed and orientation fields added in Classes 3 and 4. Point
+students to the Class 5 references in the syllabus if they want to read ahead.
 
 ## 6. Troubleshooting Guide
 
@@ -393,6 +563,9 @@ references in the syllabus if they want to read ahead.
 | `class-4-code-2.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console first; confirm the correct COM port in Device Manager |
 | `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on the laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_lsm9ds1.mpy` file from the Library Bundle into `/lib` |
+| Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-code-1.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
+| Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-code-3.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on CIRCUITPY and it's the Class 4 version with all seven fields |
+| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed or wiring on `GP16`/`GP17` disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
 ## 7. Age Differentiation Notes
 
@@ -401,14 +574,20 @@ laminated at the workstation so it's a lookup, not a memorization task. Pair a y
 STEMMA QT/wiring work with the parent/guardian's help typing the `pip install` command and finding
 the correct COM port in Windows. Start from `class-4-code-1.py` and `class-4-code-2.py` already
 loaded as starting points, and have them focus on the `MAHONY_KP` tuning exercise (a guided,
-observable experiment) rather than reading the quaternion math.
+observable experiment) rather than reading the quaternion math. For Step 3, it's enough for them to
+save `class-4-code-3.py` over `rover_server.py` and confirm the new fields show up on the webpage —
+treat the duplicated Mahony math inside it as "trust the code you already saw work" material.
 
 **Older students (15-18) and adults:** Walk them through the quaternion math in `mahony_update()`
 line by line rather than treating it as a black box, and have them explain in their own words why
 the filter blends a proportional correction (`MAHONY_KP`) with an integral correction (`MAHONY_KI`).
 Once the milestone is met, challenge them to log roll/pitch/yaw to a file over a fixed time window
 while the board sits still, and quantify residual drift numerically instead of just watching the
-on-screen box.
+on-screen box. For Step 3, have them notice that `class-4-code-3.py` duplicates rather than imports
+`class-4-code-1.py`'s Mahony functions, and ask them to explain why (`class-4-code-1.py` has its own
+blocking `while True` print loop, which can't run at the same time as the server's own loop) — and,
+if time allows, have them factor the shared math into a small importable module both files use
+instead of a copy-paste duplicate.
 
 ## 8. Assessment
 
@@ -417,14 +596,18 @@ IMU.
 
 **What "complete" looks like:** The student can run `class-4-code-1.py` on the Pico and
 `class-4-code-2.py` on their laptop simultaneously, and show the on-screen 3D box tilting to match
-the physical board's roll, pitch, and yaw in real time.
+the physical board's roll, pitch, and yaw in real time. In addition, the student can open their
+Pico's rover status website and point to a live `orientation` (roll/pitch/yaw) reading updating
+alongside the wheel speed/direction fields already there from Class 3.
 
 **How to give feedback without scoring:** Ask the student to physically tilt the board along one
 axis at a time and narrate which on-screen motion corresponds to which physical motion ("show me
-roll, show me pitch, show me yaw") rather than checking a box. If a pair can't get the full 3D
-display working in the time available, accepting a working `class-4-code-1.py` with sensible serial
-output (without the laptop visualization) is a reasonable partial milestone — have them bring the
-full display working to the start of Class 5 and note it in their build journal.
+roll, show me pitch, show me yaw") rather than checking a box. Separately, ask them to point at the
+webpage and explain why adding orientation didn't require any change to the HTML/JavaScript — only
+to the dict returned from `/data.json`. If a pair can't get the full 3D display working in the time
+available, accepting a working `class-4-code-1.py` with sensible serial output (without the laptop
+visualization) is a reasonable partial milestone — have them bring the full display and the website
+extension working to the start of Class 5 and note it in their build journal.
 
 ## 9. Instructor Tips
 
@@ -443,6 +626,9 @@ full display working to the start of Class 5 and note it in their build journal.
 * The "does this solve Class 3's problem?" discussion (Closing) should land as a genuine letdown
   followed by curiosity, not a gotcha — the point is that students feel the gap themselves before
   Class 5 explains how the course actually closes it (via the sensor/servo scan, not the IMU).
+* Step 3's website edit is small on purpose — resist the urge to re-teach `adafruit_httpserver` or
+  WiFi setup from scratch; if a pair never got the Class 3 website working, point them back to that
+  Class's troubleshooting guide rather than debugging WiFi live during today's Guided Practice.
 
 ## 10. Resources & References
 

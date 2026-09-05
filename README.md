@@ -25,7 +25,7 @@ the way.
 | **Audience** | Middle/high schoolers; no prior Python/CircuitPython experience required |
 | **Format** | 1 Pre-Class + 6 Classes, 2 hours each, at Makersmiths' Electronics room |
 | **Capstone project** | The Random Rover — an obstacle-avoiding robot car |
-| **Hardware** | Raspberry Pi Pico 2 W, HC-SR04 ultrasonic sensor, SG90 servo, DRV8833 dual H-bridge driver, LSM9DS1 IMU |
+| **Hardware** | Raspberry Pi Pico 2 W, HC-SR04 ultrasonic sensor, SG90 servo, DRV8833 dual H-bridge driver, IR optocoupler wheel-speed sensors, LSM9DS1 IMU |
 | **Software** | CircuitPython |
 
 
@@ -38,12 +38,16 @@ after it bolts on one new piece without disturbing what's already running:
 - debounced button + rotary encoder for clean digital input (Class 1)
 - HC-SR04 ultrasonic sensor + SG90 servo for distance sensing and motion (Class 2)
 - DRV8833 dual H-bridge driver putting two motors under code control (Class 3)
-- LSM9DS1 IMU with a Mahony filter for orientation sensing (Class 4)
+- IR optocoupler wheel-speed sensors for wheel odometry, plus a Pico-hosted rover status website
+  that starts here and grows every class after (Class 3)
+- LSM9DS1 IMU with a Mahony filter for orientation sensing, posted to the same rover website
+  (Class 4)
 
 Class 5 folds the sensor, servo, and motor driver together into the Random Rover: it drives
-forward, checks what's ahead, and steers itself clear of anything in the way. Class 6 finishes
-the Rover and opens up stretch goals: encoder-based speed control, a WiFi-served IMU chart, a
-TFT status display.
+forward, checks what's ahead, and steers itself clear of anything in the way — with its
+collision-avoidance state also posted live to the rover website. Class 6 finishes the Rover and
+opens up stretch goals: encoder-based speed control, a rolling-history chart added to the
+already-running rover website, and a TFT status display.
 
 Nothing gets rewired mid-course. GPIO pins are assigned up front so a circuit built in Class 1
 is still live and working by Class 6.
@@ -56,10 +60,10 @@ is still live and working by Class 6.
 | Pre-Class | Laptop + board bring-up | Flash CircuitPython, serial console, blink + heartbeat |
 | Class 1 | Push button + rotary encoder | Debounced digital input |
 | Class 2 | Ultrasonic distance sensor + servo | HC-SR04, SG90 servo, PWM |
-| Class 3 | Dual H-bridge motor driver | DRV8833, two DC motors, 9V battery (`VM`) |
-| Class 4 | Inertial measurement unit | LSM9DS1 (9-DOF), I2C, Mahony filter |
-| Class 5 | Random Rover | Sensor + servo + motor driver combined for collision avoidance |
-| Class 6 | Finish the Rover | Stretch goals: encoder speed control, WiFi IMU chart, TFT display |
+| Class 3 | Dual H-bridge motor driver | DRV8833, two DC motors, 9V battery (`VM`); wheel odometry (IR optocoupler) and the first version of the rover status website |
+| Class 4 | Inertial measurement unit | LSM9DS1 (9-DOF), I2C, Mahony filter; orientation added to the rover website |
+| Class 5 | Random Rover | Sensor + servo + motor driver combined for collision avoidance; scan/heading/stop telemetry added to the rover website |
+| Class 6 | Finish the Rover | Stretch goals: encoder speed control, rolling-history chart added to the rover website, TFT display |
 
 Wiring/pin assignments are chosen so each class's circuit keeps working after later classes add
 to it — nothing gets rewired mid-course.
@@ -83,7 +87,7 @@ tech_setup_check/ Install/setup instructions per environment
 explainers/       Standalone "why does it work that way" deep-dive docs
 handouts/         Printable per-class handouts
 communications/   Marketing copy, registration info (may contain PII — treat as sensitive)
-expenses/         Empty — no established conventions yet
+expenses/         Purchase receipts (photos, receipts/ subdir) — no established doc conventions yet
 ```
 
 

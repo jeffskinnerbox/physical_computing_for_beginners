@@ -20,11 +20,19 @@ and tuning the Random Rover from Class 5 — no new concepts, just calibration, 
 polishing whatever each student's rover still needs to reliably avoid obstacles. The second half
 offers three independent stretch goals, each reconnecting a circuit from earlier in the course rather
 than introducing new hardware concepts: reconnecting Class 1's rotary encoder for live speed control,
-sending Class 4's IMU orientation over the Pico 2 W's WiFi to a browser chart, and adding an on-board
-TFT display showing the rover's live status. Students choose which stretch goal(s) to attempt based
-on time and interest — none is required. The Class, and the course, ends with every student
-demonstrating their working Random Rover to the group in a final showcase, and a closing discussion
-connecting what was built here to Makersmiths' future line-following robot course.
+adding a rolling-history chart to the rover status website that has been running continuously since
+Class 3, and adding an on-board TFT display showing the rover's live status. Students choose which
+stretch goal(s) to attempt based on time and interest — none is required. The Class, and the course,
+ends with every student demonstrating their working Random Rover to the group in a final showcase,
+and a closing discussion connecting what was built here to Makersmiths' future line-following robot
+course.
+
+The rover website itself has now grown for four Classes straight without ever being rewritten: Class 3
+gave it live wheel speed/direction, Class 4 added IMU orientation, Class 5 added the collision-avoidance
+decision (scan heading, drive state, stop reason), and today's stretch #2 adds a scrolling history chart
+of that same data — the same `rover_server.py` file, edited in place one more time, not a new server and
+not a new WiFi join. That continuity is itself part of what this Class teaches: a small, additive edit
+to a working file beats rebuilding from scratch each time.
 
 ## 2. Learning Goals
 
@@ -32,8 +40,9 @@ connecting what was built here to Makersmiths' future line-following robot cours
   cycle
 * (Stretch, optional) Reconnect the Class 1 rotary encoder to control the rover's drive speed live,
   while it drives
-* (Stretch, optional) Stream IMU tilt data from the Pico 2 W over WiFi to a live-updating chart in a
-  browser, with no USB cable attached
+* (Stretch, optional) Extend the already-running rover status website (`rover_server.py`, live since
+  Class 3) with a rolling-history chart of IMU tilt and wheel speed, so recent trends scroll by
+  instead of only the current instant
 * (Stretch, optional) Wire and program a TFT display to show the rover's distance/heading/speed
   status directly on the robot
 * Reflect on which single improvement would most help the rover's real-world reliability, drawing on
@@ -43,21 +52,22 @@ connecting what was built here to Makersmiths' future line-following robot cours
 
 * **1-2 days before:** Confirm every student's Class 5 rover circuit is still intact and their
   `class-5-code.py`/`motor_driver.py` files are present — a quick spot-check, not a rebuild. (~15 min)
-* **1-2 days before:** Confirm `adafruit_httpserver` (stretch #2) and `adafruit_display_text` +
-  `displayio`-compatible ST7789 support (stretch #3) are present in the Library Bundle folder; have
-  copies on a USB stick as backup. Neither is needed unless a student attempts that stretch goal.
-  (~10 min)
-* **1-2 days before:** For stretch #2, prepare a simple `settings.toml` template with placeholder
-  WiFi credential fields, and confirm the classroom WiFi network's SSID/password are ready to hand
-  out (or use a dedicated guest network) — do not commit real credentials to any shared file.
-  (~10 min)
+* **1-2 days before:** Confirm `adafruit_display_text` + `displayio`-compatible ST7789 support
+  (stretch #3) are present in the Library Bundle folder; have copies on a USB stick as backup.
+  Not needed unless a student attempts that stretch goal. `adafruit_httpserver` (stretch #2) needs no
+  new check — it's the same library already running since Class 3. (~5 min)
+* **1-2 days before:** Confirm every student's `rover_server.py` (from Classes 3-5) still connects to
+  the classroom WiFi and serves `/data.json` with all ten existing fields (wheel speed/direction,
+  orientation, scan/drive/stop state) — nothing new to set up here, since today's stretch #2 edit is a
+  small addition to this same already-working file. (~10 min)
 * **Day of, before students arrive:**
   * Set out one 1.14" 240x135 color TFT display, its SPI wiring leads, and continued access to each
         workstation's existing breadboard, chassis, and rover circuit at each workstation — needed
         only for students attempting stretch #3.
   * Pre-build and test all three stretch goals at the instructor bench:
-        `class-6-code-1.py` (encoder speed control), `class-6-code-2.py` (WiFi IMU chart), and
-        `class-6-code-3.py` (TFT status display), so you can speak to each from direct experience
+        `class-6-code-1.py` (encoder speed control), `class-6-code-2.py` (rover website history
+        chart), and `class-6-code-3.py` (TFT status display), so you can speak to each from direct
+        experience
         during Guided Practice. (~40 min)
   * Set up 2-3 shared demo/test areas: the open floor space from Class 5 for rover runs, and a
         table with a projector or shared screen for browsing to the stretch #2 chart page.
@@ -76,13 +86,13 @@ quantities, and sourcing.
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
 | Complete Class 5 rover circuit (HC-SR04, SG90, DRV8833, limit switch, IR sensor, chassis, 9V battery) | The rover being finished and tuned |
 | KY-040 Rotary Encoder Module (from Class 1, already wired) | Stretch #1: live speed control |
-| IMU: LSM9DS1 9-DOF Breakout Board (from Class 4, already wired) | Stretch #2: orientation data streamed over WiFi |
+| IMU: LSM9DS1 9-DOF Breakout Board (from Class 4, already wired) | Stretch #2: source of the roll/pitch history plotted on the already-running rover website |
 | 1.14" 240x135 Color TFT Display | Stretch #3: on-board status display |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — all prior circuits stay on it |
 | Dupont jumper wires (shared) | New wiring for stretch #3 only |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection, or portable battery for untethered runs |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
-| Windows 11 laptop with a web browser | Views the stretch #2 live WiFi chart |
+| Windows 11 laptop with a web browser | Views the stretch #2 rolling-history chart on the existing rover website |
 | Shared: open floor area with obstacles (from Class 5) | Rover tuning and final showcase space |
 
 ## 5. Class Timeline
@@ -114,9 +124,10 @@ level, so students can start thinking about which one(s) they want to attempt.
 
 * "Every part you need for all three stretch goals is either already wired from an earlier Class, or
   uses pins nothing else in the course touches — so nothing you add today risks breaking your rover."
-* "Stretch 1 brings back your Class 1 encoder to control speed live, while driving. Stretch 2 sends
-  your Class 4 IMU's tilt data over WiFi to a chart in your browser — no cable needed. Stretch 3 adds
-  a screen right on the robot so you can read its status without a laptop attached at all."
+* "Stretch 1 brings back your Class 1 encoder to control speed live, while driving. Stretch 2 adds a
+  scrolling history chart to the same rover website you've had running since Class 3 — no new WiFi
+  setup, just a chart layered on top. Stretch 3 adds a screen right on the robot so you can read its
+  status without a laptop attached at all."
 * "Pick based on what excites you, not what you think you're supposed to do — there's no required
   order, and doing zero of them with a great core rover is a completely valid outcome today."
 
@@ -138,15 +149,18 @@ more time between scans relative to how far the car travels?" (Draw out: it's th
 driving doesn't improve the scan-and-choose logic itself, but it does reduce how far the car travels
 between scans, which can make a fixed `SCAN_INTERVAL` behave more safely without changing the code.)
 
-**Concept 2 — Stretch #2: why a web server instead of just printing to serial.**
-Everything the IMU streamed in Class 4 went over a USB serial cable to Mu/Thonny's console. Today's
-stretch replaces that cable with the Pico 2 W's built-in WiFi: the board joins the classroom network,
-runs a small web server (`adafruit_httpserver`), and serves a page with a live-updating chart that
-polls the board for fresh data every 200ms — readable from any browser on the network, no cable
-required. Ask: "What's the actual tradeoff here — is WiFi strictly better than the USB serial
-approach from Class 4?" (Draw out: WiFi is untethered but adds real latency, potential dropped
-packets, and setup complexity that a wired serial connection doesn't have — a real engineering
-tradeoff, not a strict upgrade.)
+**Concept 2 — Stretch #2: growing the same website again, not building a new one (Theory of Operation,
+brief).** Recall the running thread: Class 3 gave the rover status website live wheel speed/direction
+and the first version of `rover_server.py`; Class 4 added IMU orientation; Class 5 added the
+collision-avoidance decision. All three edited the *same* file and the *same* `/data.json` route —
+nothing was ever rebuilt from scratch. Today's stretch does the same thing again: it adds a rolling
+history buffer (the last ~150 readings of roll/pitch and wheel speed) and a hand-drawn HTML5 canvas
+chart to the page that's already running, so recent trends scroll by instead of only the current
+instant. No new WiFi join, no new web server, no new `settings.toml` — that plumbing has been live
+since Class 3. Ask: "If you had to explain to someone who missed Classes 3-5 why this stretch goal
+took so little new code, what would you point to?" (Draw out: the design choice made back in Class 3
+— one server, one `/data.json` dict that any Class can add fields to — is exactly what makes a
+four-Class-long feature additive instead of a rewrite each time.)
 
 **Concept 3 — Stretch #3: why the TFT still needs the same status data, just displayed differently.**
 The ST7789 TFT display connects over SPI (a different protocol from the I2C used for the IMU, and
@@ -235,97 +249,84 @@ while True:
 into `class-5-code.py` (replacing the `DRIVE_SPEED` constant with `current_speed`, updated inside the
 main drive loop) is the actual integration step, not just running this file standalone.
 
-**Stretch #2 wiring:** No new wiring — reuses the Class 4 IMU exactly as wired (`SDA` on `GP0`,
-`SCL` on `GP1`). Requires a `settings.toml` file on the CIRCUITPY drive with WiFi credentials:
+**Stretch #2 wiring:** None. No new WiFi join, no new `settings.toml`, no new IMU wiring — everything
+this stretch needs (the classroom WiFi connection, `adafruit_httpserver`, the Class 4 IMU on `SDA`
+`GP0`/`SCL` `GP1`) has been running since Class 3 and is already on every student's board.
 
-```toml
-# settings.toml -- CIRCUITPY drive root, not committed to any shared repo
-CIRCUITPY_WIFI_SSID = "your-network-name"
-CIRCUITPY_WIFI_PASSWORD = "your-network-password"
-```
-
-Load `class-6-code-2.py`. Joins WiFi, runs a small web server, and serves a page with a live-updating
-canvas chart polling `/data.json`.
+Load `class-6-code-2.py`. This file does **not** join WiFi or start a server — it imports the
+already-running `rover_server` module (same file since `class-3-code-4.py`, extended in Classes 4-5)
+and edits it in place: a rolling ~150-sample history buffer, plus a hand-drawn HTML5 canvas chart
+added to the existing status page, polling the existing `/data.json` route every 200ms and plotting
+roll/pitch (already in the response since Class 4) and wheel speed (already in the response since
+Class 3) over time.
 
 ```python
 # class-6-code-2.py
-# Stretch #2: serve IMU tilt data over WiFi to a live browser chart.
-import time
-import board
-import busio
-import wifi
-import socketpool
-import adafruit_lsm9ds1
-from adafruit_httpserver import Server, Request, Response, JSONResponse
+# Stretch #2: add a rolling-history chart to the rover website already running
+# since Class 3. Reuses rover_server's `server` object -- no new WiFi join, no
+# new adafruit_httpserver instance. This file only registers one new route and
+# appends a small history section to the existing status page's HTML.
+import rover_server  # Classes 3-5's website; server/scan_status already exist
+from adafruit_httpserver import Request, Response
 
-i2c = busio.I2C(board.GP1, board.GP0)
-sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
-
-print("Class 6 stretch 2 -- connecting to WiFi...")
-wifi.radio.connect(  # reads CIRCUITPY_WIFI_SSID / CIRCUITPY_WIFI_PASSWORD from settings.toml
-    __import__("os").getenv("CIRCUITPY_WIFI_SSID"),
-    __import__("os").getenv("CIRCUITPY_WIFI_PASSWORD"),
-)
-print("connected, IP address:", wifi.radio.ipv4_address)
-
-pool = socketpool.SocketPool(wifi.radio)
-server = Server(pool, "/static", debug=True)
-
-HTML_PAGE = """
-<!DOCTYPE html><html><head><title>Rover IMU Tilt</title></head><body>
-<h1>Live Roll / Pitch</h1>
-<canvas id="c" width="600" height="200" style="border:1px solid #333"></canvas>
+CHART_PAGE_ADDITION = """
+<h2>Recent History</h2>
+<canvas id="hist" width="600" height="200" style="border:1px solid #333"></canvas>
 <script>
 let history = [];
-async function poll() {
-    const r = await fetch('/data.json');
+async function pollHistory() {
+    const r = await fetch('/data.json');   // same route Classes 3-5 already serve
     const d = await r.json();
     history.push(d);
-    if (history.length > 150) history.shift();
-    const canvas = document.getElementById('c');
+    if (history.length > 150) history.shift();  // rolling ~150-sample window
+    const canvas = document.getElementById('hist');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawSeries(ctx, canvas, history, p => p.roll, 2, 'orange');    // IMU tilt
+    drawSeries(ctx, canvas, history, p => p.pitch, 2, 'blue');     // IMU tilt
+    drawSeries(ctx, canvas, history, p => p.speed_left_cms, 10, 'green');  // wheel speed
+    setTimeout(pollHistory, 200);
+}
+function drawSeries(ctx, canvas, hist, getValue, scale, color) {
+    ctx.strokeStyle = color;
     ctx.beginPath();
-    history.forEach((p, i) => {
+    hist.forEach((p, i) => {
         const x = i * (canvas.width / 150);
-        const y = canvas.height / 2 - p.roll * 2;
+        const y = canvas.height / 2 - getValue(p) * scale;
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     });
     ctx.stroke();
-    setTimeout(poll, 200);
 }
-poll();
-</script></body></html>
+pollHistory();
+</script>
 """
 
-
-@server.route("/")
-def base(request: Request):
-    return Response(request, HTML_PAGE, content_type="text/html")
-
-
-@server.route("/data.json")
-def data(request: Request):
-    ax, ay, az = sensor.acceleration
-    # [VERIFY] -- accelerometer-only tilt estimate; port class-4-code-1.py's Mahony
-    # filter in for a full, drift-corrected roll/pitch/yaw instead of this approximation.
-    import math
-    roll = math.degrees(math.atan2(ay, az))
-    pitch = math.degrees(math.atan2(-ax, (ay * ay + az * az) ** 0.5))
-    return JSONResponse(request, {"roll": roll, "pitch": pitch})
+# [VERIFY] -- append CHART_PAGE_ADDITION into rover_server.STATUS_PAGE's existing
+# HTML (before the closing </body> tag) rather than replacing the whole page, so
+# the wheel-speed/orientation/scan-state numbers Classes 3-5 already show keep
+# displaying above the new chart.
+rover_server.STATUS_PAGE = rover_server.STATUS_PAGE.replace(
+    "</body>", CHART_PAGE_ADDITION + "</body>"
+)
 
 
-server.start(str(wifi.radio.ipv4_address))
-print("Class 6 stretch 2 -- server running, browse to http://" + str(wifi.radio.ipv4_address))
+@rover_server.server.route("/")
+def index(request: Request):
+    # Re-registers "/" so it serves the STATUS_PAGE string *after* today's edit
+    # above. rover_server.server already exists -- nothing new is started here.
+    return Response(request, rover_server.STATUS_PAGE, content_type="text/html")
 
-while True:
-    server.poll()
-    time.sleep(0.01)
+# No new main loop, no new server.start(), no new server.poll() loop here --
+# class-5-code.py's (or class-6-code-1.py's, if merged) existing main loop
+# already calls rover_server.server.poll() every cycle; that single call keeps
+# answering this new "/" route too.
 ```
 
-**What to watch for:** A blank page or connection refused almost always means the laptop is on a
-different network than the Pico 2 W, or `wifi.radio.ipv4_address` printed `None` (failed to join) —
-verify network name/password before debugging the web server code itself.
+**What to watch for:** If the chart never appears, confirm `class-6-code-2.py` actually ran (it must
+be imported by `code.py` alongside the Class 5 rover code, not run standalone in place of it) and that
+it ran *after* `rover_server` was imported, so `rover_server.STATUS_PAGE` exists to edit. If the chart
+appears but never scrolls, the rover's main loop has stopped calling `rover_server.server.poll()` —
+same failure mode Class 5 already taught students to check for.
 
 **Stretch #3 wiring (the only new wiring this Class):**
 
@@ -416,16 +417,23 @@ making further changes.
 **What to do:** Run the **Final Random Rover Showcase** — each student demonstrates their working
 Random Rover navigating the room and avoiding obstacles, plus any stretch goals they completed. This
 is a showcase, not a competition; every student with a working demo is recognized, no elimination, no
-scoring. Then run the two closing discussions: "looking back across all six Classes' 'what's
-missing?' moments, which single improvement would most help the rover's real-world reliability?" and
-"which skills or parts from this course carry forward to Makersmiths' future line-following robot
-course, and what's genuinely new there?"
+scoring. Then run the three closing discussions: "looking back across all six Classes' 'what's
+missing?' moments, which single improvement would most help the rover's real-world reliability?"; for
+anyone who built stretch #2, "the rover website has now grown for four Classes straight — wheel
+odometry, then orientation, then collision-avoidance state, and today a scrolling history of all of it
+— without ever being rewritten; what design choice made in Class 3 made that possible, and where would
+a 'rebuild it each Class' approach have broken down instead?"; and "which skills or parts from this
+course carry forward to Makersmiths' future line-following robot course, and what's genuinely new
+there?"
 
 **What to say:** "Every one of you built this from a bare microcontroller, over six weeks, one
 working piece at a time — a debounced switch, a servo-swept sensor, a motor driver, an IMU, and
 finally a robot that makes its own decisions. That's the whole discipline of physical computing:
 sensors gather data, a microcontroller decides, actuators act. You've now done that for real,
-multiple times, with your own hands."
+multiple times, with your own hands. And for anyone who built the rover website — it's the same file, touched in every Class since Class 3
+and never rebuilt, and that's a real lesson about software design too: a system built so each addition
+is a small, additive edit rather than a fresh start scales a lot further than starting over every
+time."
 
 **Preview what's next:** No further Classes in this course — point interested students toward
 Makersmiths' future line-following robot course, which reuses the same Pico 2 W platform and motor
@@ -438,9 +446,10 @@ driver skills built here, with N20 geared motors and a new competitive line-sens
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch #1: `current_speed` never changes | Encoder wiring drifted since Class 1, or `class-6-code-1.py` not actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was actually done, not just run standalone |
 | Stretch #1: rover speed changes but jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
-| Stretch #2: Pico 2 W never connects to WiFi | Wrong SSID/password in `settings.toml`, or on a network requiring a captive-portal login | Double check `settings.toml` values; use a dedicated open/guest network for the classroom if available |
-| Stretch #2: browser can't reach the page | Laptop on a different network/subnet than the Pico 2 W | Confirm both devices are on the exact same classroom WiFi network |
-| Stretch #2: chart looks flat or frozen | `/data.json` erroring, or the JavaScript poll loop stopped after an exception | Check the Pico's serial console for server errors; reload the browser page |
+| Stretch #2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then runs `class-6-code-2.py`'s edit |
+| Stretch #2: chart appears but is flat/frozen, other fields on the page also stopped updating | Rover's main loop stopped calling `rover_server.server.poll()` (same failure mode Class 5 introduced) | Confirm the main drive loop still calls `rover_server.server.poll()` every cycle |
+| Stretch #2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `/` route re-registration didn't take effect, or browser is caching an old page | Hard-refresh the browser page; confirm only one `@rover_server.server.route("/")` handler is defined |
+| Stretch #2: chart plots roll/pitch but not wheel speed (or vice versa) | `drawSeries` called with a field name that doesn't match `/data.json`'s actual key (e.g. `speed_left_cms`) | Check the exact field names already established in Classes 3-5's `/data.json` response |
 | Stretch #3: blank/garbled TFT screen | `SPI`/`command`/`chip_select`/`reset` pins mismatched, or `displayio.release_displays()` omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch #3: TFT shows only demo values, never real rover data | Demo variables never replaced with the actual `class-5-code.py`/`class-6-code-1.py` variables | This is expected unless full integration was completed — note as a partial-credit milestone, not a bug |
 | `ImportError` for `adafruit_httpserver`, `adafruit_st7789`, `fourwire`, or `adafruit_display_text` | Library not copied to `/lib` on CIRCUITPY drive | Copy the missing library file(s) from the Library Bundle into `/lib` |
@@ -450,15 +459,19 @@ driver skills built here, with N20 geared motors and a new competitive line-sens
 **Younger students (12-14) and their parent/guardian:** Focus today's time primarily on core rover
 tuning, which is accessible and valuable on its own. If attempting a stretch goal, steer toward
 stretch #1 (encoder speed control) first — it reuses wiring they already understand from Class 1 and
-has the most direct, observable payoff (a printed speed number changing as they turn the knob). Have
-the parent/guardian help type `settings.toml` WiFi credentials carefully if attempting stretch #2, and
-provide the stretch #3 pin table pre-printed and laminated if attempting the TFT.
+has the most direct, observable payoff (a printed speed number changing as they turn the knob). For
+stretch #2, it's enough for them to load `class-6-code-2.py` as given and confirm the chart appears
+and scrolls on the already-familiar webpage — treat the `STATUS_PAGE` string edit as "trust the code
+you already saw work," the same way Class 5 treated the `server.poll()` relocation. Provide the
+stretch #3 pin table pre-printed and laminated if attempting the TFT.
 
 **Older students (15-18) and adults:** Encourage attempting more than one stretch goal, and challenge
 them to fully integrate a stretch goal into `class-5-code.py` (not just run it standalone) — e.g.,
-merging stretch #1's `current_speed` into the actual drive loop, or porting `class-4-code-1.py`'s
-Mahony filter into stretch #2's `/data.json` handler for a real, drift-corrected roll/pitch/yaw
-instead of the accelerometer-only approximation. For the closing "what's missing?" reflection,
+merging stretch #1's `current_speed` into the actual drive loop. For stretch #2, have them explain why
+today's edit needed no new WiFi join and no new `Server` object — this is the fourth Class straight
+that's added to the same `rover_server.py`/`/data.json` pair, and challenge them to add a fourth
+plotted series of their choice (e.g. `dir_left`, or `scan_heading`) to the existing chart on their own,
+without instructor help. For the closing "what's missing?" reflection,
 challenge them to sketch (on paper, no build required) what hardware addition would be needed to
 solve it.
 
@@ -485,9 +498,10 @@ a working demo running — no age brackets, no elimination, no formal scoring, p
 * Actively discourage scope creep — a student who commits fully to one stretch goal (or none, and
   just polishes the core rover) will have a stronger showcase moment than one who half-starts all
   three.
-* For stretch #2, using a dedicated guest/open WiFi network for the classroom (rather than the
-  primary Makersmiths network) sidesteps captive-portal and firewall issues that otherwise eat
-  disproportionate troubleshooting time.
+* For stretch #2, resist the urge to re-teach WiFi setup, `adafruit_httpserver`, or the earlier
+  `/data.json` fields from scratch — that's Class 3-5 material. If a pair never got the website
+  working in an earlier Class, point them back to that Class's troubleshooting guide rather than
+  debugging WiFi live during today's Guided Practice; today's stretch is only the chart addition.
 * Keep the showcase celebratory and unhurried — this is the payoff moment for six weeks of work, and
   even a rover that only partially avoids obstacles deserves the same recognition as a flawless one.
 * The final two discussion questions (Closing) work best as an open, unhurried conversation rather

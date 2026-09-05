@@ -8,7 +8,12 @@
   circuit (`GP9`-`GP12`, from Class 3) on their breadboard, calibrated turn timing from Class 3's
   square/circle attempt, and is comfortable wiring, saving `code.py`, and reading streamed serial
   output. Class 1's button/encoder circuit and Class 4's IMU circuit are not needed for this build
-  and can stay on the breadboard unused or be set aside.
+  and can stay on the breadboard unused or be set aside — but the Class 3 wheel-odometry
+  optocouplers (`GP16`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) must stay wired and powered even
+  though today's collision-avoidance code doesn't read them directly, because the growing rover
+  status website (`rover_server.py`) still reports wheel speed/direction and orientation from those
+  same circuits. The website and its classroom WiFi connection must still be working — a quick
+  spot-check, not a rebuild.
 
 ---
 
@@ -29,6 +34,12 @@ sensors as a last line of defense. By the end of the Class, students will have a
 around the room on its own and avoids at least one obstacle without instructor intervention — the
 course's central milestone.
 
+The rover status website keeps growing too. Class 3 gave it live wheel speed/direction, Class 4 added
+IMU orientation, and today `class-5-code.py` adds the collision-avoidance decision itself: the
+current scan heading, whether the car is driving/stopped/scanning, and which safety signal (if any)
+most recently forced a stop. This is a small, additive edit to the same `rover_server.py` students
+already have working — not a new website, and not new wiring.
+
 ## 2. Learning Goals
 
 * Reconnect the Class 2 sensor+servo circuit and Class 3 motor driver circuit into one combined
@@ -43,6 +54,9 @@ course's central milestone.
   eyeballing it
 * Wire a limit switch and an IR obstacle sensor as fixed safety inputs, and use them to trigger an
   immediate stop-and-reverse that overrides the normal scan-and-turn logic
+* Extend the rover status website (`rover_server.py`) with scan heading, drive state, and
+  stop-reason fields, so the collision-avoidance decision is visible on the same webpage as wheel
+  speed/direction and orientation
 
 ## 3. Preparation Checklist
 
@@ -52,6 +66,10 @@ course's central milestone.
 * **1-2 days before:** Confirm each student still has their Class 3 turn-time calibration notes
   (`SECONDS_PER_90_DEGREES` or equivalent) from their build journal — today's code reuses that
   calibration rather than re-deriving it from scratch. (~5 min)
+* **1-2 days before:** Confirm every student's `rover_server.py` from Class 4 still connects to the
+  classroom WiFi and serves `/data.json` with all seven existing fields (wheel speed/direction,
+  orientation) — nothing new to set up here this Class, just confirm it still works, since today's
+  website change is a small edit to this same file. (~10 min)
 * **Day of, before students arrive:**
 * Clear a large open floor area (or several smaller zones) for autonomous driving tests, with a
         few soft obstacles (cardboard boxes, foam blocks — nothing that will damage a car or a wall
@@ -61,6 +79,10 @@ course's central milestone.
         `DRIVE_SPEED`, `SCAN_ANGLES`, `STOP_DISTANCE_CM`, and the IR sensor's sensitivity trimmer
         so you know what a realistic first run looks like and can spot obviously wrong behavior
         quickly during Guided Practice. (~30 min)
+* Also test `class-5-code.py`'s edit to `rover_server.py` end-to-end: load it on the reference
+        Pico, confirm the same laptop browser that showed wheel speed/direction and orientation in
+        Classes 3-4 now also shows `scan_heading`, `drive_state`, and `stop_reason` fields updating
+        live on `/data.json`. (~10 min)
 * Project the instructor's serial console output so the whole class can see scan readings, chosen
         headings, and drive state stream by during the reference run. (~5 min)
 * Have a few spare 9V batteries charged and ready — today's Class runs motors continuously for
@@ -88,6 +110,7 @@ quantities, and sourcing.
 | Dupont jumper wires (shared) | Only if any connection needs reseating |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop, or portable battery for untethered runs |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
+| Classroom WiFi network (shared, from Class 3) | Already-joined network the growing rover status website runs on; nothing new to set up |
 | Shared: open floor area with soft obstacles | Test space for autonomous driving runs |
 
 ## 5. Class Timeline
@@ -179,7 +202,23 @@ sensing while driving would be. Ask: "What would a car need, that this one doesn
 continuously while still moving?" (A sensor that doesn't need to physically sweep — e.g., multiple
 fixed sensors at different angles — trading mechanical simplicity for more parts and wiring.)
 
+**Concept 5 — The rover website now shows everything the car "knows" (Theory of Operation, brief).**
+Recall the running thread: Class 3's wheel odometry gave real wheel speed and slip; Class 4's IMU
+added heading. Both were posted onto the same `rover_server.py` status page rather than a new one.
+Today's code does the same thing with the collision-avoidance decision itself — the chosen scan
+heading, whether the car is currently driving/stopped/scanning, and which of the three safety signals
+(ultrasonic, IR, bump switch) most recently forced a stop. Ask: "Why is it useful to see this on a
+webpage instead of only in the serial console?" (Nothing new is being sensed — it's the same data
+already printed to serial — but a browser tab doesn't require a USB cable, so an observer can watch
+the rover's full internal state — wheels, orientation, and now its own decision-making — from across
+the room while it drives untethered.)
+
 ### 5d. Guided Practice — ~40 min
+
+**Pacing note:** Two steps fit in 40 min because Step 2 is a brisk, small edit to a file students
+already have working (`rover_server.py`), not a new build — the same pattern Class 4 used for its
+own website step. If a group is running behind, it is the first thing to shorten — have those
+students paste in the finished Step 2 code instead of walking every line, and move on.
 
 Instructor builds along on the projector; students wire up and test in parallel.
 
@@ -206,7 +245,7 @@ independently still work (sensor sweep, motor forward/reverse) exactly as they d
 Class 2 and Class 3, before combining them in one program. Catching a regression now is much easier
 than debugging it inside the combined rover logic later.
 
-**Step — combined collision-avoidance program.**
+**Step 1 — combined collision-avoidance program.**
 Load `class-5-code.py` (save as `code.py`). Combines Class 2's servo-swept HC-SR04 with Class 3's
 `motor_driver` module (`motor_driver.py` must still be present on the CIRCUITPY drive from Class 3).
 
@@ -335,6 +374,139 @@ overcautious `STOP_DISTANCE_CM`) rather than insisting on a perfect run before m
 and print readings/chosen heading to the console, turns toward open space, and resumes — and stops
 immediately (not waiting for the timer) when something is placed close in front of it while driving.
 
+**Step 2 — extend the rover status website with the collision-avoidance decision.**
+Recall `rover_server.py`'s `/data.json` route: it already returns `speed_left_cms`/`dir_left`/
+`speed_right_cms`/`dir_right` (Class 3) and `roll`/`pitch`/`yaw` (Class 4), and the webpage displays
+any field the dict has with no HTML/JavaScript changes needed — the same reason Class 4's edit was
+small. Today adds three more flat fields, matching that existing style: `scan_heading` (the last
+chosen angle, a number), `drive_state` (a string — `"driving"`, `"scanning"`, or `"stopped"`), and
+`stop_reason` (a string — `"none"`, `"ultrasonic"`, `"ir"`, or `"limit_switch"`, naming whichever
+safety signal most recently forced a stop).
+
+There's one wrinkle Older Students should notice (see Age Differentiation): Class 4's `rover_server.py`
+ends in its own blocking `while True: server.poll()` loop, but today's `class-5-code.py` needs to run
+its *own* continuous drive/scan loop — two blocking loops can't run at once. So today's edit does the
+small refactor Class 4 flagged as an optional stretch: `rover_server.py` stops owning the polling loop
+and instead exposes its already-built `server` object and a small `scan_status` dict for
+`class-5-code.py` to update and poll each cycle.
+
+```python
+# rover_server.py -- edited again (same file from Classes 3-4, no new filename).
+# Removes its own "while True: server.poll()" loop -- class-5-code.py's drive
+# loop now calls server.poll() itself once per cycle, since only one loop can
+# own the CPU at a time. Adds scan_status, a small dict class-5-code.py updates
+# each cycle with the collision-avoidance decision, merged into /data.json.
+scan_status = {
+    "scan_heading": 90,        # degrees -- last chosen heading, starts centered
+    "drive_state": "driving",  # "driving" | "scanning" | "stopped"
+    "stop_reason": "none",     # "none" | "ultrasonic" | "ir" | "limit_switch"
+}
+
+
+@server.route("/data.json")
+def data_json(request: Request):
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
+    roll, pitch, yaw = _read_orientation()
+    return JSONResponse(request, {
+        "speed_left_cms": speed_left,
+        "dir_left": dir_left,
+        "speed_right_cms": speed_right,
+        "dir_right": dir_right,
+        "roll": roll,
+        "pitch": pitch,
+        "yaw": yaw,
+        "scan_heading": scan_status["scan_heading"],
+        "drive_state": scan_status["drive_state"],
+        "stop_reason": scan_status["stop_reason"],
+    })
+
+
+@server.route("/")
+def index(request: Request):
+    return Response(request, STATUS_PAGE, content_type="text/html")
+
+
+server.start(str(wifi.radio.ipv4_address))
+# NOTE: the old "while True: server.poll()" loop is gone from this file --
+# class-5-code.py's own main loop polls it now (see below). [VERIFY]
+```
+
+Then a small addition to `class-5-code.py` itself: import the website module, poll it once per
+iteration so requests still get answered while the rover drives, and keep `scan_status` updated with
+the live decision.
+
+```python
+# class-5-code.py -- Step 2 additions (add alongside the Step 1 code above)
+import rover_server  # Classes 3-4's website; today's edit removed its own poll() loop
+
+
+def safety_override_triggered():
+    """Check the fixed bump switch and IR sensor; return a stop_reason string
+    ("none" if neither is triggered) instead of a bare bool, so the caller can
+    publish which signal fired to the rover status website."""
+    if not bump_switch.value:  # pulled LOW when pressed
+        print("SAFETY: bump switch contact")
+        return "limit_switch"
+    if not ir_sensor.value:  # module drives LOW when it sees an obstacle
+        print("SAFETY: IR sensor near-field obstacle")
+        return "ir"
+    return "none"
+
+
+print("Class 5 -- Random Rover starting...")
+scan_servo.angle = CENTER_ANGLE
+last_scan_time = time.monotonic()
+
+while True:
+    rover_server.server.poll()  # answer any pending website request, non-blocking
+    rover_server.scan_status["drive_state"] = "driving"
+    print("drive: forward")
+    motor_driver.drive(DRIVE_SPEED, DRIVE_SPEED)
+
+    stop_reason = "none"
+    while True:
+        rover_server.server.poll()
+        stop_reason = safety_override_triggered()
+        if stop_reason != "none":
+            motor_driver.stop()
+            print("drive: emergency stop-and-reverse (safety override)")
+            motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
+            time.sleep(0.3)  # [VERIFY] -- back off far enough to clear the trigger
+            motor_driver.stop()
+            break
+        distance = read_distance()
+        if distance is not None and distance < STOP_DISTANCE_CM:
+            print("drive: obstacle close, distance_cm", distance)
+            stop_reason = "ultrasonic"
+            break
+        if time.monotonic() - last_scan_time >= SCAN_INTERVAL:
+            break
+        time.sleep(0.05)
+
+    rover_server.scan_status["stop_reason"] = stop_reason
+    rover_server.scan_status["drive_state"] = "scanning"
+    motor_driver.stop()
+    print("drive: stopped for scan" if stop_reason == "none" else "drive: emergency stop for scan")
+    heading, _readings = scan()
+    rover_server.scan_status["scan_heading"] = heading
+    turn_toward(heading)
+    last_scan_time = time.monotonic()
+```
+
+**What to watch for:** If the website's new fields never change, confirm `rover_server.py`'s old
+`while True: server.poll()` loop was actually deleted (two competing blocking loops will make the
+website hang, not the rover). If `scan_heading`/`drive_state`/`stop_reason` show up but never update,
+confirm `class-5-code.py` is importing the edited `rover_server.py`, not a leftover Class 4 copy.
+
+**Checkpoint 3:** Every pair should be able to open their Pico's status webpage and see all ten
+fields — the seven from Classes 3-4 plus `scan_heading`, `drive_state`, `stop_reason` — update live,
+with `drive_state` flipping between `"driving"` and `"scanning"` as the rover cycles and `stop_reason`
+naming whichever safety signal last fired.
+
+**What "done" looks like for this segment:** The same webpage students used in Classes 3-4 now also
+shows the rover's live collision-avoidance decision, with no separate page or server — one browser
+tab, one growing set of live numbers.
+
 ### 5e. Independent Work — ~40 min
 
 **What to do:** Students (in pairs where possible) take their rover to the shared open floor area
@@ -349,6 +521,9 @@ pairs can:
   the provided code doesn't make it obvious enough on the console.
 * Try narrowing or widening `SCAN_ANGLES` and discuss the tradeoff between scan resolution and cycle
   time (a wider, denser sweep takes longer per stop).
+* Have a partner watch the rover status website (not the console) during a run and call out
+  `drive_state`/`stop_reason` changes out loud as they happen, matching them to what's actually
+  happening on the floor in real time.
 
 **What to watch for:** The most common failure at this stage is a rover that turns the wrong
 direction relative to what the console prints — almost always a sign convention mismatch between
@@ -362,22 +537,30 @@ still stuck.
 ### 5f. Closing / Wrap-up — ~10 min
 
 **What to do:** Ask 2-3 volunteers to run their rover live in the shared floor area for the group,
-with an obstacle placed in its path. Open the "how would you actually measure this?" discussion —
-push past "it didn't hit anything" toward something more specific (number of successful avoidances
-per run, distance maintained from obstacles, consistency across repeated runs).
+with an obstacle placed in its path, and pull up that same student's rover status website on the
+projector alongside the live run so the group watches `scan_heading`/`drive_state`/`stop_reason`
+change in real time with what the rover is actually doing. Open the "how would you actually measure
+this?" discussion — push past "it didn't hit anything" toward something more specific (number of
+successful avoidances per run, distance maintained from obstacles, consistency across repeated runs,
+and whether a wheel's website speed reading dropping to near zero mid-run reveals a stuck wheel before
+the rover itself reports a collision).
 
 **What to say:** "You just watched a car built entirely from parts and code you wrote yourselves,
-across five Classes, make its own decisions about which way to go. That's the whole course coming
-together. Next Class isn't about new concepts — it's about finishing and tuning this exact rover, and
-for anyone who wants to go further, there are stretch goals that bring back your Class 1 encoder and
-Class 4 IMU."
+across five Classes, make its own decisions about which way to go — and now you can watch it make
+those decisions live on a webpage, not just in a scrolling console. Wheel odometry showed you speed
+and slip, the IMU added heading, and today's website shows the rover's actual collision-avoidance
+choices too — everything the car currently knows about itself and the room around it, in one place.
+That's the whole course coming together. Next Class isn't about new concepts — it's about finishing
+and tuning this exact rover, and for anyone who wants to go further, there are stretch goals that
+bring back your Class 1 encoder and Class 4 IMU."
 
 **Preview next Class:** Class 6 needs no new wiring for its core work — it's tuning today's rover,
 including today's bump switch (`GP5`) and IR sensor (`GP13`), both carried forward unchanged. The
 optional stretch goals reconnect Class 1's encoder (`GP3`/`GP4`) and Class 4's IMU (`GP0`/`GP1`)
 exactly as already wired, alongside today's rover circuit; a TFT display stretch goal is the only new
-wiring, on pins not used anywhere else in the course. Point students to the Class 6 references in the
-syllabus if they want to read ahead.
+wiring, on pins not used anywhere else in the course. Today's `scan_heading`/`drive_state`/
+`stop_reason` website fields carry forward unchanged into Class 6. Point students to the Class 6
+references in the syllabus if they want to read ahead.
 
 ## 6. Troubleshooting Guide
 
@@ -394,6 +577,9 @@ syllabus if they want to read ahead.
 | Bump switch never triggers even on a hard hit | Lever arm not mounted low/forward enough to actually contact obstacles, or `GP5` wiring loose | Reposition the switch so the lever leads the chassis edge; re-verify wiring with a multimeter continuity check |
 | Rover constantly emergency-stops with nothing nearby | IR sensor's onboard sensitivity potentiometer set too high, or aimed at a reflective floor | Turn the sensor's sensitivity trimmer down; re-aim slightly upward off the floor |
 | Rover reverses into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
+| Website's new fields (`scan_heading`/`drive_state`/`stop_reason`) never appear or never change | Old Class 4 `rover_server.py` still on CIRCUITPY, or its old `while True: server.poll()` loop wasn't removed | Confirm only one `rover_server.py` exists and it's the Class 5 version; confirm `class-5-code.py` calls `rover_server.server.poll()` itself |
+| Website hangs/never responds once the rover starts driving | Both `rover_server.py`'s old loop and `class-5-code.py`'s new loop are calling `server.poll()` in separate blocking loops | Delete the old `while True: server.poll()` block from `rover_server.py` entirely — only `class-5-code.py`'s main loop should call it now |
+| Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP16`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed; they're unrelated to today's `GP5`/`GP13` wiring |
 
 ## 7. Age Differentiation Notes
 
@@ -403,30 +589,41 @@ correctly wired. Pair a younger student's floor-testing (holding/retrieving the 
 obstacles) with the parent/guardian's help reading console output aloud. Start from `class-5-code.py`
 already loaded, and have them focus on tuning the four constants (`DRIVE_SPEED`, `STOP_DISTANCE_CM`,
 `SCAN_INTERVAL`, `SCAN_ANGLES`) through trial and error on the floor rather than reading the full
-control-loop logic line by line.
+control-loop logic line by line. For Step 2, it's enough for them to make the edits shown and confirm
+the three new fields show up on the webpage — treat the `server.poll()` relocation as "trust the code
+you already saw work" material.
 
 **Older students (15-18) and adults:** Walk them through `scan()` and `turn_toward()` line by line
 and have them explain, in their own words, how the "largest reading wins" decision is made and why
 `TURN_SECONDS_PER_DEGREE` is derived from Class 3's calibration rather than a fresh measurement. Once
 the milestone is met, challenge them to design and run the "narrow gap vs. dead-end room" test
-scenario from Direct Teaching and document what actually happened versus what they predicted.
+scenario from Direct Teaching and document what actually happened versus what they predicted. For
+Step 2, have them explain why `rover_server.py`'s old blocking `while True: server.poll()` loop had to
+be removed once `class-5-code.py` needed its own continuous loop — this is exactly the stretch-refactor
+Class 4 flagged as optional and never required; today it becomes necessary rather than optional.
 
 ## 8. Assessment
 
 **Milestone Assignment (per syllabus, Phase 3 / Class 5):** Car drives autonomously and avoids at
-least one obstacle without instructor intervention.
+least one obstacle without instructor intervention, with the rover's full state visible together on
+its status website.
 
 **What "complete" looks like:** The student can set their rover driving in the shared open floor
 area, place an obstacle in its path, and show it stop, scan, choose a heading, turn, and continue
 driving — without the student touching the car or the keyboard once it starts. One successful
 avoidance during a live demo is sufficient; this is a completion-based milestone, not a reliability
-benchmark.
+benchmark. In addition, the student can open their Pico's rover status website and point to
+`scan_heading`, `drive_state`, and `stop_reason` updating live alongside the wheel speed/direction and
+orientation fields already there from Classes 3-4.
 
 **How to give feedback without scoring:** Ask the student to narrate what the console printed during
 the moment of avoidance — what triggered the stop, what the scan readings were, why that heading was
-chosen — rather than checking a box. If a pair can't get a full autonomous avoidance working in the
-time available, that's fine — have them bring a working version to the start of Class 6 and note it
-in their build journal; Class 6 is explicitly built around continuing to tune this exact rover.
+chosen — rather than checking a box. Separately, ask them to point at the webpage and explain why
+adding today's fields didn't require any change to the HTML/JavaScript — only to the dict returned
+from `/data.json`, and why `rover_server.py` no longer runs its own `while True: server.poll()` loop.
+If a pair can't get a full autonomous avoidance working in the time available, that's fine — have them
+bring a working version (and the website extension) to the start of Class 6 and note it in their
+build journal; Class 6 is explicitly built around continuing to tune this exact rover.
 
 ## 9. Instructor Tips
 
@@ -447,6 +644,11 @@ in their build journal; Class 6 is explicitly built around continuing to tune th
 * Test the bump switch and IR sensor mounts on the reference rover before students arrive — a
   loosely-taped sensor or a switch lever that doesn't lead the chassis edge will silently never
   trigger, and that failure mode is easy to miss until a student's rover actually hits something.
+* Step 2's website edit is small on purpose — resist the urge to re-teach `adafruit_httpserver` or
+  WiFi setup from scratch; if a pair never got the Class 3/4 website working, point them back to those
+  Classes' troubleshooting guides rather than debugging WiFi live during today's Guided Practice. The
+  one genuinely new idea is relocating `server.poll()` into the rover's own main loop — walk that part
+  once, clearly, since it's the one piece that isn't just "add another field."
 
 ## 10. Resources & References
 

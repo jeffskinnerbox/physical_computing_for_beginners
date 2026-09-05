@@ -18,10 +18,17 @@ to start building useful or creative things with them on their own.
 
 Over one Pre-Class and six weekly Classes, students build up a stack of skills in order: reading a
 debounced pushbutton switch and rotary encoder, measuring distance with an ultrasonic sensor,
-sweeping a servo motor, driving DC motors with a dual H-bridge motor driver, reading motion data from
-a 9-DOF inertial measurement unit (IMU), and finally combining everything into an autonomous,
-obstacle-avoiding robot car nicknamed the "Random Rover." Each Class builds directly on the hardware
-and skills from the Class before it, so the course is meant to be taken start to finish, in order.
+sweeping a servo motor, driving DC motors with a dual H-bridge motor driver and reading each wheel's
+real speed with an IR optocoupler, reading motion data from a 9-DOF inertial measurement unit (IMU),
+and finally combining everything into an autonomous, obstacle-avoiding robot car nicknamed the
+"Random Rover." Each Class builds directly on the hardware and skills from the Class before it, so
+the course is meant to be taken start to finish, in order.
+
+Starting in Class 3, the Pico 2 W also hosts its own small status website — point a laptop browser
+at the rover's WiFi address and watch live wheel-speed data with no serial cable attached. That
+website keeps running and gains new information every Class after (orientation in Class 4,
+scan/sensor data in Class 5), and by Class 6 it grows a scrolling history chart, so it becomes the
+course's main "watch your robot think" window by the end.
 
 Students program a Raspberry Pi Pico 2 W microcontroller using CircuitPython, a beginner-friendly
 version of Python built specifically for microcontrollers. Class time is hands-on first: the
@@ -64,6 +71,8 @@ with N20 geared motors.
 * Combine a distance sensor and a servo sweep to scan for the clearest open direction
 * Describe, in plain language, how an obstacle-avoidance algorithm decides which way to steer
 * Explain why open-loop "dead reckoning" movement (timed, uncorrected motor moves) drifts off target
+* Measure each wheel's real speed with an IR optocoupler and explain what that reading does and does
+  not tell you (it catches slip/stall, but not which way the wheel is turning or the rover's heading)
 
 **Design & Problem-Solving**
 
@@ -110,6 +119,7 @@ with N20 geared motors.
 * IMU: LSM9DS1 9-DOF Breakout Board (STEMMA)
 * KY-040 Rotary Encoder Module
 * 1.14" 240x135 Color TFT Display
+* Slot Type IR Optocoupler for Motor Speed (2 per student — one per driven wheel, for wheel odometry)
 * Tactile push buttons
 * Breadboard, STEMMA QT/Qwiic cable, JST PH male header cable, JST PH female socket cable
 * 9V battery clip, 9V batteries, 5V buck converter module
@@ -126,12 +136,15 @@ with N20 geared motors.
 * [Thonny][03] — alternate editor, also used with the Pico
 * [Adafruit CircuitPython Library Bundle][04]
 * A free [GitHub][05] account, to access the course repository
+* A modern web browser (Chrome, Firefox, or Edge) — already on any Windows 11 laptop — to view the
+  rover status website the Pico 2 W starts hosting in Class 3
 
 **Student Computer Requirements**
 
 * Windows 11 laptop, one per student (no sharing)
 * At least one free USB port for the Pico 2 W
 * Internet access for downloading software and researching projects
+* Starting Class 3, laptop WiFi on the Makersmiths classroom network to reach the Pico's status website
 
 See the course **Bill of Materials** for full pricing, sourcing links, and purchase quantities.
 
@@ -156,7 +169,7 @@ Every Class (after the Pre-Class) follows the same roughly two-hour rhythm:
 | :------ | :-------- | :------ | :---------- |
 | Phase 0 — Setup | Pre-Class | Get every laptop and Pico ready to code | First CircuitPython program runs |
 | Phase 1 — Inputs | Class 1-2 | Reliable sensing: debounced switches, encoders, distance, servo | Clean sensor readings on the serial console |
-| Phase 2 — Outputs & Motion | Class 3-4 | Driving motors and reading orientation | Motor-driven movement in a controlled shape |
+| Phase 2 — Outputs & Motion | Class 3-4 | Driving motors, measuring wheel speed, and reading orientation | Motor-driven movement in a controlled shape, with live telemetry |
 | Phase 3 — Integration | Class 5-6 | Combine sensing + motion into an autonomous robot | Working Random Rover demo |
 
 ### Pacing & Age Differentiation
@@ -216,7 +229,17 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Drive the car in a square and a circle of any size, then try to hit exact 12-inch dimensions
 * Discuss: why is precise geometry harder than "just moving"? Separate the causes — no
   wheel/heading feedback, battery voltage sag, wheel slip/friction — instead of one vague answer
-* **Milestone:** Car reliably drives a 12-inch square and a 12-inch-diameter circle
+* Add wheel odometry: mount an IR optocoupler at each driven wheel to count its built-in encoder
+  disc and compute real speed (cm/s); pair that with the last-commanded direction to know which way
+  each wheel is actually turning
+* Start the rover status website: the Pico 2 W hosts a simple webpage showing live wheel speed and
+  direction, viewable from a laptop browser with no serial cable — the first version of a site that
+  keeps running and growing every Class from here on
+* Discuss: does knowing each wheel's real speed fix the square/circle drift from the first talking
+  point above? It catches slip/stall, but says nothing about heading — that gap isn't closed until
+  the Class 4 IMU
+* **Milestone:** Car reliably drives a 12-inch square and a 12-inch-diameter circle, with live
+  wheel-speed telemetry visible on the terminal and on the Pico's own status webpage
 
 **Class 4 — Inertial Measurement Unit (IMU)**
 
@@ -225,7 +248,10 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Fuse the readings into a single roll/pitch/yaw orientation and stream it to a live 3D display on the laptop
 * Discuss: does the on-screen orientation match the IMU's real physical orientation? Does IMU
   orientation data help solve the Class 3 square/circle challenge, or is something still missing?
-* **Milestone:** Live 3D orientation display driven by the IMU
+* Add orientation to the Class 3 rover status website — same site, same webpage, just one more
+  field alongside wheel speed and direction
+* **Milestone:** Live 3D orientation display driven by the IMU, with orientation also visible on the
+  rover status website
 
 ### Phase 3 — Integration
 
@@ -235,14 +261,19 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Sweep left-right on a timer (and immediately if something gets close) to find the clearest direction before steering
 * Drive at constant speed around the room, avoiding obstacles
 * Discuss: what does each component contribute to the collision-avoidance decision? How would you
-  actually measure whether it's working, beyond eyeballing it?
-* **Milestone:** Car drives autonomously and avoids at least one obstacle without instructor intervention
+  actually measure whether it's working, beyond eyeballing it? (Hint: a wheel's measured speed
+  dropping to near zero while still commanded to drive is a clue, visible on the rover website.)
+* Add scan readings, chosen heading, and each sensor-triggered stop event to the rover status
+  website, alongside the wheel-speed and orientation data already there
+* **Milestone:** Car drives autonomously and avoids at least one obstacle without instructor
+  intervention, with the rover's full state visible together on its status website
 
 **Class 6 — Finish the Random Rover + Stretch Goals**
 
 * Finish and tune the Random Rover from Class 5
-* Optional stretch goals: reconnect the Class 1 rotary encoder for live speed control, stream IMU
-  data over the Pico 2 W's WiFi to a graphical history display in a browser, add the TFT display for
+* Optional stretch goals: reconnect the Class 1 rotary encoder for live speed control, add a
+  scrolling history chart to the rover status website that has been running since Class 3 (no new
+  web server built — just a chart layered on top of the existing site), add the TFT display for
   real-time distance/heading/speed status on the rover itself
 * Discuss: looking back across the course's "what's missing?" questions, which single improvement
   would most help the rover's real-world reliability?
@@ -313,6 +344,11 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * [Driving A DC Motor With CircuitPython][40]
 * [Adafruit CircuitPython Motor Library — API Reference][41]
 * [Adafruit DRV8833 DC/Stepper Motor Driver Breakout Board][42]
+* [Slot Type IR Optocoupler for Motor Speed Detection — Product Page][53]
+* [Using an IR Slotted Optical Switch (Adafruit Learn)][54]
+* [Wheel Encoders and Odometry (ROS/robotics primer)][55]
+* [Raspberry Pi Pico W Asynchronous Web Server – MicroPython Code][50]
+* [`adafruit_httpserver` — API Reference][56]
 
 *Class 4 — Inertial Measurement Unit (IMU)*
 
@@ -357,8 +393,8 @@ finished in time.
 > **Random Rover Showcase — Class 6**
 > Each student demonstrates their working Random Rover navigating the room and avoiding obstacles.
 > This is a showcase, not a competition — every student who gets a working demo running is
-> recognized. Students who completed stretch goals (speed control, WiFi telemetry, TFT status
-> display) demonstrate those too. No age brackets, no elimination, no formal scoring.
+> recognized. Students who completed stretch goals (speed control, rover-website history chart, TFT
+> status display) demonstrate those too. No age brackets, no elimination, no formal scoring.
 
 ---
 
@@ -414,3 +450,7 @@ finished in time.
 [50]:https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/
 [51]:https://github.com/gurgleapps/pico-web-server-control
 [52]:https://microcontrollerslab.com/raspberry-pi-pico-w-soft-access-point-web-server-example/
+[53]:https://www.amazon.com/dp/B0B2NSQJDL
+[54]:https://learn.adafruit.com/ir-breakbeam-sensors
+[55]:https://articulatedrobotics.xyz/mobile-robot-8-odometry/
+[56]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html

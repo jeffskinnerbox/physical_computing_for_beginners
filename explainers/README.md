@@ -57,6 +57,8 @@ These are future explainer topics but not yet written:
 * what-is-an-imu.md
 * what-is-a-buck-converter.md
 * what-is-git-and-github.md
+* what-is-wheel-odometry.md
+* how-does-a-microcontroller-host-a-website.md
 
 
 

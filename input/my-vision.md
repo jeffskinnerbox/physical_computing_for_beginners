@@ -299,21 +299,59 @@ Tips for Students:
   Once the driver is tested, attempt the 12 inch square and circle by timing calibrated straight/turn moves
   &mdash; open-loop "dead reckoning," since there's no feedback (yet) to correct for drift.
   Have the student discuss what useful things they can do with this information? What information is absent?
-* **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`) &mdash; Classes 1
-  and 2's circuits stay in place, untouched. This motor driver is carried forward unchanged into Class 5's rover.
+
+  Now close part of that gap: mount a [Slot Type IR Optocoupler](https://www.amazon.com/dp/B0B2NSQJDL) at
+  each driven wheel, reading the wheel-speed encoder disc that's molded into the Emo Smart Robot Car Chassis
+  Kit's wheels. Each optocoupler's slotted fork interrupts a beam once per disc slot as the wheel turns,
+  and its onboard LM393 comparator outputs a clean digital pulse train the Pico can count directly &mdash; no
+  debouncing needed the way the Class 1 switch/encoder needed it, since this is a much faster, cleaner signal.
+  Counting pulses over a time window, and knowing the wheel is 67mm in diameter (so 210.5mm/21.05cm
+  circumference), converts ticks-per-second into a real speed in cm/s for each wheel.
+
+  One important limit: a single slot per wheel only tells you *how fast* the wheel is turning, not *which
+  way*. There's no second sensor offset out of phase (as a quadrature encoder would have) to distinguish
+  forward from reverse rotation from the pulses alone. So "direction" for each wheel is derived in software
+  by pairing the tick rate with whatever direction was last commanded to that channel through
+  `motor_driver.drive()` &mdash; the code already knows if it told Motor A/B to spin forward or reverse; the
+  optocoupler confirms the wheel is actually turning (or not turning, or turning slower than commanded,
+  which is itself useful information about slip or stall).
+
+  This wheel-speed-and-direction data (per wheel) is published two ways: printed to the serial terminal like
+  everything else so far, and also served up on a small website hosted directly by the Pico 2 W's own WiFi
+  radio &mdash; point a laptop browser at the Pico's IP address and see live wheel telemetry with no serial
+  cable required. This is the first appearance of a Pico-hosted rover status website; it is deliberately
+  built as a small, reusable base (a JSON data route plus a simple HTML page) so that Classes 4, 5, and 6 can
+  each add more fields to the same site (IMU orientation, ultrasonic/IR/bump-switch status, and eventually a
+  rolling history chart) instead of building a new server from scratch every class.
+* **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`, and `GP16`/`GP17`
+  for the two wheel optocouplers &mdash; `GP16` on the Motor A wheel, `GP17` on the Motor B wheel) &mdash; Classes 1
+  and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
+  server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
   and make the car drive in a 12 inch square and a 12 inch diameter circle.
+  Then add wheel odometry so real, measured wheel speed and direction &mdash; not just what was commanded &mdash;
+  can be watched live in the serial terminal and on a webpage served by the Pico itself.
 * **Talking Points**:
   * First, make it move in a square & circle of any random size. Is this easy?
     Now make it move in a 12 inch square and a 12 inch diameter circle. This is harder? Why ... What is missing? How can the fix this?
   * Push the "what is missing?" question further: have students name the specific causes separately &mdash; no wheel/heading feedback, battery voltage sag, and wheel slip/friction &mdash; instead of one vague "it's not accurate."
+  * Now that wheel odometry exists, revisit that list: does knowing each wheel's actual speed fix *all* of it?
+    It catches slip/stall (a wheel spinning slower than commanded, or not at all) but says nothing about
+    heading/orientation &mdash; that gap isn't closed until the Class 4 IMU.
+  * A single slotted optocoupler gives you a pulse train, not a direction arrow &mdash; why does counting slots
+    alone leave "which way is it turning" unanswered, and why is "ask the motor driver what it was last told
+    to do" a reasonable (if imperfect) stand-in for a true quadrature sensor?
   * The motor circuit runs off its own 9V battery, separate from the Pico's logic power &mdash;
     so why does it still need a common ground with the Pico?
   * Why doesn't a 50% PWM duty cycle mean the motor moves at exactly 50% of its full speed? Discuss stall torque, friction, and voltage sag.
   * This code drives each motor with 2 PWM pins ("locked antiphase") &mdash; briefly compare to the DRV8833's alternative phase/enable mode and why one was chosen for this course.
+  * What does it mean for a tiny microcontroller to "host a website"? Contrast this with the websites students
+    normally visit (hosted on a data-center server far away) &mdash; here the web server, the sensor, and the
+    thing being measured are all in the student's hand.
 * **Features/Capabilities**: Print a discrete status message to the terminal each time a move happens
-  (forward, reverse, stop, square/circle attempt) so the student can "see" what the motors were just told to do &mdash;
-  not a continuous live stream, since there's no wheel-speed feedback yet.
+  (forward, reverse, stop, square/circle attempt). Once wheel odometry is added, also stream each wheel's
+  live speed (cm/s) and direction to the terminal and to a Pico-hosted webpage (`/data.json` plus a simple
+  HTML view), the first version of a rover status site that grows through Class 6.
 * **Course Pseudocode**:
   * [`class-3-code-1.py`](./class-3-code-1.py) &mdash; motor driver test library (save as `motor_driver.py`).
     Motor A: `AIN1`/`AIN2` on `GP9`/`GP10`; Motor B: `BIN1`/`BIN2` on `GP11`/`GP12`. Uses
@@ -323,11 +361,28 @@ Tips for Students:
     12 inch diameter circle by timing straight/turn moves (open-loop dead reckoning, no encoder/IMU feedback
     yet). `SPEED`, `SECONDS_PER_INCH`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
     the resulting drift is the built-in prompt for the "what is missing?" discussion.
+  * [`class-3-code-3.py`](./class-3-code-3.py) &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
+    unchanged through Class 6. Optocoupler A on `GP16`, optocoupler B on `GP17`, both digital inputs counted
+    via interrupt/counter. `WHEEL_DIAMETER_MM = 67`, `SLOTS_PER_REV` must be measured/calibrated per robot
+    (count the encoder disc's slots). Exposes `read_speed()` returning `(speed_left_cms, dir_left,
+    speed_right_cms, dir_right)`; direction for each wheel comes from the last direction argument passed to
+    `motor_driver.drive()` for that channel, not from the optocoupler alone (see Talking Points).
+  * [`class-3-code-4.py`](./class-3-code-4.py) &mdash; Pico-hosted rover status website (save as `rover_server.py`).
+    Pico 2 W joins WiFi (credentials in `settings.toml`) and runs an `adafruit_httpserver` server serving
+    `/data.json` (currently just `wheel_odometry.read_speed()`'s fields) and a minimal HTML page that polls
+    it. Imports `wheel_odometry`; prints the same data to the serial console each loop. Designed to be
+    imported and extended by `class-4-code-3.py`, `class-5-code.py`, and `class-6-code-2.py` rather than
+    rewritten each class.
 * **Potential Source Materials**:
   * [DC Motor Examples - Raspberry Pi Pico (CMU Creative Soft Robotics)](https://courses.ideate.cmu.edu/16-480/s2026/text/code/pico-motor.html)
   * [Driving A DC Motor With CircuitPython](https://www.woolseyworkshop.com/2022/07/25/driving-a-dc-motor-with-circuitpython/)
   * [Adafruit CircuitPython Motor Library — API Reference](https://docs.circuitpython.org/projects/motor/en/latest/api.html)
   * [Adafruit DRV8833 DC/Stepper Motor Driver Breakout Board](https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board)
+  * [Slot Type IR Optocoupler for Motor Speed Detection - Product Page](https://www.amazon.com/dp/B0B2NSQJDL)
+  * [Using an IR Slotted Optical Switch (Adafruit Learn)](https://learn.adafruit.com/ir-breakbeam-sensors)
+  * [Wheel Encoders and Odometry (ROS/robotics primer)](https://articulatedrobotics.xyz/mobile-robot-8-odometry/)
+  * [Raspberry Pi Pico W Asynchronous Web Server – MicroPython Code](https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/)
+  * [`adafruit_httpserver` — API Reference](https://docs.circuitpython.org/projects/httpserver/en/latest/api.html)
 
 #### 4th Class: Inertial Measurement Unit (IMU)
 
@@ -345,19 +400,32 @@ Tips for Students:
   (not the raw six values). Kalman and Madgwick filters are mentioned here only for context/comparison —
   Mahony is the one implemented in `class-4-code-1.py`. Discuss why you need a filter like this at all.
 
+  The same roll/pitch/yaw values are also posted into the Class 3 rover status website: `/data.json` grows
+  a new `orientation` field alongside the wheel-odometry fields already there, and the webpage adds an
+  orientation readout next to the wheel-speed readout. Nothing about the Class 3 web server plumbing needs
+  to be rebuilt &mdash; it's the same site, just carrying one more sensor's data now.
+
   If you have time, continue working the assembly of the Car Chassis Kit.
-* **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched.
-  This same I2C wiring is reused unchanged for the Class 6 WiFi stretch goal (`class-6-code-2.py`).
+* **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched,
+  including the Class 3 optocouplers (`GP16`/`GP17`) and the rover website they feed. This same I2C wiring is
+  reused unchanged for the Class 6 stretch goal's rolling-history chart (`class-6-code-2.py`).
 * **Objective**: The objective is to read data from an IMU and display the results by communicating to a Python 3D
-  graphical display on the laptop. This display should show how the movement of the IMU changes the image on the display.
+  graphical display on the laptop, and by extending the Class 3 rover website with the same orientation data.
+  This display should show how the movement of the IMU changes the image on the display.
 * **Talking Points**:
   * IMU shows great potential, but does it solve our problems?  Can it help us do the square and the circle as in the 3rd class?
   * Why fuse the accelerometer and gyroscope instead of just using whichever one is "better"? What does each one get wrong on its own (accelerometer noisy under vibration, gyro drifts over time)?
   * Have students actually raise/lower `MAHONY_KP` in class-4-code-1.py and watch the live tradeoff between drift and jitter, instead of just discussing it in the abstract.
   * Would mounting the IMU off to one side of the car vs. exactly at its pivot point change the readings while turning? Why or why not?
-  * Orientation (roll/pitch/yaw) tells you which way you're pointed, but nothing about how far you've traveled &mdash; what's still missing to solve the Class 3 square/circle challenge?
+  * Orientation (roll/pitch/yaw) tells you which way you're pointed; Class 3's wheel odometry tells you how
+    fast each wheel is spinning. Together, do they tell you how far you've traveled and in what direction, or
+    is something still missing to fully solve the Class 3 square/circle challenge?
+  * Now that two different sensors (IMU, wheel optocouplers) both feed the same rover website, what design
+    choice in `rover_server.py` made that easy (a shared JSON route each sensor module contributes fields to)
+    rather than hard (one server per sensor)?
 * **Features/Capabilities**: Reads accelerometer and gyroscope data from the IMU, fuses it with a Mahony filter into
-  roll/pitch/yaw, and streams that orientation over USB serial to a live 3D box rendered on the laptop.
+  roll/pitch/yaw, and streams that orientation over USB serial to a live 3D box rendered on the laptop, while
+  also publishing it as a new field on the Class 3 rover status website alongside wheel speed/direction.
   The purpose is to show how the physical orientation of the IMU is accurately (or not) reflected in the display.
 * **Course Pseudocode**:
   * [`class-4-code-1.py`](./class-4-code-1.py) &mdash; runs on the Pico. LSM9DS1 over I2C, `SCL`->`GP1`, `SDA`->`GP0`.
@@ -367,6 +435,9 @@ Tips for Students:
   * [`class-4-code-2.py`](./class-4-code-2.py) &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`).
     Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students see whether
     tilting the physical board is faithfully reflected on screen. Usage: `python class-4-code-2.py <port>`.
+  * [`class-4-code-3.py`](./class-4-code-3.py) &mdash; runs on the Pico alongside `class-4-code-1.py`. Imports
+    `rover_server` (from `class-3-code-4.py`) and adds the Mahony-filtered roll/pitch/yaw to the shared
+    `/data.json` route and webpage, extending rather than replacing the Class 3 rover website.
 * **Potential Source Materials**:
   * [Python & CircuitPython — Adafruit LSM9DS1 9-DOF Breakout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/python-circuitpython)
   * [API Reference — Adafruit LSM9DS1 Library](https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html)
@@ -386,12 +457,19 @@ Tips for Students:
   or when triggered &mdash; the IR sensor closes that gap), and a mechanical limit switch mounted as a
   physical bumper is the last-resort fallback &mdash; if the rover actually contacts something, the
   switch fires an immediate stop-and-reverse regardless of what either sensor reported.
+
+  The Class 3 wheel-odometry sensors and rover website keep running unchanged the whole time: each wheel's
+  live speed/direction, the scan reading and chosen heading, and each sensor-triggered stop event are all
+  added as new fields on the same `/data.json` route and webpage that started in Class 3 and grew again in
+  Class 4, so the rover's full state &mdash; wheels, IMU, distance sensor, IR, bump switch, and drive
+  decision &mdash; is visible together on one page, with no laptop cable required.
 * **Wiring Continuity**: Two new pins this class: `GP5` (limit switch, digital input with internal
   pull-up, wired as a physical bumper on the chassis front) and `GP13` (IR obstacle sensor, digital
   input, fixed forward-facing). Both are carried forward unchanged into Class 6. Otherwise, reconnects
-  exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit
-  (`GP9`-`GP12`) as they were left wired &mdash; nothing to move. The Class 1 and Class 4 circuits can
-  stay on the breadboard unused or be set aside; neither is needed for this build.
+  exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`), the Class 3 motor driver circuit
+  (`GP9`-`GP12`) and wheel-odometry circuit (`GP16`/`GP17`), and the Class 4 IMU circuit (`GP0`/`GP1`)
+  as they were left wired &mdash; nothing to move. The Class 1 circuit can stay on the breadboard unused
+  or be set aside; it isn't needed for this build.
 * **Objective**: Create an autonomous car with wheel motors, operating at a constant speed,
   move around the room without hitting anything.
   Avoid collisions by using the servo-mounted ultrasonic distance sensor.
@@ -401,19 +479,22 @@ Tips for Students:
   * class-5-code.py rescans both on a timer *and* immediately when something gets too close &mdash; what's the risk of relying on only one of those two triggers?
   * The rover steers toward whichever scan angle had the most clearance &mdash; can students design a room layout (e.g. a narrow gap with open space just beyond it) where "pick the largest reading" picks a bad direction?
   * The rover stops to scan instead of sensing continuously while driving &mdash; discuss the safety/simplicity vs. speed/smoothness tradeoff of that "stop-look-go" design.
-  * Beyond eyeballing that it doesn't hit things, how would the class actually measure/test whether their rover's collision avoidance is working?
+  * Beyond eyeballing that it doesn't hit things, how would the class actually measure/test whether their rover's collision avoidance is working? (Hint: the rover website now shows live wheel speed &mdash; does a wheel's measured speed dropping to near zero while still commanded to drive make a stuck/blocked wheel visible before the rover even reports a collision?)
   * Three different signals now decide "stop": ultrasonic distance, IR near-field, and the bump switch. What does each one catch that the others miss, and what's the risk of trusting only one?
-* **Features/Capabilities**: Performance of the car is streamed to the terminal. Reads the IR sensor
-  and limit switch every loop; either one true forces an immediate stop independent of the ultrasonic
-  scan/timer logic.
+* **Features/Capabilities**: Performance of the car is streamed to the terminal and to the growing rover
+  website (wheel speed/direction, orientation, scan readings, chosen heading, and sensor-triggered stops all
+  on one page). Reads the IR sensor and limit switch every loop; either one true forces an immediate stop
+  independent of the ultrasonic scan/timer logic.
 * **Course Pseudocode**:
   * [`class-5-code.py`](./class-5-code.py) &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
-    `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`). Drives forward at `DRIVE_SPEED`; sweeps
-    the sensor across `SCAN_ANGLES` on a timer or immediately if anything comes within `STOP_DISTANCE_CM`,
-    turns toward the clearest heading (reusing Class 3's turn-time calibration), then continues. Also polls
-    the IR sensor (`GP13`) and limit switch (`GP5`) every loop; either going active forces an immediate
-    stop-and-reverse, overriding the normal scan-and-turn logic. Streams every scan reading, chosen heading,
-    drive state, and sensor-triggered stop event to the serial console.
+    `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`) and `wheel_odometry` (`GP16`/`GP17`).
+    Drives forward at `DRIVE_SPEED`; sweeps the sensor across `SCAN_ANGLES` on a timer or immediately if
+    anything comes within `STOP_DISTANCE_CM`, turns toward the clearest heading (reusing Class 3's turn-time
+    calibration), then continues. Also polls the IR sensor (`GP13`) and limit switch (`GP5`) every loop;
+    either going active forces an immediate stop-and-reverse, overriding the normal scan-and-turn logic.
+    Imports `rover_server` and adds scan/heading/drive-state/stop-event fields to the shared `/data.json`
+    route alongside the wheel-odometry and IMU fields already there, in addition to streaming everything to
+    the serial console.
 * **Potential Source Materials**:
   * [Raspberry Pi Pico W taught this car to avoid objects](https://www.raspberrypi.com/news/raspberry-pi-pico-w-taught-this-car-to-avoid-objects/)
   * [How to make an obstacle avoidance robot using Raspberry Pi Pico board](https://srituhobby.com/how-to-make-an-obstacle-avoidance-robot-using-raspberry-pi-pico-board/)
@@ -423,34 +504,46 @@ Tips for Students:
 
 * **Description:** Continue building an obstacle-avoiding robot car and complete the project.
   Then add the stretch objectives outlined in "Objective": a rotary encoder that lets students speed
-  the rover up or down live while it drives, an IMU that streams tilt data over the Pico 2 W's WiFi to a
-  chart in a browser instead of only the serial console, and a TFT screen that shows the rover's
-  distance/heading/speed status on the robot itself so it's readable without a USB cable attached.
-* **Wiring Continuity**: Stretch #1 and #2 need no new wiring &mdash; they reconnect the Class 1 encoder
-  (`GP3`/`GP4`) and Class 4 IMU (`GP0`/`GP1`) exactly as already wired, right alongside the Class 5 rover
-  circuit (`GP6`-`GP12`). The Class 5 limit switch (`GP5`) and IR sensor (`GP13`) also carry forward
-  unchanged, needing no rewiring. Stretch #3 is the only new wiring this class: a TFT on `GP18`-`GP22`,
-  pins not used by anything else in the course, so it drops in without disturbing the rover.
+  the rover up or down live while it drives, a rolling-history chart added to the rover status website
+  (running continuously since Class 3) so IMU tilt and wheel speed are viewable as a scrolling graph
+  instead of only a snapshot, and a TFT screen that shows the rover's distance/heading/speed status on the
+  robot itself so it's readable without a USB cable attached.
+
+  Note on stretch #2: this class does **not** build a new WiFi web server from scratch &mdash; that
+  plumbing (WiFi join, `adafruit_httpserver`, the shared `/data.json` route) has been running since Class 3
+  and has already been extended in Classes 4 and 5. Stretch #2 here is purely additive: a rolling-history
+  buffer and an HTML5 canvas chart are added on top of the existing site so students can watch recent trends
+  (e.g. IMU tilt, wheel speed) scroll by, instead of only ever seeing the current instant.
+* **Wiring Continuity**: Stretch #1 needs no new wiring &mdash; it reconnects the Class 1 encoder (`GP3`/`GP4`)
+  exactly as already wired, right alongside the Class 5 rover circuit (`GP6`-`GP12`), the Class 3 wheel
+  optocouplers (`GP16`/`GP17`), and the Class 4 IMU (`GP0`/`GP1`). Stretch #2 also needs no new wiring &mdash;
+  it only extends software already running on the existing Class 3 WiFi/web-server circuit. The Class 5
+  limit switch (`GP5`) and IR sensor (`GP13`) also carry forward unchanged, needing no rewiring. Stretch #3
+  is the only new wiring this class: a TFT on `GP18`-`GP22`, pins not used by anything else in the course,
+  so it drops in without disturbing the rover.
 * **Objective**: Stretch Objectives are to
   1. Add a rotary encoder to control speed.
-  1. Send IMU data via WiFi to a graphical historical display.
+  1. Extend the rover website (running since Class 3) with a rolling historical chart.
   1. Add a TFT display showing real-time status.
 * **Talking Points**:
   * Adding encoder speed control changes the rover's behavior &mdash; does driving slower actually make it make smarter decisions, or does it just take longer to make the same decisions?
-  * Looking back across all 6 classes' "what's missing?" discussions (wheel/heading feedback in Class 3, orientation-vs-distance in Class 4), which single improvement would most help the rover's real-world reliability, and what would it take to add it?
-  * This is the last class before the future line-following robot course &mdash; which skills/parts built here (motor driver, calibration mindset, sensor fusion) will carry forward, and what's genuinely new there (line sensor, competitive track) that this course didn't cover?
+  * Looking back across all 6 classes' "what's missing?" discussions (wheel-speed feedback added in Class 3, orientation added in Class 4), which single improvement would most help the rover's real-world reliability, and what would it take to add it?
+  * The rover website has now grown for four classes straight (Class 3 wheel speed, Class 4 orientation, Class 5 scan/sensor state, Class 6 history chart) without ever being rewritten &mdash; what design choice made in Class 3 made that possible, and where would a "rebuild it each class" approach have broken down instead?
+  * This is the last class before the future line-following robot course &mdash; which skills/parts built here (motor driver, wheel odometry, calibration mindset, sensor fusion) will carry forward, and what's genuinely new there (line sensor, competitive track) that this course didn't cover?
 * **Features/Capabilities**: Stretch #1 prints the new drive speed to the terminal each time the encoder
-  changes it. Stretch #2 serves a live-updating chart in a web browser (no cable needed, just the Pico 2 W's
-  IP address) that scrolls a rolling history of IMU tilt as the Pico streams it over WiFi. Stretch #3 shows
-  the rover's distance/heading/speed directly on its own on-board TFT screen, readable with no laptop or
-  cable attached at all.
+  changes it. Stretch #2 adds a live-updating chart to the existing rover website (no cable needed, just the
+  Pico 2 W's IP address already in use since Class 3) that scrolls a rolling history of IMU tilt and wheel
+  speed as the Pico streams it over WiFi. Stretch #3 shows the rover's distance/heading/speed directly on its
+  own on-board TFT screen, readable with no laptop or cable attached at all.
 * **Course Pseudocode**:
   * [`class-6-code-1.py`](./class-6-code-1.py) &mdash; stretch #1. Reuses the Class 1 rotary encoder (`GP3`/`GP4`)
-    to raise/lower `current_speed` live and feeds it to `motor_driver.drive()`.
-  * [`class-6-code-2.py`](./class-6-code-2.py) &mdash; stretch #2. Pico 2 W joins WiFi (credentials in `settings.toml`),
-    runs an `adafruit_httpserver` web server, and serves a page with a hand-drawn HTML5 canvas chart that
-    polls `/data.json` every 200ms and keeps a rolling ~150-sample history of roll/pitch from the LSM9DS1
-    (accelerometer-only tilt estimate; port class-4-code-1.py's Mahony filter in for full yaw).
+    to raise/lower `current_speed` live and feeds it to `motor_driver.drive()`; the Class 3 `wheel_odometry`
+    readout lets students see the actual measured wheel speed change alongside the commanded one.
+  * [`class-6-code-2.py`](./class-6-code-2.py) &mdash; stretch #2. Imports the already-running `rover_server`
+    (from `class-3-code-4.py`, extended in Classes 4-5) and adds a rolling ~150-sample history buffer plus a
+    hand-drawn HTML5 canvas chart to the existing page, polling `/data.json` every 200ms and plotting roll/pitch
+    (from `class-4-code-1.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
+    join or web server is created here &mdash; both already exist from Class 3.
   * [`class-6-code-3.py`](./class-6-code-3.py) &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
     (`SCK`/`MOSI`/`CS`/`DC`/`RST` on `GP18`-`GP22`) shows distance/heading/speed as large on-board text via
     `displayio` + `adafruit_display_text`, so rover status is visible without a USB cable. Ships with demo
@@ -488,7 +581,7 @@ purchase (and any spares that come with it) noted below the table and priced in 
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
-| Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + wheels; assembled across Classes 1-2, driven starting Class 3 |
+| Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
 | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.30 | [Amazon][03] | sold in 10-pack ($12.99); Class 2 sensor, reused Class 5-6 |
 | SG90 9g Micro Servo Motor | 1 | $2.00 | [Amazon][04] | sold in 10-pack ($19.99); Class 2 servo, reused Class 5-6 |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
@@ -504,17 +597,19 @@ purchase (and any spares that come with it) noted below the table and priced in 
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
-| Micro Limit Switch | 1 | $0.35 | [Amazon][26] | sold in 20-pack ($6.50); Class 5 rover bump sensor, reused Class 6 |
-| IR Obstacle Avoidance Sensor | 1 | $0.35 | [Amazon][27] | sold in 10-pack ($8.77); Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
+| Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Class 5 rover bump sensor, reused Class 6 |
+| IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
+| Slot Type IR Optocoupler for Motor Speed | 2 | $0.90 | [Amazon][28] | sold in 10-pack ($8.99); Class 3 wheel-odometry sensor (one per driven wheel of the Emo Smart Robot Car Chassis Kit), reused Class 4-6 |
 
-Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.35 + 0.35 ≈ **$74.41 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
+Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.33 + 0.88 + 2×0.90 ≈ **$76.72 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
 
 ##### Per-Student Optional
 
-None. All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status display) have
-their hardware (KY-040, LSM9DS1, TFT) purchased/stocked for every student — treated as in-scope/required for
-procurement purposes. Whether a given student *attempts* all three builds in class is a pedagogical choice (see
-syllabus/class-06 lesson plan), not a procurement one; this section only concerns what's bought, not what's built.
+None. All three Class 6 stretch-goal items (rotary encoder speed control, rover-website history chart, TFT
+status display) have their hardware (KY-040, LSM9DS1, TFT) purchased/stocked for every student — treated as
+in-scope/required for procurement purposes. Whether a given student *attempts* all three builds in class is a
+pedagogical choice (see syllabus/class-06 lesson plan), not a procurement one; this section only concerns
+what's bought, not what's built.
 
 ##### Shared Supplies
 
@@ -548,12 +643,13 @@ Per-Student Required (bulk-purchase total) = $72.00 (Pico) + $125.91 (chassis) +
     + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs)
     + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
     + $9.00 (USB backup cable ×9) + $6.50 (limit switch 20-pack) + $8.77 (IR sensor 10-pack)
-    = $704.71 total (~$78.30 per person)
+    + $17.98 (optocoupler, 2× 10-packs)
+    = $722.69 total (~$80.30 per person)
 
 Shared Supplies = $21.98 total (~$2.44 per person)
 Shipping = $10.00 total (~$1.11 per person)
 
-Grand Total = $704.71 + $21.98 + $10.00 = $736.69 for the course (~$81.85 per person, 9 people)
+Grand Total = $722.69 + $21.98 + $10.00 = $754.67 for the course (~$83.85 per person, 9 people)
 ```
 
 
@@ -566,11 +662,11 @@ All free.
 | CircuitPython Firmware for Pico 2 W | [Firmware Download][20] | flashed onto the Pico in the Pre-Class |
 | Mu Editor | [Install Guide][21] | recommended editor, installed in the Pre-Class |
 | Thonny | [Setup Guide][22] | alternate editor, installed in the Pre-Class |
-| Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver`, `adafruit_st7789`, `adafruit_display_text` |
+| Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
-| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 6 stretch #2, to view the live WiFi chart served by `class-6-code-2.py` |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico 2 W and the student's laptop can both reach the rover's web server |
+| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
+| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 3, so the Pico 2 W and the student's laptop can both reach the rover's web server |
 
 #### Code Blocks
 
@@ -582,9 +678,10 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 | `class-1-code-1.py` / `class-1-code-2.py` | 2 | Instructor | undebounced vs. debounced button + rotary encoder, Class 1 |
 | `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
-| `class-4-code-1.py` / `class-4-code-2.py` | 2 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop), Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic, Class 5 |
-| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, WiFi IMU chart, TFT status display — Class 6 stretch goals |
+| `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic, also posts scan/sensor telemetry to the rover website, Class 5 |
+| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
 
 #### Tools
 
@@ -617,6 +714,7 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [25]:https://www.amazon.com/Charging-Transfer-Charger-Speakers-Controllers/dp/B0GVBKRW6G?th=1
 [26]:https://www.amazon.com/dp/B07YKFX99S?th=1
 [27]:https://www.amazon.com/dp/B0DTJZ3432
+[28]:https://www.amazon.com/dp/B0B2NSQJDL
 
 These items are removed from consideration after iterating on the lesson plans
 

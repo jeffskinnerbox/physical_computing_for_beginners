@@ -161,20 +161,23 @@ exactly one room "you're on." Because `CS` is a separate, dedicated wire per dev
 one extra pin for every additional peripheral you add — the trade for its extra speed.
 
 **How to access it on the Pico 2 W in CircuitPython:** Same `busio` module as I2C and UART, just
-with more pins involved:
+with more pins involved. The Class 6 TFT is a good real example: a display only ever *receives*
+pixel data, so it wires up `SCK`/`MOSI`/`CS` but skips `MISO` entirely — nothing needs to talk
+back to the Pico.
 
 ```python
 import board
 import busio
-import digitalio
+from displayio import FourWire
 
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19, MISO=board.GP16)
-cs = digitalio.DigitalInOut(board.GP17)
-cs.switch_to_output(value=True)
+spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)  # no MISO -- this display never talks back
+display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
 ```
 
-Display libraries like `adafruit_st7789` typically wrap this setup for you, taking the SPI bus
-and chip-select pin as arguments rather than requiring you to manage individual bytes.
+`command` (`DC`) and `reset` (`RST`) are two extra control lines the ST7789 needs beyond plain
+SPI — `displayio.FourWire` bundles them alongside the SPI bus so a display library like
+`adafruit_st7789` can take this one `display_bus` object as a single argument, rather than
+requiring you to manage individual bytes.
 
 ## Choosing between them
 

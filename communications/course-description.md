@@ -26,9 +26,14 @@ Ultrasonic Range Sensor,
 Micro Servo Motor,
 Dual H-Bridge Motor Driver Controller,
 N20 DC Motors,
+IR Optocoupler wheel speed sensors (wheel odometry),
 9-DOF IMU,
 Rotary encoders,
 240x135 color TFT display.
+
+Starting midway through the course, their robot car will host its own small website,
+served right off the microcontroller, showing live wheel speed and direction and other
+data as later classes add to it &mdash; readable in any browser, no cable needed.
 
 The course is intended for high schoolers or 6 to 8 grader with a parent.
 The course assumes some basic coding experience, ideally with Python.
@@ -60,7 +65,12 @@ They will be encouraged to research on-line for project ideas, replicating and e
 
 Students can expect to do projects using components like: Raspberry Pi Pico 2W micro-controller,
 Ultrasonic Range Sensor, Micro Servo Motor, Dual H-Bridge Motor Driver Controller, N20 DC Motors,
-9-DOF IMU, Rotary encoders, and 240x135 color TFT display.
+IR Optocoupler wheel speed sensors (wheel odometry), 9-DOF IMU, Rotary encoders,
+and 240x135 color TFT display.
+
+Partway through the course, students' robot cars will host their own small website, served directly
+from the microcontroller, displaying live wheel speed and direction and additional data added in
+later classes &mdash; viewable in any web browser, no cable required.
 
 The course is intended to serve High School Students (grades 9-12).
 Middle School students in grades six through eight may participate, but they must be with a parent.

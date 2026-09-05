@@ -14,7 +14,7 @@ budget picture, with no need to cross-reference the syllabus or lesson plans.
 builds a rover alongside the students, so all per-person hardware quantities below include the
 instructor. All math is shown so the numbers can be recalculated for a different class size.
 
-**Grand Total: $736.69 for the course (~$81.85 per person, 9 people)** — see the Cost Summary below
+**Grand Total: $754.67 for the course (~$83.85 per person, 9 people)** — see the Cost Summary below
 for the full breakdown.
 
 Adafruit prices in this document were confirmed against the live product pages. Amazon-sourced
@@ -41,7 +41,7 @@ the Cost Summary below.
 | IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
 | STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
-| Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + wheels; assembled across Classes 1-2, driven starting Class 3 |
+| Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
 | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.30 | [Amazon][03] | sold in 10-pack ($12.99); Class 2 sensor, reused Class 5-6 |
 | SG90 9g Micro Servo Motor | 1 | $2.00 | [Amazon][04] | sold in 10-pack ($19.99); Class 2 servo, reused Class 5-6 |
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
@@ -53,10 +53,22 @@ the Cost Summary below.
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
 | Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch; Class 5 rover bump sensor, reused Class 6 |
 | IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
+| Slot Type IR Optocoupler for Motor Speed | 2 | $0.90 | [Amazon][28] | sold in 10-pack ($8.99); Class 3 wheel-odometry sensor, one per driven wheel of the Emo Smart Robot Car Chassis Kit (2 per person); reads the chassis kit's built-in 67mm-wheel encoder discs; reused Class 4-6 |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
 
-Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.33 + 0.88 ≈ **$74.92 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
+Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.33 + 0.88 + 2×0.90 ≈ **$76.72 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
+
+**Note on wheel odometry (new starting Class 3):** wheel odometry means measuring how fast — and
+in which direction — each driven wheel is *actually* turning, not just what speed the code
+commanded it to spin at. The Emo Smart Robot Car Chassis Kit already includes a molded encoder disc
+on each of its two 67mm drive wheels, but the kit has no sensor that can read those discs — the
+Slot Type IR Optocoupler for Motor Speed line above is that sensor (one optocoupler per driven
+wheel, so 2 per person). It's wired in during Class 3 alongside the DRV8833 motor driver, so the
+wheel-speed reading is available from the same class the motors first turn under code control, and
+that reading is then reused every class after: Class 4 IMU work, the Class 5 Random Rover's
+collision-avoidance logic, and Class 6's encoder speed control and rover status display all build on
+it — the same reuse pattern the HC-SR04 and SG90 already follow from Class 2 onward.
 
 ### Per-Student Optional
 
@@ -96,12 +108,13 @@ Per-Student Required (bulk-purchase total) = $72.00 (Pico) + $125.91 (chassis) +
     + $6.49 (battery clip 10-pack) + $25.38 (9V battery, 2× 8-packs)
     + $14.99 (buck converter 10-pack) + $0.00 (LED) + $0.00 (resistor)
     + $9.00 (USB backup cable ×9) + $6.50 (limit switch 20-pack) + $8.77 (IR sensor 10-pack)
-    = $704.71 total (~$78.30 per person)
+    + $17.98 (optocoupler, 2× 10-packs)
+    = $722.69 total (~$80.30 per person)
 
 Shared Supplies = $21.98 total (~$2.44 per person)
 Shipping = $10.00 total (~$1.11 per person)
 
-Grand Total = $704.71 + $21.98 + $10.00 = $736.69 for the course (~$81.85 per person, 9 people)
+Grand Total = $722.69 + $21.98 + $10.00 = $754.67 for the course (~$83.85 per person, 9 people)
 ```
 
 ----
@@ -167,7 +180,6 @@ part of the course budget above.
 | Slim Rubber Rotary Encoder Knob - 11.5mm x 14.5mm D-Shaft | [Adafruit](https://www.adafruit.com/product/5093) | single | 1 | 3 | 1 | $0.75 | $2.25 |
 | I2C Stemma QT Rotary Encoder Breakout with Encoder | [Adafruit](https://www.adafruit.com/product/5880) | single | 1 | 3 | 1 | $7.95 | $23.85 |
 | Monochrome 1.12" 128x128 OLED Graphic Display - STEMMA QT / Qwiic | [Adafriuit](https://www.adafruit.com/product/5297) | single | 1 | 1 | 1 | $17.50 | $17.50 |
-| Slot Type IR Optocoupler for Motor Speed | [Amazon][28] | multiple | 10 | 2 | 2 | $8.99 | $17.98 |
 
 ----
 

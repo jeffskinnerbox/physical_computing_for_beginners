@@ -36,10 +36,10 @@ been hand-edited since being generated.
 | Pre-Class lesson plan | `class-00-lesson-plan.md` | Toolchain setup: install Mu/Thonny, flash CircuitPython onto the Pico 2 W, download the library bundle, and run a first blink+heartbeat program. No wiring yet. |
 | Class 1 lesson plan | `class-01-lesson-plan.md` | Pushbutton switch and KY-040 rotary encoder wired to two LEDs; deliberately builds without debouncing first, then adds it, so students see the exact problem it solves. |
 | Class 2 lesson plan | `class-02-lesson-plan.md` | HC-SR04 ultrasonic distance sensor and SG90 servo, combined into a sensor-on-servo sweep that previews the Random Rover's scanning behavior. |
-| Class 3 lesson plan | `class-03-lesson-plan.md` | DRV8833 dual H-bridge motor driver and DC gearbox motors; students attempt open-loop square/circle driving and directly experience dead-reckoning drift. |
+| Class 3 lesson plan | `class-03-lesson-plan.md` | DRV8833 dual H-bridge motor driver and DC gearbox motors; students attempt open-loop square/circle driving and directly experience dead-reckoning drift. Also introduces wheel odometry (IR optocoupler per wheel) and the first version of a Pico-hosted rover status website, both extended in every class that follows. |
 | Class 4 lesson plan | `class-04-lesson-plan.md` | LSM9DS1 9-DOF IMU read over I2C; raw accelerometer/gyroscope readings are fused with a Mahony filter into stable roll/pitch/yaw, streamed to a live 3D viewer. |
 | Class 5 lesson plan | `class-05-lesson-plan.md` | Combines Class 2's sensor/servo sweep and Class 3's motor driver into the autonomous Random Rover, plus two new fixed safety sensors (limit switch, IR). |
-| Class 6 lesson plan | `class-06-lesson-plan.md` | Finishes and tunes the Random Rover, then offers three optional stretch goals reconnecting earlier circuits: encoder speed control, WiFi IMU chart, TFT status display. |
+| Class 6 lesson plan | `class-06-lesson-plan.md` | Finishes and tunes the Random Rover, then offers three optional stretch goals reconnecting earlier circuits: encoder speed control, a rolling-history chart added to the rover status website running since Class 3, and a TFT status display. |
 
 
 [01]:../README.md
