@@ -124,8 +124,9 @@ PII, not course content; don't quote or propagate it into generated docs or else
 microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
 `README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has a
 per-class handout (`class-00-handout.md` so far); its `README.md` is scratch notes and reference
-links (a glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` is
-still empty — no established conventions yet.
+links (a glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` holds
+purchase receipts (photos, a `receipts/` subdir) — no established doc conventions there yet, not
+course content.
 
 `tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated
 install guides it has hand-maintained docs (`git-worktree-multitasking.md`,
