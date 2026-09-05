@@ -8,7 +8,7 @@ the series of Claude Code prompts were used.
 
 ----
 
-# My 1st Prompt - Create `teen-install-instruction` Skill
+## My 1st Prompt - Create `teen-install-instruction` Skill
 
 I foresee a need to give my students detail instruction on how to install software, particularly on
 Windows 11 and Ubuntu under WSL.
@@ -109,7 +109,7 @@ After the instructions have been created, perform the following validation steps
 
 ----
 
-# My 2nd Prompt - Use `/teen-install-instructions`
+## My 2nd Prompt - Use `/teen-install-instructions`
 
 This how I used the `SKILL.ms` created above.
 
@@ -126,7 +126,7 @@ provide a "Path B" set of instruction for that case.
 
 ----
 
-# My 3rd Prompt - Create candidate-projects.md Document
+## My 3rd Prompt - Create candidate-projects.md Document
 
 I want you to identify 2 candidate projects for each class in my "Physical Computing for Beginners" course.
 Read the `@input/my-vision.md` file.
@@ -192,7 +192,7 @@ or sophistication as you move from classes 1 to 6.
 
 ----
 
-# My 4th Prompt - Create Development Environment for CircuitPython on Raspberry Pi Pico 2W Microcontroller
+## My 4th Prompt - Create Development Environment for CircuitPython on Raspberry Pi Pico 2W Microcontroller
 
 Using `/teen-install-instructions` skill, create installation instructions for a Microsoft Windows 11 laptop,
 with a development environment for CircuitPython on Raspberry Pi Pico 2W microcontroller.
@@ -211,7 +211,7 @@ Name of the installation file is: @tech_setup_check/install-circuitpython-dev-en
 
 ----
 
-# My 5th Prompt - Improve Class Descriptions
+## My 5th Prompt - Improve Class Descriptions
 
 I want you to make improvements to each class sub-sections in the "Chronological Sequence of Class Projects" section.
 To create these improvement, create experimental code that is likely need for the class.
@@ -222,7 +222,7 @@ If there are multiple python code for a class just number then sequentially.
 
 ----
 
-# My 5th Prompt - Create Syllabus
+## My 5th Prompt - Create Syllabus
 
 ## Context
 
@@ -232,7 +232,7 @@ and create a syllabus and place it in @lesson_plans/syllabus-physical-computing-
 
 ----
 
-# My 6th Prompt - Create Class Lesson Plans
+## My 6th Prompt - Create Class Lesson Plans
 
 Using the `/lesson_plan_generator skill`, create lesson plans for all classes.
 Make sure lesson plan follows the outline in the `@lesson_plans/syllabus-physical-computing-for-beginners.md` document
@@ -243,7 +243,7 @@ Create a lesson plan for the first class then stop and let me review it.
 
 ----
 
-# My 7 Prompt - Create a BOM
+## My 7 Prompt - Create a BOM
 
 1st Step:
 Read the all the documents in `@lesson_plans` to identify any materials, including software (e.g. Mu) and things the student needs to supply (e.g. USB cable),
@@ -263,7 +263,7 @@ Within `@lesson_plans/BOM.md` include any explanatory text so its the data is un
 
 ----
 
-# My 8th Prompt - Create Lesson Scripts
+## My 8th Prompt - Create Lesson Scripts
 
 /plan
 Review this entire directory concerning the course I will be teaching.
@@ -370,7 +370,7 @@ Export to other formats with **pandoc** (installed): `pandoc -f gfm input.md -o 
 
 ----
 
-# My 9th Prompt - Create Some Homework for Pre-Class
+## My 9th Prompt - Create Some Homework for Pre-Class
 
 Do the following to @tech_setup_check/install-circuitpython-dev-env-on-windows-11.md, and in no other file:
 1. At the bottom of @tech_setup_check/install-circuitpython-dev-env-on-windows-11.md,
@@ -394,7 +394,7 @@ Find five, recommend two & why, and let me select one or two to be added to the 
 
 ----
 
-# My 10th Prompt - Merge install-circuitpython-dev-env-on-windows-11.md into class-00-lesson-script.md
+## My 10th Prompt - Merge install-circuitpython-dev-env-on-windows-11.md into class-00-lesson-script.md
 
 Using the skill /file-combining, @tech_setup_check/install-circuitpython-dev-env-on-windows-11.md
 into @lesson_scripts/class-00-lesson-script.md.
@@ -408,7 +408,7 @@ Here are some overriding desires when doing this merge:
 
 ----
 
-# My 11th Prompt - Create Create GitHUb Repository
+## My 11th Prompt - Create Create GitHUb Repository
 I want to start using git within this project and create a Github repository for this project.
 Create for me a Bash script that will prompts me for all the required information,
 and at the end, prints out the information for me to validate and then performs the task.
@@ -419,7 +419,7 @@ Don't execute, I wish to inspect it.
 
 ----
 
-# My 12th Prompt - Create Uninstall Script for Pre-Class Tools
+## My 12th Prompt - Create Uninstall Script for Pre-Class Tools
 After the "What You Learned" section in @lesson_scripts/class-00-lesson-script.md,
 create a new section that describes how all the code, tools, libraries, etc. that that we installed can be uninstall from the Windows 11 PC.
 Point out that this not generally necessary but only if you want to return the PC to its ordinal condition.
@@ -428,7 +428,7 @@ Also give the user a way to assure the install was done completely & correctly (
 
 ----
 
-# My 13th Prompt - For a class-01-lesson-script.md, Create HomeWork Project Candidates
+## My 13th Prompt - For a class-01-lesson-script.md, Create HomeWork Project Candidates
 For the @lesson_scripts/class-01-lesson-script.md (called here the "current class"),
 use a sub-agent to identify 8 projects for the "Homework Assignments" section.
 These projects can only use devices & breakout boards used in this class or prior classes.
@@ -444,7 +444,7 @@ Identify inconstancies and recommend modifications to the current class.
 
 ----
 
-# My 14th Prompt - Using the `/explainer` skill, create `micropython-vs-circuitpython.md`
+## My 14th Prompt - Using the `/explainer` skill, create `micropython-vs-circuitpython.md`
 using the /explainer skill, create a document located @explainer/micropython-vs-circuitpython.md
 discussing the use, origins, and current state of MicroPython and CircuitPython.
 Point out what MicroPython and CircuitPython share in common and what makes them different.
@@ -454,7 +454,7 @@ My target audience are the students for my class.
 
 ----
 
-# My 15th Prompt - Using the `/explainer` skill, create `microprocessor-vs-microcontroller.md`
+## My 15th Prompt - Using the `/explainer` skill, create `microprocessor-vs-microcontroller.md`
 Using the /explainer skill, create a document located @explainer/microprocessor-vs-microcontroller.md
 discussing the origins of microprocessor & microcontrollers, the problem they are intended to solve,
 and what makes them different.
@@ -464,7 +464,7 @@ My target audience are the students for my class.
 
 ----
 
-# My 16th Prompt - Using the `/explainer` skill, create `what-is-the-random-rover.md`
+## My 16th Prompt - Using the `/explainer` skill, create `what-is-the-random-rover.md`
 
 Using the /explainer skill, create a document located @explainer/what-is-the-random-rover.md
 that describes the Random Rover, which is the end product of this series of classes.
@@ -478,7 +478,7 @@ it is far from what industrial, self-driving cars, and humanoid robots require.
 
 ----
 
-# My 17th Prompt - Create a README.md File Creation Skill
+## My 17th Prompt - Create a README.md File Creation Skill
 Using your your `SKILL.md` creation skills,
 create a skill that will generate a README.md file for a specified directory.
 Call this skill `readme_generator`.
@@ -512,7 +512,7 @@ Once the README.md file is created, lint the file and make corrections as needed
 
 ----
 
-# My 18th Prompt - Using the `/explainer` skill, create `raspberry-pi-pico-2w-pinout.md`
+## My 18th Prompt - Using the `/explainer` skill, create `raspberry-pi-pico-2w-pinout.md`
 Using the /explainer skill, create a document located at @explainer/raspberry-pi-pico-2w-pinout.md
 discussing what is a pinout (reference wikipedia as a source), what is it used for, how is its use communicated,
 where can I find it for the raspberry pi 2W (reference <https://pico2w.pinout.xyz/#i=ph>) as one of your sources,
@@ -521,7 +521,7 @@ My target audience are the students for my course.
 
 ----
 
-# My 19th Prompt - Using the `/explainer` skill, create `spi-i2c-uart-serial-communications.md`
+## My 19th Prompt - Using the `/explainer` skill, create `spi-i2c-uart-serial-communications.md`
 Using the /explainer skill, create a document located at @explainer/spi-i2c-uart-serial-communications.md
 discuss what serial communication and what its important within microcontrollers.
 Discuss what SPI, I2C, and UART abbreviations stand for,
@@ -536,7 +536,7 @@ My target audience are the students for my course.
 
 ----
 
-# My 20th Prompt - Using the `/explainer` skill, create `types-of-pins-on-raspberry-pi-pico-2w.md`
+## My 20th Prompt - Using the `/explainer` skill, create `types-of-pins-on-raspberry-pi-pico-2w.md`
 Using the /explainer skill, create a document located at @explainer/types-of-pins-on-raspberry-pi-pico-2w.md
 and discuss all the pin functions and what the abbreviation stands for (reference <https://pico2w.pinout.xyz/#i=ph>):
 SPI, I2C, UART, Ground, VBUS 5V, VSYS 5V, 3V3 En, 3V3 Out, ADC VRef, GP28 A2, ADC Gnd, GP27 A1, GP26 A0, RUN.
@@ -552,7 +552,7 @@ My target audience are the students for my course.
 
 ----
 
-# My 21st Prompt - Using the `/explainer` skill, create `glossary-of-terms-for-microcontrollers.md`
+## My 21st Prompt - Using the `/explainer` skill, create `glossary-of-terms-for-microcontrollers.md`
 Using the /explainer skill, create a document located at @explainer/glossary-of-terms-for-microcontrollers.md
 providing definitions / descriptions / uses of the following:
 microcontroller (MCU),
@@ -588,7 +588,7 @@ I added later the prompt ... Using the /explainer skill, add to @glossary-of-ter
 
 ----
 
-# My 22nd Prompt - Using the `/explainer` skill, create `what-are-breadboards-and-dupont-wires.md`
+## My 22nd Prompt - Using the `/explainer` skill, create `what-are-breadboards-and-dupont-wires.md`
 
 Using the /explainer skill, create a document located at @explainer/what-are-breadboards-and-dupont-wires.md
 Explain the origins of the name "breadboard",
@@ -611,9 +611,9 @@ and when should you not use a Dupont wires.
 
 My target audience are the students for my course.
 
----
+----
 
-# My 23rd Prompt - For a class-02-lesson-script.md, Create HomeWork Project Candidates
+## My 23rd Prompt - For a class-02-lesson-script.md, Create HomeWork Project Candidates
 For the @lesson_scripts/class-02-lesson-script.md (called here the "current class"),
 use a sub-agent to identify 8 projects for the "Homework Assignments" section.
 These projects can only use devices & breakout boards used in this class or prior classes.
@@ -629,23 +629,24 @@ Identify inconstancies and recommend modifications to the current class.
 
 ----
 
-# My 24th Prompt - For a class-03-lesson-script.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
-Within the @lesson_plan/BOM.md there is the "Slot Type IR Optocoupler for Motor Speed" that needs to be moved from the
+## My 24th Prompt - For a class-03-lesson-script.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
+Within the `@lesson_plan/BOM.md` there is the "Slot Type IR Optocoupler for Motor Speed" that needs to be moved from the
 "Appendix: Considered but Not Selected" section to the "Per-Student Required".
 I want to install the "Slot Type IR Optocoupler for Motor Speed" devices in class-03 and continue to use it in all remaining classes.
 This device, along with the wheel speed encoder included with the Emo Smart Robot Car Chassis Kit, will be used to support wheel odometry
-on a mobile device can in this project the Random Rover.
+on the Random Rover project.
 
-With this change, the @input/my-vision.md needs to reflect that the project will include
+With this change, the `@input/my-vision.md` needs to reflect that the project will include
 a "Slot Type IR Optocoupler for Motor Speed" used by a wheel odometry function coded in the Raspberry Pi Pico 2W.
 The wheel odometry information, speed and direction for each wheel,
 needs to be published in the terminal and a website hosted via the Raspberry Pi Pico 2W.
-The wheels on the Random Rover are 67mm in diameter.
 This website should be used in subsequent classes for posting additional data about the Random Rover.
+The wheels on the Random Rover are 67mm in diameter.
 
-Now execute the steps below.
-Once all steps are completed, check all documents in the repository for consistency and completeness
-recommend changes and get approval before make changes.
+Now execute all the steps below.
+Once all steps are completed, check all documents in the directory for consistency and completeness.
+Use the `/grill-me` skill to clarify any questions you may have.
+Recommend changes and get approval before making any changes.
 
 1st Step:
 Using a separate agent,
@@ -658,35 +659,29 @@ Pause at the conclusion of this step for user review.
 
 2nd Step:
 Using a separate agent,
-Use the `/bill_of_materials_generator` skill to update & improve the bill of material content in the file `@input/my-vision.md`.
-Using a separate agent,
-Use the `/grill-me` skill to clarify any questions you may have.
-Make sure to follow the reference links to get information about sources & cost.
-Pause at the conclusion of this step for user review before you make updates.
-
-3rd Step:
-Using a separate agent,
 use the `/bill_of_materials_generator` skill, update the document `@lesson_plans/BOM.md` based on changes in the file `@input/my-vision.md`.
 Within `@lesson_plans/BOM.md` include any explanatory text so its the data is understood by people who will be financing the class.
 Use the `/grill-me` skill to clarify any questions you may have.
 Make sure to follow the reference links to get information about sources & cost.
 Pause at the conclusion of this step for user review before you make updates.
 
-4th Step:
+3rd Step:
 Using a separate agent,
 Using the `/syllabus_generator` and `/grill-me` skills,
 read the `@input/my-vision.md` and `@communications/course-description.md` files
 and update the `@lesson_plans/syllabus-physical-computing-for-beginners.md`.
+Use the `/grill-me` skill to clarify any questions you may have.
 Pause at the conclusion of this step for user review before you make updates.
 
-5th Step:
+4th Step:
 Using a separate agent,
 using the `/lesson_plan_generator` skill, update lesson plans for all class-03 thru class-06.
 Make sure lesson plan follows the outline in the `@lesson_plans/syllabus-physical-computing-for-beginners.md` document
 and make use of the `/theory_of_operation`, `/history_and_application`, and `/explainer` skills.
 Make sure the lesson plans flow easily through each class with minimal gaps or repetition in key work & concepts.
-Put the lesson plan for class X in `@/lesson_plans/class-0X-lesson-plan.md` file for X, 1 thru last class numbers.
-Create a lesson plan for the first class then stop and let me review it.
+Use the `/grill-me` skill to clarify any questions you may have.
+Put the lesson plan for class X in `@/lesson_plans/class-0X-lesson-plan.md` file for X, 3 thru last class numbers.
+Create a lesson plan for class-03 then stop and let me review it, then proceed to the next class.
 
 
 
@@ -706,11 +701,11 @@ Create a lesson plan for the first class then stop and let me review it.
 
 ----
 
-# My XXX Prompt - Create `lesson_script_generator` Skill
+## My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----
 
-# My XXX Prompt - Create `circuitpython_class_script` Skill
+## My XXX Prompt - Create `circuitpython_class_script` Skill
 
 ## Context
 Using your your `SKILL.md` creation skills,
