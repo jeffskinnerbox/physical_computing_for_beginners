@@ -684,7 +684,17 @@ Use the `/grill-me` skill to clarify any questions you may have.
 Put the lesson plan for class X in `@/lesson_plans/class-0X-lesson-plan.md` file for X, 3 thru last class numbers.
 Create a lesson plan for class-03 then stop and let me review it, then proceed to the next class.
 
+----
 
+## My 25th Prompt - Modifying class-03-lesson-script.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
+
+Using a separate agent,
+based on the @lesson_plans/class-03-lesson-plan.md document,
+update the @lesson_scripts/class-03-lesson-script.md document to include the wheel odometry
+and any other modification required by the @lesson_plans/class-03-lesson-plan.md document.
+Use the `/grill-me` skill to clarify any questions you may have.
+
+When complete, do the same for class-04, class-05, class-06.
 
 
 

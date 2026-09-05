@@ -8,7 +8,9 @@
 * **Before You Start:** Your Class 1-3 circuits (button/encoder, sensor/servo sweep, motor driver)
     should still be working and stay exactly as they are on your breadboard. You should also have
     Python 3 installed on your laptop from the Pre-Class — this class is the first one that runs
-    code on your laptop as well as your Pico.
+    code on your laptop as well as your Pico. Your Class 3 rover status website (`rover_server.py`)
+    should still connect to the classroom WiFi and serve `/data.json` — a quick spot-check, not a
+    rebuild, since today's website work is a small edit to that same file.
 
 ---
 
@@ -23,9 +25,12 @@ pointed, the same way your inner ear tells you which way is up with your eyes cl
 You'll wire the IMU over I2C, read its raw acceleration and rotation-rate data, and then combine
 ("fuse") those two individually-flawed signals into one stable roll/pitch/yaw orientation using a
 **Mahony filter**. You'll stream that orientation live from your Pico to a 3D box drawn on your
-laptop screen, so you can watch your physical tilt reflected on screen in real time. By the end,
-you'll also be able to say clearly why this — as exciting as it is — still doesn't solve Class 3's
-square-and-circle problem on its own.
+laptop screen, so you can watch your physical tilt reflected on screen in real time. Then you'll
+add that same orientation to your Class 3 rover status website — `rover_server.py`'s `/data.json`
+route grows three new fields (`roll`, `pitch`, `yaw`) alongside the wheel speed/direction fields
+already there, so one browser tab shows both sensors' data together with no new website built. By
+the end, you'll also be able to say clearly why this — as exciting as it is — still doesn't solve
+Class 3's square-and-circle problem on its own.
 
 ## 2. What You'll Need
 
@@ -38,8 +43,9 @@ square-and-circle problem on its own.
 | USB cable | 1 | Powers the Pico and carries the serial data |
 | Laptop with Mu or Thonny | 1 | Where you write/save the Pico's code |
 | Laptop with Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
+| Classroom WiFi network (shared, from Class 3) | 1 | Already-joined network your Class 3 rover status website runs on — nothing new to set up |
 
-**Additional components for the Homework Assignments** (Section 9) — no homework has been written
+**Additional components for the Homework Assignments** (Section 10) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
@@ -68,6 +74,15 @@ drift without inheriting the accelerometer's short-term noise. (Kalman and Madgw
 this same problem with different math; Mahony is what's actually implemented here.) The filter's
 `MAHONY_KP` gain controls how strongly it trusts that correction — you'll tune this live and feel
 the tradeoff between drift (too low) and jitter (too high).
+
+**Adding to a website that's already running.** Building your Class 3 rover status website from
+scratch meant standing up WiFi, an HTTP server, a route, and a page all at once. Adding to one that
+already works is a much smaller job: the page already calls `JSON.stringify()` on whatever the
+`/data.json` route hands it, so it already displays any field that dict contains — no HTML or
+JavaScript changes needed at all. Today's edit only touches the Pico side of `rover_server.py`: read
+and fuse the IMU the same way `class-4-code-1.py` does, then add three new keys to the dict the
+route already returns. That's the difference between building a website and growing one you already
+built.
 
 **Pinout summary** (Raspberry Pi Pico 2 W — new pins only; Classes 1-3 are unaffected):
 
@@ -333,7 +348,182 @@ worth noting but not worth chasing down today.
 Tilt the board along one axis at a time and confirm the on-screen box responds — roll, pitch, and
 yaw should each visibly correspond to a specific physical motion.
 
-## 6. Troubleshooting Guide
+## 6. Build It: Phase 3 — Extend the Rover Status Website
+
+### Wiring for this phase
+
+No new wiring — same IMU wiring as Phase 1. This phase edits software only, and it edits your
+Class 3 `rover_server.py`, not `class-4-code-1.py`.
+
+### What this code does
+
+Recall `rover_server.py`'s `/data.json` route from Class 3: it returns a small dict —
+`speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right` — and the webpage just calls
+`JSON.stringify()` on whatever that dict contains, so it already displays any field the dict has,
+with no HTML/JavaScript changes needed. Today's edit only touches the Pico side: add the
+sensor-read-and-fuse code from `class-4-code-1.py` into `rover_server.py`, and add three keys to
+the returned dict.
+
+This file duplicates rather than imports `class-4-code-1.py`'s Mahony filter code, and that's
+deliberate, not sloppy: `class-4-code-1.py` ends in its own blocking `while True:` loop that prints
+CSV forever, and `rover_server.py` ends in its own blocking `while True: server.poll()` loop that
+answers web requests forever — two different infinite loops that can't run inside the same program
+at the same time. Class 3's `rover_server.py` was built the same non-library way (its own `code.py`
+ending in its own loop, not something another file can `import` and call), and today's edit keeps
+that same shape rather than turning it into a shared library. If you want to run the live 3D box
+(Phase 1-2) and the website (this phase) at once, you'd need a real rewrite that merges both loops
+into one — worth thinking about, not worth doing today.
+
+Because of this, `class-4-code-1.py` and today's edited `rover_server.py` are two different things
+`code.py` on your `CIRCUITPY` drive could be — the same way Class 3's square/circle attempt and its
+website were two different `code.py` options. You'll only ever have one of them running at a time;
+Section 8's "Put It All Together" shows both as complete, final options.
+
+### The code
+
+Open your existing `rover_server.py` (saved during Class 3 Phase 4) and edit it into the version
+below — or save this file over it directly.
+
+```python
+# class-4-code-3.py  (save over rover_server.py)
+# Extends the Class 3 rover status website with IMU orientation. Same server,
+# same /data.json route -- just three new keys. Reuses the Mahony filter code
+# from class-4-code-1.py rather than reinventing it (but as a copy, not an
+# import -- see "What this code does" above for why).
+import os
+import math
+import time
+import board
+import busio
+import wifi
+import socketpool
+import adafruit_lsm9ds1
+from adafruit_httpserver import Server, Request, Response, JSONResponse
+import wheel_odometry
+
+wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
+print("rover server -- listening at", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool)
+
+i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-code-1.py
+imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
+
+MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-code-1.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-code-1.py
+
+q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
+integral_fbx = integral_fby = integral_fbz = 0.0
+last_time = time.monotonic()
+
+
+def _mahony_update(ax, ay, az, gx, gy, gz, dt):
+    # Identical math to class-4-code-1.py's mahony_update() -- see Section 3's
+    # "Mahony filter" explanation for why fusing accel+gyro this way works.
+    global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
+    norm = (ax * ax + ay * ay + az * az) ** 0.5
+    if norm == 0:
+        return
+    ax, ay, az = ax / norm, ay / norm, az / norm
+    vx = 2 * (q1 * q3 - q0 * q2)
+    vy = 2 * (q0 * q1 + q2 * q3)
+    vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3
+    ex = ay * vz - az * vy
+    ey = az * vx - ax * vz
+    ez = ax * vy - ay * vx
+    integral_fbx += MAHONY_KI * ex * dt
+    integral_fby += MAHONY_KI * ey * dt
+    integral_fbz += MAHONY_KI * ez * dt
+    gx += MAHONY_KP * ex + integral_fbx
+    gy += MAHONY_KP * ey + integral_fby
+    gz += MAHONY_KP * ez + integral_fbz
+    qa, qb, qc = q0, q1, q2
+    q0 += (-qb * gx - qc * gy - q3 * gz) * 0.5 * dt
+    q1 += (qa * gx + qc * gz - q3 * gy) * 0.5 * dt
+    q2 += (qa * gy - qb * gz + q3 * gx) * 0.5 * dt
+    q3 += (qa * gz + qb * gy - qc * gx) * 0.5 * dt
+    norm = (q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3) ** 0.5
+    q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
+
+
+def _read_orientation():
+    """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
+    global last_time
+    now = time.monotonic()
+    dt = now - last_time
+    last_time = now
+    ax, ay, az = imu.acceleration
+    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    _mahony_update(ax, ay, az, gx, gy, gz, dt)
+    roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
+    pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
+    yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
+    return roll, pitch, yaw
+
+
+STATUS_PAGE = """<!doctype html><html><body>
+<h1>Rover Status</h1>
+<pre id="data">loading...</pre>
+<script>
+setInterval(() => fetch('/data.json').then(r => r.json())
+    .then(d => document.getElementById('data').textContent =
+        JSON.stringify(d, null, 2)), 500);
+</script>
+</body></html>"""
+
+
+@server.route("/data.json")
+def data_json(request: Request):
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
+    roll, pitch, yaw = _read_orientation()  # the only new work this route does
+    return JSONResponse(request, {
+        "speed_left_cms": speed_left,
+        "dir_left": dir_left,
+        "speed_right_cms": speed_right,
+        "dir_right": dir_right,
+        "roll": roll,
+        "pitch": pitch,
+        "yaw": yaw,
+    })
+
+
+@server.route("/")
+def index(request: Request):
+    return Response(request, STATUS_PAGE, content_type="text/html")
+
+
+server.start(str(wifi.radio.ipv4_address))
+
+print("Class 4, Phase 3 -- rover status website now serving orientation too...")
+while True:
+    server.poll()
+```
+
+### Try it / what you should see
+
+Watch the serial console for the same `rover server -- listening at ...` line from Class 3. Open
+your Pico's status webpage in a browser on the same WiFi network — you should now see seven fields
+updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
+Spin a wheel by hand and watch the speed fields jump; tilt the board and watch `roll`/`pitch`/`yaw`
+change — all on the one page, with no separate display.
+
+If `roll`/`pitch`/`yaw` show up as `0.0` and never change, that's the same symptom as Phase 1's
+flat-line serial output — check `SDA`/`SCL` wiring before touching the server code. If the page is
+missing the Class 3 fields (`speed_left_cms`, etc.), you likely saved `class-4-code-3.py` as a new
+file instead of over the existing `rover_server.py` — make sure only one such file exists on
+`CIRCUITPY`. If the webpage doesn't pick up the new fields at all, try a hard refresh — your browser
+may be showing a cached copy of the page.
+
+### Checkpoint
+
+Open your Pico's status webpage and confirm all seven fields — `speed_left_cms`, `dir_left`,
+`speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw` — update live, with wheel speed responding to
+driving and orientation responding to tilting the board by hand. Be able to say in one sentence why
+adding orientation didn't require touching any HTML or JavaScript — only the dict returned from
+`/data.json`.
+
+## 7. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
@@ -345,11 +535,18 @@ yaw should each visibly correspond to a specific physical motion.
 | `class-4-code-2.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console; confirm the correct COM port in Device Manager |
 | `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
+| Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-code-1.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
+| Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-code-3.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
+| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP16`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
-## 7. Put It All Together
+## 8. Put It All Together
 
-This is the finished project in one place — two files, one running on the Pico and one on your
-laptop, working together.
+This is the finished project in one place. Unlike Phases 1-2, where `code.py` and the laptop
+viewer were the only pieces, this Class actually finishes with *two different things* `code.py`
+could be — the IMU-streaming/3D-viewer pair (Phases 1-2) or the extended rover status website
+(Phase 3) — since neither runs at the same time as the other (see Phase 3's "What this code does"
+for why). Save whichever one you want running as `code.py`; swap between them by replacing that one
+file. Both are shown below so you have the complete, final version of each in one place.
 
 ### Complete wiring
 
@@ -363,6 +560,8 @@ laptop, working together.
 (Classes 1-3's circuits stay untouched on the breadboard alongside this.)
 
 ### Complete code
+
+**Option A — `code.py` as the IMU streaming/3D viewer pair** (same as Phases 1-2, unchanged):
 
 **On the Pico**, save as `code.py` (unchanged from Phase 1 — this is already the complete,
 finished version):
@@ -489,10 +688,127 @@ while True:
     plt.pause(0.01)
 ```
 
-## 8. What You Learned
+**Option B — `code.py` as the extended rover status website** (same as Phase 3, unchanged). You
+also need `motor_driver.py` and `wheel_odometry.py` still on `CIRCUITPY`, unchanged from Class 3:
 
-You gave your board a sense of orientation and watched it come alive on screen in real time.
-Specifically, you now know:
+```python
+# code.py -- complete project, option B: rover status website with orientation.
+import os
+import math
+import time
+import board
+import busio
+import wifi
+import socketpool
+import adafruit_lsm9ds1
+from adafruit_httpserver import Server, Request, Response, JSONResponse
+import wheel_odometry
+
+wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
+print("rover server -- listening at", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool)
+
+i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA
+imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
+
+MAHONY_KP = 2.0   # calibrate: same tuned value as class-4-code-1.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-code-1.py
+
+q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
+integral_fbx = integral_fby = integral_fbz = 0.0
+last_time = time.monotonic()
+
+
+def _mahony_update(ax, ay, az, gx, gy, gz, dt):
+    global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
+    norm = (ax * ax + ay * ay + az * az) ** 0.5
+    if norm == 0:
+        return
+    ax, ay, az = ax / norm, ay / norm, az / norm
+    vx = 2 * (q1 * q3 - q0 * q2)
+    vy = 2 * (q0 * q1 + q2 * q3)
+    vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3
+    ex = ay * vz - az * vy
+    ey = az * vx - ax * vz
+    ez = ax * vy - ay * vx
+    integral_fbx += MAHONY_KI * ex * dt
+    integral_fby += MAHONY_KI * ey * dt
+    integral_fbz += MAHONY_KI * ez * dt
+    gx += MAHONY_KP * ex + integral_fbx
+    gy += MAHONY_KP * ey + integral_fby
+    gz += MAHONY_KP * ez + integral_fbz
+    qa, qb, qc = q0, q1, q2
+    q0 += (-qb * gx - qc * gy - q3 * gz) * 0.5 * dt
+    q1 += (qa * gx + qc * gz - q3 * gy) * 0.5 * dt
+    q2 += (qa * gy - qb * gz + q3 * gx) * 0.5 * dt
+    q3 += (qa * gz + qb * gy - qc * gx) * 0.5 * dt
+    norm = (q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3) ** 0.5
+    q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
+
+
+def _read_orientation():
+    global last_time
+    now = time.monotonic()
+    dt = now - last_time
+    last_time = now
+    ax, ay, az = imu.acceleration
+    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    _mahony_update(ax, ay, az, gx, gy, gz, dt)
+    roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
+    pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
+    yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
+    return roll, pitch, yaw
+
+
+STATUS_PAGE = """<!doctype html><html><body>
+<h1>Rover Status</h1>
+<pre id="data">loading...</pre>
+<script>
+setInterval(() => fetch('/data.json').then(r => r.json())
+    .then(d => document.getElementById('data').textContent =
+        JSON.stringify(d, null, 2)), 500);
+</script>
+</body></html>"""
+
+
+@server.route("/data.json")
+def data_json(request: Request):
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
+    roll, pitch, yaw = _read_orientation()
+    return JSONResponse(request, {
+        "speed_left_cms": speed_left,
+        "dir_left": dir_left,
+        "speed_right_cms": speed_right,
+        "dir_right": dir_right,
+        "roll": roll,
+        "pitch": pitch,
+        "yaw": yaw,
+    })
+
+
+@server.route("/")
+def index(request: Request):
+    return Response(request, STATUS_PAGE, content_type="text/html")
+
+
+server.start(str(wifi.radio.ipv4_address))
+
+print("Class 4, Phase 3 -- rover status website now serving orientation too...")
+while True:
+    server.poll()
+```
+
+To satisfy this Class's milestone (a live 3D orientation display *and* orientation visible on the
+rover status website), run Option A first to demo the 3D box, then swap in Option B and open the
+webpage to show wheel speed and orientation updating together — the two don't need to run at the
+same instant to prove both work.
+
+## 9. What You Learned
+
+You gave your board a sense of orientation and watched it come alive on screen in real time — and
+on the same website your car has been publishing to since Class 3. Specifically, you now know:
 
 * What an accelerometer and a gyroscope each measure, and where each one is individually
     unreliable (accelerometer noisy under motion, gyroscope drifts over time)
@@ -502,14 +818,19 @@ Specifically, you now know:
     jitter firsthand
 * How to stream sensor data from your Pico to a program running on your laptop over serial, and
     turn it into a live visualization
+* How to extend an already-running website instead of building a new one — adding fields to a JSON
+    dict a page already knows how to display, with no HTML/JavaScript changes needed
+* That your rover status website now carries wheel speed/direction *and* orientation together on
+    one page — a thread that started in Class 3 and that Class 5 and 6 will keep adding to
 
 And critically: you also confirmed that knowing which way something is pointed still isn't the
-same as knowing how far it has traveled. That's exactly why Class 5 doesn't use the IMU at all to
-solve the navigation problem — it takes a completely different approach, using the sensor and
-servo you built back in Class 2.
+same as knowing how far it has traveled — even with both wheel speed and orientation sitting side
+by side on the same webpage. That's exactly why Class 5 doesn't use the IMU at all to solve the
+navigation problem — it takes a completely different approach, using the sensor and servo you built
+back in Class 2.
 
 ----
-## 9. Homework Assignment
+## 10. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
@@ -523,6 +844,8 @@ does, full commented code, and real-world examples).
 * [API Reference — Adafruit LSM9DS1 Library][02] — the `adafruit_lsm9ds1` library API used in this
     script
 * [9-DOF LSM9DS1 Breakout Board — Product Page][03] — the IMU used this project
+* [`adafruit_httpserver` — API Reference][04] — the `Server`/`Request`/`Response`/`JSONResponse` API
+    used to extend `rover_server.py` in Phase 3 (same API Class 3 introduced)
 
 ---
 
@@ -531,3 +854,4 @@ does, full commented code, and real-world examples).
 [01]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/python-circuitpython
 [02]:https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html
 [03]:https://www.adafruit.com/product/4634
+[04]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html

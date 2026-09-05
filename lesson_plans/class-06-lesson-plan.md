@@ -7,9 +7,12 @@
   imperfect) autonomous Random Rover: Class 2's sensor+servo circuit (`GP6`-`GP8`), Class 3's
   motor driver circuit (`GP9`-`GP12`), and Class 5's limit switch/IR sensor (`GP5`/`GP13`) combined
   into `class-5-code.py`'s stop-look-go collision avoidance loop, with `motor_driver.py` present on
-  the CIRCUITPY drive. Class 1's button/encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`) and Class 4's
-  IMU circuit (`GP0`/`GP1`) should still be intact on the breadboard, even though unused since
-  Class 5 — both are reconnected today for the stretch goals.
+  the CIRCUITPY drive. Class 1's button/encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`) should still be
+  intact on the breadboard, even though unused since Class 1 — it's reconnected today for Stretch 1.
+  Class 4's IMU circuit (`GP0`/`GP1`) should also still be intact, but it isn't actually idle:
+  `rover_server.py` has kept reading it every request since Class 4, since the website has carried
+  orientation data all along — Stretch 2 just adds a history chart on top of readings the site is
+  already serving.
 
 ---
 
