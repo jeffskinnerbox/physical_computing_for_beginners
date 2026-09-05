@@ -629,7 +629,7 @@ Identify inconstancies and recommend modifications to the current class.
 
 ----
 
-## My 24th Prompt - For a class-03-lesson-script.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
+## My 24th Prompt - Modifying class-03-lesson-plan.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
 Within the `@lesson_plan/BOM.md` there is the "Slot Type IR Optocoupler for Motor Speed" that needs to be moved from the
 "Appendix: Considered but Not Selected" section to the "Per-Student Required".
 I want to install the "Slot Type IR Optocoupler for Motor Speed" devices in class-03 and continue to use it in all remaining classes.
@@ -642,8 +642,9 @@ The wheel odometry information, speed and direction for each wheel,
 needs to be published in the terminal and a website hosted via the Raspberry Pi Pico 2W.
 This website should be used in subsequent classes for posting additional data about the Random Rover.
 The wheels on the Random Rover are 67mm in diameter.
+All documents dependent on `@input/my-vision.md` need to be updated.
 
-Now execute all the steps below.
+To do the work outline above, execute all the steps below.
 Once all steps are completed, check all documents in the directory for consistency and completeness.
 Use the `/grill-me` skill to clarify any questions you may have.
 Recommend changes and get approval before making any changes.
