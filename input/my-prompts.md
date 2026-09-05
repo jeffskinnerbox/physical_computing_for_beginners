@@ -428,8 +428,8 @@ Also give the user a way to assure the install was done completely & correctly (
 
 ----
 
-# My 13th Prompt - For a class-xx-lesson-script.md, Create HomeWork Project Candidates
-For the @lesson_scripts/class-xx-lesson-script.md (called here the "current class"),
+# My 13th Prompt - For a class-01-lesson-script.md, Create HomeWork Project Candidates
+For the @lesson_scripts/class-01-lesson-script.md (called here the "current class"),
 use a sub-agent to identify 8 projects for the "Homework Assignments" section.
 These projects can only use devices & breakout boards used in this class or prior classes.
 These projects should demonstrate / teach something not yet done for the current class
@@ -611,21 +611,104 @@ and when should you not use a Dupont wires.
 
 My target audience are the students for my course.
 
+---
+
+# My 23rd Prompt - For a class-02-lesson-script.md, Create HomeWork Project Candidates
+For the @lesson_scripts/class-02-lesson-script.md (called here the "current class"),
+use a sub-agent to identify 8 projects for the "Homework Assignments" section.
+These projects can only use devices & breakout boards used in this class or prior classes.
+These projects should demonstrate / teach something not yet done for the current class
+and should not repeat what was done in previous classes.
+Review the candidate project with me, one at a time in detail, for my approval, rejection, or modification.
+
+Once all the homework projects have been reviewed, add the projects to the "Homework Assignments" section
+using the lesson_scripts/class-00-lesson-script.md document as a template for content and format.
+
+Using a sub-agent, compare the current class to lesson_scripts/class-00-lesson-script.md.
+Identify inconstancies and recommend modifications to the current class.
+
 ----
 
+# My 24th Prompt - For a class-03-lesson-script.md and later, include the "Slot Type IR Optocoupler for Motor Speed" and do wheel odometry
+Within the @lesson_plan/BOM.md there is the "Slot Type IR Optocoupler for Motor Speed" that needs to be moved from the
+"Appendix: Considered but Not Selected" section to the "Per-Student Required".
+I want to install the "Slot Type IR Optocoupler for Motor Speed" devices in class-03 and continue to use it in all remaining classes.
+This device, along with the wheel speed encoder included with the Emo Smart Robot Car Chassis Kit, will be used to support wheel odometry
+on a mobile device can in this project the Random Rover.
+
+With this change, the @input/my-vision.md needs to reflect that the project will include
+a "Slot Type IR Optocoupler for Motor Speed" used by a wheel odometry function coded in the Raspberry Pi Pico 2W.
+The wheel odometry information, speed and direction for each wheel,
+needs to be published in the terminal and a website hosted via the Raspberry Pi Pico 2W.
+The wheels on the Random Rover are 67mm in diameter.
+This website should be used in subsequent classes for posting additional data about the Random Rover.
+
+Now execute the steps below.
+Once all steps are completed, check all documents in the repository for consistency and completeness
+recommend changes and get approval before make changes.
+
+1st Step:
+Using a separate agent,
+update the `@input/my-vision.md` document to reflect the new plan describe above.
+Use the `/bill_of_materials_generator` skill to update the bill of material content in the file `@input/my-vision.md`.
+Use the `/grill-me` to clarify any questions you may have.
+Make sure to follow the reference links to get information about sources & cost.
+Check the document for self constancy.
+Pause at the conclusion of this step for user review.
+
+2nd Step:
+Using a separate agent,
+Use the `/bill_of_materials_generator` skill to update & improve the bill of material content in the file `@input/my-vision.md`.
+Using a separate agent,
+Use the `/grill-me` skill to clarify any questions you may have.
+Make sure to follow the reference links to get information about sources & cost.
+Pause at the conclusion of this step for user review before you make updates.
+
+3rd Step:
+Using a separate agent,
+use the `/bill_of_materials_generator` skill, update the document `@lesson_plans/BOM.md` based on changes in the file `@input/my-vision.md`.
+Within `@lesson_plans/BOM.md` include any explanatory text so its the data is understood by people who will be financing the class.
+Use the `/grill-me` skill to clarify any questions you may have.
+Make sure to follow the reference links to get information about sources & cost.
+Pause at the conclusion of this step for user review before you make updates.
+
+4th Step:
+Using a separate agent,
+Using the `/syllabus_generator` and `/grill-me` skills,
+read the `@input/my-vision.md` and `@communications/course-description.md` files
+and update the `@lesson_plans/syllabus-physical-computing-for-beginners.md`.
+Pause at the conclusion of this step for user review before you make updates.
+
+5th Step:
+Using a separate agent,
+using the `/lesson_plan_generator` skill, update lesson plans for all class-03 thru class-06.
+Make sure lesson plan follows the outline in the `@lesson_plans/syllabus-physical-computing-for-beginners.md` document
+and make use of the `/theory_of_operation`, `/history_and_application`, and `/explainer` skills.
+Make sure the lesson plans flow easily through each class with minimal gaps or repetition in key work & concepts.
+Put the lesson plan for class X in `@/lesson_plans/class-0X-lesson-plan.md` file for X, 1 thru last class numbers.
+Create a lesson plan for the first class then stop and let me review it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----
 
 # My XXX Prompt - Create `lesson_script_generator` Skill
 
 ----
-
-
-
-
-
-
-
-
-
 
 # My XXX Prompt - Create `circuitpython_class_script` Skill
 
@@ -725,16 +808,3 @@ This is an expert in CircuitPython and will make sure all the blocks of code re 
 
 
 
-# My ??? th Prompt - For a class-02-lesson-script.md, Create HomeWork Project Candidates
-For the @lesson_scripts/class-02-lesson-script.md (called here the "current class"),
-use a sub-agent to identify 8 projects for the "Homework Assignments" section.
-These projects can only use devices & breakout boards used in this class or prior classes.
-These projects should demonstrate / teach something not yet done for the current class
-and should not repeat what was done in previous classes.
-Review the candidate project with me, one at a time in detail, for my approval, rejection, or modification.
-
-Once all the homework projects have been reviewed, add the projects to the "Homework Assignments" section
-using the lesson_scripts/class-00-lesson-script.md document as a template for content and format.
-
-Using a sub-agent, compare the current class to lesson_scripts/class-00-lesson-script.md.
-Identify inconstancies and recommend modifications to the current class.
