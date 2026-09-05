@@ -560,25 +560,32 @@ first, then confirm the laptop is on the *same* network as the Pico. If the page
 updates, the fetch loop is running but the browser may be caching — a hard refresh usually fixes it.
 
 **What "done" looks like for this segment:** Every pair can open a browser to their Pico's printed
-IP address, see the `/data.json` fields update live as the car drives, and describe in one sentence
-why direction shown on the page is "what we last told it to do," not something separately measured.
+IP address, spin a wheel by hand and see the `/data.json` fields update live in response, and
+describe in one sentence why direction shown on the page is "what we last told it to do," not
+something separately measured.
 
 ### 5e. Independent Work — ~25 min
 
 **What to do:** Students (in pairs where possible) take their car to a shared test track and run
-`drive_square()` and `drive_circle()` repeatedly, adjusting `SPEED`, `SECONDS_PER_INCH`, and
-`SECONDS_PER_90_DEGREES` between attempts to get closer to the marked 12-inch targets, this time
-watching the rover status website on a laptop while the car drives instead of only the serial
-console. After each attempt, have them note in their build journal: was the error mostly in the
-straight-line distance, the turn angle, or both — and did the website's live speed readings for the
-left and right wheel match each other, or reveal one wheel running slower? Faster pairs can:
+`drive_square()` and `drive_circle()` repeatedly (`code.py` set to the driving code, same as Guided
+Practice Step 2), adjusting `SPEED`, `SECONDS_PER_INCH`, and `SECONDS_PER_90_DEGREES` between
+attempts to get closer to the marked 12-inch targets, watching the serial console for each move's
+status messages the same way as Steps 1-2. After a few attempts, have each pair swap `code.py` to
+the rover status website code (Step 4) and, with the car sitting still, spin each wheel by hand to
+check the left and right wheel's live speed readings on the website — a quick telemetry check
+between driving attempts, not something watched during the drive itself. After each square/circle
+attempt, have them note in their build journal: was the error mostly in the straight-line distance,
+the turn angle, or both — and, from that separate website check, did the left and right wheel speed
+readings match each other, or reveal one wheel running slower? Faster pairs can:
 
-* Deliberately swap in a weaker or more depleted 9V battery mid-session and observe how much the
-  calibration constants drift, and how the website's speed readings drop — a direct, hands-on
-  demonstration of voltage sag.
+* Deliberately swap in a weaker or more depleted 9V battery between attempts and observe how much
+  the calibration constants drift for the driving code, then swap back to the website code and spin
+  each wheel by hand to see the speed readings drop too — a direct, hands-on demonstration of
+  voltage sag.
 * Try the square/circle attempt on a different floor surface (carpet vs. tile) and discuss wheel
-  slip/friction as a distinct cause from voltage sag or timing — watch whether one wheel's website
-  speed reading drops relative to the other during a slip.
+  slip/friction as a distinct cause from voltage sag or timing — then swap in the website code and
+  spin each wheel by hand to check whether one wheel's speed reading is noticeably weaker than the
+  other, consistent with the slip they just observed.
 * Begin sketching (on paper, no code yet) what information — beyond wheel speed — would let the car
   correct its own path instead of just guessing. (Heading/orientation is still missing; that's
   Class 4.)
@@ -595,8 +602,10 @@ pairs still stuck on the basic drive() test.
 ### 5f. Closing / Wrap-up — ~10 min
 
 **What to do:** Ask 2-3 volunteers to run their best square and circle attempt on a shared test
-track for the group, with the rover status website pulled up on the projector so everyone watches
-live wheel speed/direction alongside the run. Open the "what is missing?" discussion: have the group
+track for the group (`code.py` set to the driving code, as in Independent Work). Once the attempt
+finishes, have that pair swap `code.py` to the rover status website code and, with the website
+pulled up on the projector, spin a wheel by hand so everyone watches live wheel speed/direction
+respond. Open the "what is missing?" discussion: have the group
 name the specific, separate causes of drift — no wheel/heading feedback, battery voltage sag, wheel
 slip/friction — rather than settling for one vague "it's not accurate enough." Then push the
 discussion one step further, now that wheel odometry exists: does knowing each wheel's real speed
@@ -667,9 +676,9 @@ own status webpage.
 **What "complete" looks like:** The student can run `drive_square(12)` and `drive_circle(12)` on a
 shared test track and produce a shape recognizably close to the 12-inch target — this is a
 completion-based, "does it work in the real world" check, not a precision measurement. Minor drift
-is expected and is itself part of the lesson. In addition, the student can open a browser to their
-Pico's status website and point to live-updating wheel speed and direction values while the car
-drives.
+is expected and is itself part of the lesson. In addition, with `code.py` swapped to the website
+code, the student can open a browser to their Pico's status website and point to live-updating
+wheel speed and direction values while spinning a wheel by hand.
 
 **How to give feedback without scoring:** Ask the student to point at the marked test track and
 narrate, specifically, what's causing the gap between their car's path and the target ("is this a

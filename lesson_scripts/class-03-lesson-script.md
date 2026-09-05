@@ -497,19 +497,20 @@ No new wiring — this phase is all software. Add `WIFI_SSID` and `WIFI_PASSWORD
 `rover_server.py` joins the classroom WiFi network and starts an `adafruit_httpserver` HTTP server
 that answers two routes: `/data.json` (the current wheel speed and direction from
 `wheel_odometry.read_speed()`, as machine-readable JSON) and `/` (a bare HTML page with a bit of
-JavaScript that polls `/data.json` twice a second and displays it). This file *is* your `code.py`
-for this phase — it ends in its own `while True:` loop that keeps answering requests forever, the
-same way Phase 2's `code.py` ran the square/circle attempt directly rather than being imported by
-something else.
+JavaScript that polls `/data.json` twice a second and displays it). Unlike Phase 2's `code.py`,
+which ran the square/circle attempt directly, this file is saved under its own stable name,
+`rover_server.py`, so Classes 4-6 can keep extending it under that same name. It still ends in its
+own `while True:` loop that keeps answering requests forever — it just isn't `code.py` itself
+anymore. A separate, one-line `code.py` runs it (see below).
 
 ### The code
 
-Save this as `code.py` on your `CIRCUITPY` drive, replacing Phase 3's scratch test script.
-`motor_driver.py` and `wheel_odometry.py` stay on the drive unchanged — this file imports
-`wheel_odometry` (which in turn imports `motor_driver`).
+Save this as `rover_server.py` on your `CIRCUITPY` drive. `motor_driver.py` and `wheel_odometry.py`
+stay on the drive unchanged — this file imports `wheel_odometry` (which in turn imports
+`motor_driver`).
 
 ```python
-# class-3-code-4.py -- save as code.py
+# class-3-code-4.py -- save as rover_server.py
 # Pico-hosted rover status website -- joins WiFi, serves /data.json plus a
 # minimal page that polls it.
 
@@ -559,6 +560,16 @@ while True:
     server.poll()
 ```
 
+Then save this second, one-line file as `code.py`, replacing Phase 3's scratch test script. All
+`code.py` does is import `rover_server` so it actually runs — CircuitPython only auto-runs
+`code.py`, so this thin wrapper is what makes `rover_server.py` start on boot, while keeping the
+real logic under a name Classes 4-6 can `import rover_server` by:
+
+```python
+# code.py -- runs the rover status website
+import rover_server
+```
+
 ### Try it / what you should see
 
 Watch the serial console for a line like `rover server -- listening at 192.168.1.42`. Open a
@@ -594,6 +605,7 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
+| `ImportError: no module named 'rover_server'` | The website code was saved as `code.py` directly instead of `rover_server.py`, so `code.py`'s `import rover_server` fails | Confirm the website code is saved as exactly `rover_server.py`, and `code.py` is only the one-line `import rover_server` wrapper |
 | `wifi.radio.connect()` hangs or raises `ConnectionError` | Wrong SSID/password in `settings.toml`, or the classroom network is blocking the connection | Double-check `settings.toml`; ask your instructor whether the network allows device-to-device traffic |
 | Website never loads in the browser, but the Pico prints an IP address | Your laptop is on a different network/VLAN than the Pico | Confirm your laptop is joined to the same classroom WiFi network as the Pico |
 | Website loads once but never updates | `server.poll()` not being called every loop, or the browser is caching the page | Confirm the `while True: server.poll()` loop is running; try a hard refresh |
@@ -624,12 +636,13 @@ odometry, and your own rover status website, without going through the individua
 
 ### Complete code
 
-You need **three files** on your `CIRCUITPY` drive: `motor_driver.py` and `wheel_odometry.py`
-(both libraries, unchanged from Phases 1 and 3), plus `code.py`. Unlike Phase 2, where `code.py`
-was the square/circle attempt, this Class actually finishes with *two different things* `code.py`
-could be — the square/circle attempt (Phase 2) or the rover status website (Phase 4) — since
-nothing here makes them run at the same time. Save whichever one you want running as `code.py`;
-swap between them by replacing that one file. Both are shown below so you have the complete,
+You need `motor_driver.py` and `wheel_odometry.py` on your `CIRCUITPY` drive either way (both
+libraries, unchanged from Phases 1 and 3), plus either Option A's `code.py` or Option B's
+`rover_server.py` and a thin `code.py` wrapper. Unlike Phase 2, where `code.py` was the square/circle
+attempt outright, this Class actually finishes with *two different things* your car could be
+running — the square/circle attempt (Phase 2) or the rover status website (Phase 4) — since
+nothing here makes them run at the same time. Pick one to run and swap between them by replacing
+`code.py` (and, for Option B, `rover_server.py`). Both are shown below so you have the complete,
 final version of each in one place.
 
 ```python
@@ -764,10 +777,10 @@ time.sleep(1)
 drive_circle(12)
 ```
 
-**Option B — `code.py` as the rover status website** (same as Phase 4, unchanged):
+**Option B — `rover_server.py` plus a thin `code.py` wrapper** (same as Phase 4, unchanged):
 
 ```python
-# code.py -- complete project, option B: rover status website.
+# rover_server.py -- complete project, option B: rover status website.
 import os
 import wifi
 import socketpool
@@ -814,10 +827,15 @@ while True:
     server.poll()
 ```
 
+```python
+# code.py -- runs the rover status website
+import rover_server
+```
+
 To satisfy this Class's milestone (a square/circle attempt *and* live wheel-speed telemetry
-visible somewhere), run Option A first to demonstrate the drive, then swap in Option B and spin a
-wheel by hand to show the website updating — the two don't need to run at the same instant to
-prove both work.
+visible somewhere), run Option A first to demonstrate the drive, then swap in Option B (both
+`rover_server.py` and its `code.py` wrapper) and spin a wheel by hand to show the website
+updating — the two don't need to run at the same instant to prove both work.
 
 ## 10. What You Learned
 

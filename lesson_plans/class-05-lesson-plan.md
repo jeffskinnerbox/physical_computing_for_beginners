@@ -379,9 +379,10 @@ Recall `rover_server.py`'s `/data.json` route: it already returns `speed_left_cm
 `speed_right_cms`/`dir_right` (Class 3) and `roll`/`pitch`/`yaw` (Class 4), and the webpage displays
 any field the dict has with no HTML/JavaScript changes needed — the same reason Class 4's edit was
 small. Today adds three more flat fields, matching that existing style: `scan_heading` (the last
-chosen angle, a number), `drive_state` (a string — `"driving"`, `"scanning"`, or `"stopped"`), and
-`stop_reason` (a string — `"none"`, `"ultrasonic"`, `"ir"`, or `"limit_switch"`, naming whichever
-safety signal most recently forced a stop).
+chosen angle, a number), `drive_state` (a string — `"driving"`, `"scanning"`, or `"stopped"`, the
+last set to `"stopped"` the instant the bump switch or IR sensor fires and the rover begins its
+emergency stop-and-reverse), and `stop_reason` (a string — `"none"`, `"ultrasonic"`, `"ir"`, or
+`"limit_switch"`, naming whichever safety signal most recently forced a stop).
 
 There's one wrinkle Older Students should notice (see Age Differentiation): Class 4's `rover_server.py`
 ends in its own blocking `while True: server.poll()` loop, but today's `class-5-code.py` needs to run
@@ -468,6 +469,7 @@ while True:
         rover_server.server.poll()
         stop_reason = safety_override_triggered()
         if stop_reason != "none":
+            rover_server.scan_status["drive_state"] = "stopped"
             motor_driver.stop()
             print("drive: emergency stop-and-reverse (safety override)")
             motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)

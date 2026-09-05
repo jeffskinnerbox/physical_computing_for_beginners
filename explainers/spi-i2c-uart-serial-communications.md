@@ -168,14 +168,14 @@ back to the Pico.
 ```python
 import board
 import busio
-from displayio import FourWire
+from fourwire import FourWire
 
 spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)  # no MISO -- this display never talks back
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
 ```
 
 `command` (`DC`) and `reset` (`RST`) are two extra control lines the ST7789 needs beyond plain
-SPI — `displayio.FourWire` bundles them alongside the SPI bus so a display library like
+SPI — `fourwire.FourWire` bundles them alongside the SPI bus so a display library like
 `adafruit_st7789` can take this one `display_bus` object as a single argument, rather than
 requiring you to manage individual bytes.
 

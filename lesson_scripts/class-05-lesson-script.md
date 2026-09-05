@@ -329,7 +329,9 @@ displays any field that dict has with no HTML/JavaScript changes needed — the 
 4's edit was small. Today adds three more flat fields, matching that same style:
 
 * `scan_heading` — a number, the last chosen scan angle in degrees (starts centered at `90`)
-* `drive_state` — a string, one of `"driving"`, `"scanning"`, or `"stopped"`
+* `drive_state` — a string, one of `"driving"`, `"scanning"`, or `"stopped"` (set to `"stopped"`
+    the instant the bump switch or IR sensor fires and the rover begins its emergency
+    stop-and-reverse)
 * `stop_reason` — a string, one of `"none"`, `"ultrasonic"`, `"ir"`, or `"limit_switch"`, naming
     whichever safety signal most recently forced a stop
 
@@ -426,6 +428,7 @@ while True:
         rover_server.server.poll()
         stop_reason = safety_override_triggered()
         if stop_reason != "none":
+            rover_server.scan_status["drive_state"] = "stopped"
             motor_driver.stop()
             print("drive: emergency stop-and-reverse (safety override)")
             motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
@@ -738,6 +741,7 @@ while True:
         rover_server.server.poll()
         stop_reason = safety_override_triggered()
         if stop_reason != "none":
+            rover_server.scan_status["drive_state"] = "stopped"
             motor_driver.stop()
             motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
             time.sleep(0.3)

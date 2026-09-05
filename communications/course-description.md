@@ -25,7 +25,7 @@ Raspberry Pi Pico 2W microcontroller,
 Ultrasonic Range Sensor,
 Micro Servo Motor,
 Dual H-Bridge Motor Driver Controller,
-N20 DC Motors,
+DC Gearbox Motors (Emo Smart Robot Car Chassis Kit),
 IR Optocoupler wheel speed sensors (wheel odometry),
 9-DOF IMU,
 Rotary encoders,
@@ -64,7 +64,8 @@ In the course, participants will train on several tools that will empower them t
 They will be encouraged to research on-line for project ideas, replicating and expanding on other people's designs.
 
 Students can expect to do projects using components like: Raspberry Pi Pico 2W micro-controller,
-Ultrasonic Range Sensor, Micro Servo Motor, Dual H-Bridge Motor Driver Controller, N20 DC Motors,
+Ultrasonic Range Sensor, Micro Servo Motor, Dual H-Bridge Motor Driver Controller,
+DC Gearbox Motors (Emo Smart Robot Car Chassis Kit),
 IR Optocoupler wheel speed sensors (wheel odometry), 9-DOF IMU, Rotary encoders,
 and 240x135 color TFT display.
 

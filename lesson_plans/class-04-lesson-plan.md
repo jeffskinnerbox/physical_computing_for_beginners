@@ -25,13 +25,19 @@ was told. Today's Class introduces the LSM9DS1 9-DOF IMU as a first attempt at a
 that reports orientation (which way the car is pointed) rather than distance or position. Students
 wire the IMU over I2C, read raw accelerometer and gyroscope values, and then fuse those two noisy,
 individually-flawed signals into a single stable roll/pitch/yaw orientation using a Mahony filter —
-streaming that orientation to a live 3D box rendered on their laptop, so they can watch their
-physical tilt reflected on screen in real time. The same roll/pitch/yaw values are also posted into
-the Class 3 rover status website — `rover_server.py`'s `/data.json` route grows one new
-`orientation` field alongside the wheel-speed/direction fields already there, so a laptop browser can
-show both sensors' data together with no new website built. The Class closes by pushing back on the
-excitement: orientation alone still doesn't solve Class 3's square/circle problem, because knowing
-which way you're pointed isn't the same as knowing how far you've traveled — a gap the students name
+streaming that orientation — as three separate values, roll, pitch, and yaw — to a live 3D box
+rendered on their laptop, so they can watch their physical tilt reflected on screen in real time.
+The same `roll`/`pitch`/`yaw` values are also posted into the Class 3 rover status website —
+`rover_server.py`'s `/data.json` route grows three new flat keys, `roll`, `pitch`, and `yaw`,
+alongside the wheel-speed/direction fields already there, so a laptop browser can show both
+sensors' data together with no new website built. Note that the two halves of today's build —
+`class-4-code-1.py`'s IMU-streaming/3D-viewer pair and `class-4-code-3.py`'s extended
+`rover_server.py` website — cannot run on the Pico at the same time: each ends in its own blocking
+`while True:` loop, and a single Pico can only run one `code.py` at a time. Students run one or the
+other, not both simultaneously, to satisfy today's milestone; a real refactor that lets both run
+together doesn't happen until Class 5. The Class closes by pushing back on the excitement:
+orientation alone still doesn't solve Class 3's square/circle problem, because knowing which way
+you're pointed isn't the same as knowing how far you've traveled — a gap the students name
 explicitly before Class 5 combines everything into the Random Rover.
 
 ## 2. Learning Goals
@@ -45,8 +51,9 @@ explicitly before Class 5 combines everything into the Random Rover.
   and jitter
 * Stream fused roll/pitch/yaw orientation from the Pico to a live 3D visualization running on the
   laptop
-* Extend the Class 3 rover status website (`rover_server.py`) with a new `orientation` field on the
-  same `/data.json` route, so wheel speed/direction and orientation are both visible on one webpage
+* Extend the Class 3 rover status website (`rover_server.py`) with three new fields, `roll`,
+  `pitch`, and `yaw`, on the same `/data.json` route, so wheel speed/direction and orientation are
+  both visible on one webpage
 * Identify what information is still missing to fully solve Class 3's square/circle challenge, even
   with working orientation data
 
@@ -71,7 +78,7 @@ explicitly before Class 5 combines everything into the Random Rover.
         responds correctly to physical tilting in all three axes. (~25 min)
 * Also test `class-4-code-3.py`'s edit to `rover_server.py` end-to-end: load it on the reference
         Pico, confirm the same laptop browser that showed wheel speed/direction in Class 3 now also
-        shows an `orientation` field on `/data.json` and the webpage. (~10 min)
+        shows `roll`, `pitch`, and `yaw` fields on `/data.json` and the webpage. (~10 min)
 * Note which serial port `class-4-code-2.py` needs (e.g. `COM5`) on the instructor's machine so
         you can show students how to find their own port quickly. (~5 min)
 * Project the instructor's live 3D box display so the whole class can see it respond to the
@@ -217,8 +224,8 @@ i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA
 sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
 # Mahony filter state and tunable gains
-MAHONY_KP = 2.0  # [VERIFY] -- proportional gain; raise/lower live to see drift-vs-jitter tradeoff
-MAHONY_KI = 0.05  # [VERIFY] -- integral gain; corrects long-term gyro bias
+MAHONY_KP = 2.0  # proportional gain -- raise/lower live to see the drift-vs-jitter tradeoff
+MAHONY_KI = 0.05  # integral gain -- corrects long-term gyro bias
 
 # quaternion, initialized level
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
@@ -312,7 +319,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"  # [VERIFY] -- set to your board's port
+# Pass your board's serial port as a command-line argument, e.g. COM5.
+# Find it in Mu/Thonny's device list or Windows Device Manager.
+PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"
 BAUD = 115200
 
 ser = serial.Serial(PORT, BAUD, timeout=1)
@@ -369,7 +378,11 @@ closed first — only one program can hold a serial port open at a time.
 the on-screen 3D box in the matching direction, in real time.
 
 **Step 3 — extend the rover status website with orientation.**
-Recall `rover_server.py`'s `/data.json` route from Class 3: it returns a small dict —
+This step replaces `code.py` with a different file — `class-4-code-3.py` saved over
+`rover_server.py` — not something that runs alongside Step 1's `class-4-code-1.py`. Both scripts
+end in their own blocking `while True:` loop, and a Pico only runs one `code.py` at a time, so tell
+students plainly: pick one or the other for this step, don't try to run both together. Recall
+`rover_server.py`'s `/data.json` route from Class 3: it returns a small dict —
 `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right` — and the webpage just calls
 `JSON.stringify()` on whatever that dict contains, so it already displays any field the dict has,
 with no HTML/JavaScript changes needed. Today's edit only touches the Pico side: add the same
@@ -401,8 +414,8 @@ server = Server(pool)
 i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-code-1.py
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
-MAHONY_KP = 2.0  # [VERIFY] -- same tuned value as class-4-code-1.py
-MAHONY_KI = 0.05  # [VERIFY]
+MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-code-1.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-code-1.py
 
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
 integral_fbx = integral_fby = integral_fbz = 0.0
@@ -559,7 +572,7 @@ students to the Class 5 references in the syllabus if they want to read ahead.
 | `roll,pitch,yaw` prints but never changes | Board isn't actually being moved, or a loose connection is producing a flat/stuck reading | Physically tilt the board while watching output; reseat the STEMMA QT cable if still stuck |
 | Orientation drifts noticeably even when the board sits still | `MAHONY_KI` too low, or `MAHONY_KP` too low to correct drift | Raise `MAHONY_KP`/`MAHONY_KI` in small steps and re-test |
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
-| 3D box moves on the wrong axis or inverted | Sign/axis convention mismatch between physical mounting and `class-4-code-2.py`'s rotation matrix | Note as a known limitation; not worth debugging live — flag as [VERIFY] for later |
+| 3D box moves on the wrong axis or inverted | Sign/axis convention mismatch between physical mounting and `class-4-code-2.py`'s rotation matrix | Note as a known limitation; not worth debugging live — flag it for later |
 | `class-4-code-2.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console first; confirm the correct COM port in Device Manager |
 | `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on the laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_lsm9ds1.mpy` file from the Library Bundle into `/lib` |
@@ -597,7 +610,7 @@ IMU.
 **What "complete" looks like:** The student can run `class-4-code-1.py` on the Pico and
 `class-4-code-2.py` on their laptop simultaneously, and show the on-screen 3D box tilting to match
 the physical board's roll, pitch, and yaw in real time. In addition, the student can open their
-Pico's rover status website and point to a live `orientation` (roll/pitch/yaw) reading updating
+Pico's rover status website and point to live `roll`, `pitch`, and `yaw` readings updating
 alongside the wheel speed/direction fields already there from Class 3.
 
 **How to give feedback without scoring:** Ask the student to physically tilt the board along one

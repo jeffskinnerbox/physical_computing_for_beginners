@@ -32,9 +32,14 @@ course.
 
 The rover website itself has now grown for four Classes straight without ever being rewritten: Class 3
 gave it live wheel speed/direction, Class 4 added IMU orientation, Class 5 added the collision-avoidance
-decision (scan heading, drive state, stop reason), and today's stretch #2 adds a scrolling history chart
+decision (scan heading, drive state, stop reason) and today's stretch #2 adds a scrolling history chart
 of that same data — the same `rover_server.py` file, edited in place one more time, not a new server and
-not a new WiFi join. That continuity is itself part of what this Class teaches: a small, additive edit
+not a new WiFi join. Class 5's edit wasn't just new fields, though — it changed the file's *shape*:
+`rover_server.py` went from a standalone script that ran its own blocking loop to an importable library
+that exposes a `server` object and a `scan_status` dict with no main loop of its own, so `class-5-code.py`'s
+collision-avoidance loop calls `rover_server.server.poll()` itself each cycle. Today's `class-6-code-2.py`
+depends on that shape: it `import`s `rover_server` and edits its `STATUS_PAGE`/`server` in place rather than
+starting anything new. That continuity is itself part of what this Class teaches: a small, additive edit
 to a working file beats rebuilding from scratch each time.
 
 ## 2. Learning Goals
@@ -225,7 +230,7 @@ MAX_SPEED = 0.6
 SPEED_STEP = 0.05
 MIN_STEP_INTERVAL = 0.02  # seconds -- same debounce technique as Class 1
 
-current_speed = 0.4  # [VERIFY] -- starting value, matches class-5-code.py's DRIVE_SPEED
+current_speed = 0.4  # starting value, matches class-5-code.py's DRIVE_SPEED
 last_clk_state = encoder_clk.value
 last_step_time = 0.0
 
@@ -304,10 +309,10 @@ pollHistory();
 </script>
 """
 
-# [VERIFY] -- append CHART_PAGE_ADDITION into rover_server.STATUS_PAGE's existing
-# HTML (before the closing </body> tag) rather than replacing the whole page, so
-# the wheel-speed/orientation/scan-state numbers Classes 3-5 already show keep
-# displaying above the new chart.
+# Append CHART_PAGE_ADDITION into rover_server.STATUS_PAGE's existing HTML
+# (before the closing </body> tag) rather than replacing the whole page, so
+# the wheel-speed/orientation/scan-state numbers Classes 3-5 already show
+# keep displaying above the new chart.
 rover_server.STATUS_PAGE = rover_server.STATUS_PAGE.replace(
     "</body>", CHART_PAGE_ADDITION + "</body>"
 )
@@ -382,7 +387,7 @@ demo_heading = 90
 demo_speed = 0.4
 
 while True:
-    demo_distance = (demo_distance + 1) % 100  # [VERIFY] -- replace with real sensor reading
+    demo_distance = (demo_distance + 1) % 100  # replace with a real sensor reading
     distance_label.text = "dist: {} cm".format(demo_distance)
     heading_label.text = "head: {} deg".format(demo_heading)
     speed_label.text = "speed: {:.2f}".format(demo_speed)

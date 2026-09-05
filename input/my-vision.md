@@ -371,8 +371,11 @@ Tips for Students:
     Pico 2 W joins WiFi (credentials in `settings.toml`) and runs an `adafruit_httpserver` server serving
     `/data.json` (currently just `wheel_odometry.read_speed()`'s fields) and a minimal HTML page that polls
     it. Imports `wheel_odometry`; prints the same data to the serial console each loop. Designed to be
-    imported and extended by `class-4-code-3.py`, `class-5-code.py`, and `class-6-code-2.py` rather than
-    rewritten each class.
+    edited in place across later Classes rather than rewritten from scratch: Class 4's
+    `class-4-code-3.py` is a standalone script saved over this same file (mutually exclusive with
+    `class-4-code-1.py`, since both end in their own blocking loop); Class 5 refactors it into an
+    importable library (`server`/`scan_status`, no owned loop) so `class-5-code.py` can drive and
+    serve at once; Class 6's `class-6-code-2.py` then genuinely imports and extends that library.
 * **Potential Source Materials**:
   * [DC Motor Examples - Raspberry Pi Pico (CMU Creative Soft Robotics)](https://courses.ideate.cmu.edu/16-480/s2026/text/code/pico-motor.html)
   * [Driving A DC Motor With CircuitPython](https://www.woolseyworkshop.com/2022/07/25/driving-a-dc-motor-with-circuitpython/)
@@ -401,9 +404,12 @@ Tips for Students:
   Mahony is the one implemented in `class-4-code-1.py`. Discuss why you need a filter like this at all.
 
   The same roll/pitch/yaw values are also posted into the Class 3 rover status website: `/data.json` grows
-  a new `orientation` field alongside the wheel-odometry fields already there, and the webpage adds an
-  orientation readout next to the wheel-speed readout. Nothing about the Class 3 web server plumbing needs
-  to be rebuilt &mdash; it's the same site, just carrying one more sensor's data now.
+  three new `roll`/`pitch`/`yaw` fields alongside the wheel-odometry fields already there
+  (`speed_left_cms`/`dir_left`/`speed_right_cms`/`dir_right`, unchanged), and the webpage adds an
+  orientation readout next to the wheel-speed readout. This is a standalone script, saved over the existing
+  `rover_server.py` from Class 3, not something imported alongside `class-4-code-1.py` &mdash; the two are
+  mutually exclusive, the same "run one or the other" pattern already established in Class 3, since each
+  ends in its own blocking loop and there's no refactor to let them coexist until Class 5.
 
   If you have time, continue working the assembly of the Car Chassis Kit.
 * **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched,
@@ -435,9 +441,13 @@ Tips for Students:
   * [`class-4-code-2.py`](./class-4-code-2.py) &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`).
     Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students see whether
     tilting the physical board is faithfully reflected on screen. Usage: `python class-4-code-2.py <port>`.
-  * [`class-4-code-3.py`](./class-4-code-3.py) &mdash; runs on the Pico alongside `class-4-code-1.py`. Imports
-    `rover_server` (from `class-3-code-4.py`) and adds the Mahony-filtered roll/pitch/yaw to the shared
-    `/data.json` route and webpage, extending rather than replacing the Class 3 rover website.
+  * [`class-4-code-3.py`](./class-4-code-3.py) &mdash; runs on the Pico as a standalone script, saved over
+    the existing `rover_server.py` from Class 3. Adds the Mahony-filtered roll/pitch/yaw as three new keys
+    on the shared `/data.json` route and webpage, alongside the `speed_left_cms`/`dir_left`/`speed_right_cms`/
+    `dir_right` fields already there, unchanged. Mutually exclusive with `class-4-code-1.py`: a student runs
+    one or the other as `code.py`, not both at the same time &mdash; the same "run one or the other" pattern
+    already established in Class 3 between the driving code and the website code, since both end in their
+    own blocking `while True:` loop and there's no refactor to let them coexist until Class 5.
 * **Potential Source Materials**:
   * [Python & CircuitPython — Adafruit LSM9DS1 9-DOF Breakout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/python-circuitpython)
   * [API Reference — Adafruit LSM9DS1 Library](https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html)

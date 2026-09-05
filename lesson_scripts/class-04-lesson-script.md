@@ -368,9 +368,10 @@ This file duplicates rather than imports `class-4-code-1.py`'s Mahony filter cod
 deliberate, not sloppy: `class-4-code-1.py` ends in its own blocking `while True:` loop that prints
 CSV forever, and `rover_server.py` ends in its own blocking `while True: server.poll()` loop that
 answers web requests forever — two different infinite loops that can't run inside the same program
-at the same time. Class 3's `rover_server.py` was built the same non-library way (its own `code.py`
-ending in its own loop, not something another file can `import` and call), and today's edit keeps
-that same shape rather than turning it into a shared library. If you want to run the live 3D box
+at the same time. Class 3's `rover_server.py` was built the same non-library way — a module whose
+own blocking loop runs the moment something imports it, not something another file can call
+piecemeal — and today's edit keeps that same shape rather than turning it into a shared library. If
+you want to run the live 3D box
 (Phase 1-2) and the website (this phase) at once, you'd need a real rewrite that merges both loops
 into one — worth thinking about, not worth doing today.
 
