@@ -33,10 +33,10 @@ been hand-edited since being generated.
 | Pre-Class lesson script | `class-00-lesson-script.md` | Walkthrough for flashing CircuitPython onto the Pico 2 W, installing Mu/Thonny, downloading the library bundle, and writing a first blink+heartbeat program. No wiring yet. |
 | Class 1 lesson script | `class-01-lesson-script.md` | Walkthrough for wiring a pushbutton and KY-040 rotary encoder to two LEDs; builds without debouncing first so the reader sees the raw problem, then adds it. |
 | Class 2 lesson script | `class-02-lesson-script.md` | Walkthrough for an HC-SR04 ultrasonic sensor and SG90 servo, built separately then combined into a sensor-on-servo sweep that previews the Random Rover's scan behavior. |
-| Class 3 lesson script | `class-03-lesson-script.md` | Walkthrough for a DRV8833 dual H-bridge motor driver and DC gearbox motors; the reader attempts open-loop square/circle driving and experiences dead-reckoning drift firsthand. |
-| Class 4 lesson script | `class-04-lesson-script.md` | Walkthrough for the LSM9DS1 9-DOF IMU over I2C; fuses raw accelerometer/gyroscope data into stable roll/pitch/yaw with a Mahony filter, streamed to a live 3D viewer. |
-| Class 5 lesson script | `class-05-lesson-script.md` | Walkthrough for combining the Class 2 sensor/servo sweep and Class 3 motor driver into the autonomous Random Rover, with two new fixed safety sensors. |
-| Class 6 lesson script | `class-06-lesson-script.md` | Walkthrough for finishing/tuning the Random Rover, then three optional stretch goals: encoder speed control, WiFi IMU chart, and TFT status display. |
+| Class 3 lesson script | `class-03-lesson-script.md` | Walkthrough for a DRV8833 dual H-bridge motor driver and DC gearbox motors; the reader attempts open-loop square/circle driving and experiences dead-reckoning drift firsthand. Also introduces wheel odometry (an IR optocoupler per wheel) and the first version of a Pico-hosted rover status website. |
+| Class 4 lesson script | `class-04-lesson-script.md` | Walkthrough for the LSM9DS1 9-DOF IMU over I2C; fuses raw accelerometer/gyroscope data into stable roll/pitch/yaw with a Mahony filter, streamed to a live 3D viewer and added to the rover status website running since Class 3. |
+| Class 5 lesson script | `class-05-lesson-script.md` | Walkthrough for combining the Class 2 sensor/servo sweep and Class 3 motor driver into the autonomous Random Rover, with two new fixed safety sensors. Also refactors the rover status website into a library so the collision-avoidance program can drive and serve live telemetry (scan heading, drive state, stop reason) at the same time. |
+| Class 6 lesson script | `class-06-lesson-script.md` | Walkthrough for finishing/tuning the Random Rover, then three optional stretch goals: encoder speed control, a rolling-history chart added to the rover status website running since Class 3, and a TFT status display. |
 
 
 [01]:../README.md
