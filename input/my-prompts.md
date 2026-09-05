@@ -719,6 +719,12 @@ This is an expert in CircuitPython and will make sure all the blocks of code re 
 
 ----
 
+
+
+
+
+
+
 # My ??? th Prompt - For a class-02-lesson-script.md, Create HomeWork Project Candidates
 For the @lesson_scripts/class-02-lesson-script.md (called here the "current class"),
 use a sub-agent to identify 8 projects for the "Homework Assignments" section.
