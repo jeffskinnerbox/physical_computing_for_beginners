@@ -97,12 +97,12 @@ need this protection because the Pico is the one driving that line, not the othe
 * [Raspberry Pi Pico 2w Pinout][20]
 * [HC-SR04 Pinout][37]
 
-| Component | Pico 2 W Pin |
-| :---------- | :------------- |
-| HC-SR04 `TRIG` | `GP6` |
-| HC-SR04 `ECHO`, through voltage-divider resistors | `GP7` |
-| HC-SR04 `VCC` | `5V` (VBUS) |
-| HC-SR04 `GND` | `GND` |
+| Component | Pico 2 W Pin | Important !! |
+| :---------- | :-------------:|:----------:|
+| HC-SR04 `TRIG` | `GP6` | |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `VCC` | `5V` / `VBUS` | |
+| HC-SR04 `GND` | `GND` | |
 
 Your Class 1 circuit stays exactly where it is on the breadboard — leave it alone.
 Before writing any code, trace this new wiring out loud.
@@ -110,11 +110,24 @@ Before writing any code, trace this new wiring out loud.
 >**NOTE:** Double-check the voltage-divider resistors sit on the `ECHO` line, not `TRIG` — this is
 >the single easiest wiring mistake to make this class, and the least forgiving one, since it
 >protects the Pico's GPIO pin.
+>
+>```text
+>Make sure to use this voltage-divider circuit for the GP7 pin on the Pico
+>   ECHO
+>    |
+> 1K ohms
+>    |
+>    +----------------------- GP7
+>    |               ^
+> 2K ohms        3.3 volts
+>    |
+>   GRD
+>```
 
 ### What this code does
 
-This program pulses `TRIG`, waits for the sensor to time the echo, and prints the resulting
-distance in centimeters, over and over, forever.
+This program pulses `TRIG`, waits for the sensor to time the echo,
+and prints the resulting distance in centimeters, over and over, forever.
 
 ### The code
 
@@ -165,9 +178,9 @@ that and readings become unreliable).
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
-| SG90 servo signal | `GP8` |
-| SG90 servo `+`/power | `5V` (VBUS) |
-| SG90 `GND` | `GND` |
+| SG90 servo `signal` / `PWM` (orange) | `GP8` |
+| SG90 servo `+` / `5V` (red) | `5V` / `VBUS` |
+| SG90 `GND` (brown) | `GND` |
 
 Add this alongside Phase 1's sensor wiring — you're not removing anything, just adding the servo.
 
@@ -218,7 +231,7 @@ The servo shaft should sweep smoothly from one side to the other and back, conti
 
 >**NOTE:** If the servo twitches or buzzes at the extremes without actually reaching them, your
 >`min_pulse`/`max_pulse` values need calibrating for your specific servo — try nudging them in
->small steps (`500` -> `600`, `2500` -> `2400`) and re-test.
+>small steps (min_pulse `500` -> `600`, max_pulse `2500` -> `2400`) and re-test.
 
 ### Checkpoint
 
@@ -341,15 +354,15 @@ without going through the individual phases above.
 * [SG90 Servo Pinout][38]
 * [HC-SR04 Pinout][37]
 
-| Component | Pico 2 W Pin |
-| :---------- | :------------- |
-| HC-SR04 `TRIG` | `GP6` |
-| HC-SR04 `ECHO`, through voltage-divider resistors | `GP7` |
-| HC-SR04 `VCC` | `5V` (VBUS) |
-| HC-SR04 `GND`, SG90 `GND` | `GND` |
-| SG90 servo signal | `GP8` |
-| SG90 servo `+`/power | `5V` (VBUS) |
-
+| Component | Pico 2 W Pin | Important !! |
+| :---------- | :-------------:|:----------:|
+| HC-SR04 `TRIG` | `GP6` | |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `VCC` | `5V` / `VBUS` | |
+| HC-SR04 `GND` | `GND` | |
+| SG90 servo `signal` / `PWM` (orange) | `GP8` | |
+| SG90 servo `+` / `5V` (red) | `5V` / `VBUS` | |
+| SG90 `GND` (brown) | `GND` | |
 (Class 1's button/encoder circuit stays untouched on the breadboard alongside this.)
 
 ### Complete code
@@ -455,7 +468,7 @@ yet — those get added together in Class 5, once the motor driver and sensors a
     that will ride on it, since a chassis problem (binding wheels, a warped frame) is far easier to
     fix before it's carrying a battery and a live motor driver.
 
-### Homework 2 — Manual Aim: Drive the Servo With the Rotary Encoder
+### Homework 2 — Manual Aim: Drive the Servo With the Rotary Encoder - REMOVE ?
 
 **What this teaches:** Tonight's Phase 2/3 code always drives the servo through a fixed,
 automatic sweep. This exercise reuses the KY-040 rotary encoder from Class 1 — already sitting on
@@ -466,12 +479,29 @@ counter, tonight's class drove the servo from a fixed loop, and this is the firs
 input directly commands the other device's position.
 
 ### Complete wiring
+No new wiring layout.
+This reuses the encoder (`GP3`/`GP4` from Class 1) and tonight's sensor+servo
+circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
+
 * [Raspberry Pi Pico 2w Pinout][20]
 * [SG90 Servo Pinout][38]
 * [HC-SR04 Pinout][37]
 
-No new wiring — this reuses the encoder (`GP3`/`GP4`, from Class 1) and tonight's sensor+servo
-circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
+| Component | Pico 2 W Pin | Important !! |
+| :---------- | :-------------:|:----------:|
+| HC-SR04 `TRIG` | `GP6` | |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `VCC` | `5V` / `VBUS` | |
+| HC-SR04 `GND` | `GND` | |
+| SG90 servo `signal` / `PWM` (orange) | `GP8` | |
+| SG90 servo `+` / `5V` (red) | `5V` / `VBUS` | |
+| SG90 `GND` (brown) | `GND` | |
+| KY-040 Rotary encoder `CLK` | `GP3` | |
+| Rotary encoder `DT` | `GP4` | |
+| Rotary encoder `SW` | not used | |
+| Rotary encoder `+` / `VCC` | `VSYS 5V` | |
+| Rotary encoder `GND` | `GND` | |
+
 
 ### Complete code
 
@@ -479,58 +509,96 @@ circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
 # code.py - Homework 2: drive the servo directly from the rotary encoder --
 # turn the knob, the sensor-on-servo rig points wherever you turn it, and
 # distance at that angle prints live. Unlike tonight's auto-sweep, position
-# is now a live command from the encoder, not a fixed loop.
+# is now a live command from the encoder, not a fixed loop. CLK/DT are each
+# run through adafruit_debouncer's Debouncer (filters raw contact bounce),
+# on top of Class 1's MIN_STEP_INTERVAL step-gating (filters a full
+# detent's worth of transitions). Never blocked by time.sleep() or the
+# HC-SR04's own blocking read -- those run as a separate, non-blocking
+# settle-timer check, the same time.monotonic() pattern used in Homework 6.
 import time
 import board
 import pwmio
 import digitalio
 import adafruit_hcsr04
 from adafruit_motor import servo
+from adafruit_debouncer import Debouncer
 
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
 my_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)  # recalibrate per servo if needed
 
-encoder_clk = digitalio.DigitalInOut(board.GP3)
-encoder_clk.direction = digitalio.Direction.INPUT
-encoder_clk.pull = digitalio.Pull.UP
+encoder_clk_pin = digitalio.DigitalInOut(board.GP3)
+encoder_clk_pin.direction = digitalio.Direction.INPUT
+encoder_clk_pin.pull = digitalio.Pull.UP
+# A much shorter interval than Debouncer's 10ms default -- long enough to
+# catch real electrical bounce, short enough to not distort CLK/DT's
+# relative timing (which is how direction gets determined at all).
+encoder_clk = Debouncer(encoder_clk_pin, interval=0.001)
 
-encoder_dt = digitalio.DigitalInOut(board.GP4)
-encoder_dt.direction = digitalio.Direction.INPUT
-encoder_dt.pull = digitalio.Pull.UP
+encoder_dt_pin = digitalio.DigitalInOut(board.GP4)
+encoder_dt_pin.direction = digitalio.Direction.INPUT
+encoder_dt_pin.pull = digitalio.Pull.UP
+encoder_dt = Debouncer(encoder_dt_pin, interval=0.001)
 
 angle = 90  # start centered, the servo's natural rest position
 my_servo.angle = angle
 last_clk_state = encoder_clk.value
+last_step_time = 0.0
+# Same debounce filter as Class 1's Phase 2 -- ignore encoder edges that
+# arrive less than this many seconds after the last accepted one.
+MIN_STEP_INTERVAL = 0.02
+
+SETTLE_TIME = 0.15  # seconds to let the servo arrive before trusting a reading
+pending_reading = False
+settle_until = 0.0
 
 print("Class 2 Homework 2 -- turn the knob to aim the sensor. Distance prints live.")
 
 while True:
+    now = time.monotonic()
+
+    # --- Encoder: polled every loop, never blocked by anything below, so
+    # it can't miss a transition the way it could when a sleep() or a
+    # sensor read shared this same branch. update() must run every loop,
+    # unconditionally, for both pins. ---
+    encoder_clk.update()
+    encoder_dt.update()
+
     clk_state = encoder_clk.value
-    if clk_state != last_clk_state:
+    if clk_state != last_clk_state and (now - last_step_time) >= MIN_STEP_INTERVAL:
         if encoder_dt.value != clk_state:
             angle += 5
         else:
             angle -= 5
         angle = max(0, min(180, angle))
         my_servo.angle = angle
-        # Same reasoning as tonight's SETTLE_TIME -- let the servo actually
-        # arrive before trusting the reading.
-        time.sleep(0.15)
+        last_step_time = now
+        settle_until = now + SETTLE_TIME
+        pending_reading = True
+    last_clk_state = clk_state
+
+    # --- Sensor: reported only once the servo has had time to settle,
+    # checked with a non-blocking timer instead of a time.sleep(). ---
+    if pending_reading and now >= settle_until:
         try:
             print("angle:", angle, "distance_cm:", sonar.distance)
         except RuntimeError:
             print("angle:", angle, "distance_cm: reading error")
-    last_clk_state = clk_state
+        pending_reading = False
 
     time.sleep(0.001)
 ```
 
 #### What You Observe
 **Test it:** Turn the knob slowly, one detent at a time. The sensor-on-servo rig should visibly
-turn to match, in 5-degree steps, and `angle:`/`distance_cm:` should print once per detent — not a
-continuous stream like tonight's auto-sweep. Point it at an object and confirm `distance_cm` tracks
-what you're actually pointed at.
+turn to match, in 5-degree steps, and `angle:`/`distance_cm:` should print once per detent, roughly
+`SETTLE_TIME` seconds after each turn — not a continuous stream like tonight's auto-sweep. Turning
+the knob the other direction should move the servo the other way, with no sticking at either end.
+Point it at an object and confirm `distance_cm` tracks what you're actually pointed at. If a single
+detent still moves the servo more than one step, raise `MIN_STEP_INTERVAL` in small steps
+(`0.02` -> `0.03` -> `0.05`), the same tuning process from Class 1. If turning the knob moves the
+servo the wrong direction, swap the `+= 5` / `-= 5` lines (or swap the `CLK`/`DT` wires at the
+breadboard).
 
 #### Real World Examples
 
@@ -549,11 +617,27 @@ event-triggered (rather than continuous) sensor behavior, and your first time ma
 reading onto an output *rate* instead of a fixed on/off or brightness value.
 
 ### Complete wiring
+No new wiring — this reuses the pushbutton and its LED (`GP2`/`GP15`, from Class 1) and tonight's
+sensor+servo circuit.
+
 * [Raspberry Pi Pico 2w Pinout][20]
 * [SG90 Servo Pinout][38]
 * [HC-SR04 Pinout][37]
-No new wiring — this reuses the pushbutton and its LED (`GP2`/`GP15`, from Class 1) and tonight's
-sensor+servo circuit.
+
+| Component | Pico 2 W Pin | Important !! |
+| :---------- | :-------------:|:----------:|
+| Pushbutton switch, one leg | `GP2` | |
+| Pushbutton switch, other leg | `GND` | |
+| Button LED anode, through resistor | `GP15` | |
+| Button LED cathode | `GND` | |
+| HC-SR04 `TRIG` | `GP6` | |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `VCC` | `5V` / `VBUS` | |
+| HC-SR04 `GND` | `GND` | |
+| SG90 servo `signal` / `PWM` (orange) | `GP8` | |
+| SG90 servo `+` / `5V` (red) | `5V` / `VBUS` | |
+| SG90 `GND` (brown) | `GND` | |
+
 
 ### Complete code
 
@@ -1147,6 +1231,8 @@ distance reading from that new position, all without touching a button on the br
     Homework 1
   * [Complete Assembly And Review Of A DIY Robot Smart Car Chassis Kit For Arduino or Raspberry Pi][36]
     — a second assembly walkthrough for Homework 1
+
+Also see the "References & Resources" document in <https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/handouts>
 
 ---
 

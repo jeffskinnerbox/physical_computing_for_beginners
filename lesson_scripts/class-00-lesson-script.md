@@ -950,41 +950,8 @@ In the code above, printing sensor status to the TFT instead of (or in addition 
     Random Rover will use in Class 5, pairing this sensor with the ultrasonic sensor and a physical
     bump switch.
 
-## References
-
-* Documentation for Raspberry Pi Pico 2W Microcontroller
-  * [GPIO pinout and pin function guide for the Raspberry Pi Pico 2 W][20]
-  * [Raspberry Pi Pico 2 W with Header — Product Page][14] — the board used throughout the course
-  * [Raspberry Pi Pico 2W Datasheet][21]
-* Learning Python
-  * [Python for Everybody][24]
-  * [freeCodeCamp][25]
-  * [The Python Handbook – Learn Python for Beginners][26]
-  * [CoddyTech: Learn Python][27]
-* CircuitPython
-  * [What is CircuitPython?][15] — background on CircuitPython vs. MicroPython vs. Arduino C++
-  * [Prof. G's Circuit Python Tutorials][31] - A full and free university course on using CircuitPython to program electronics.
-  * [Prof. G's CircuitPython School][32] - A Playlist containing all of the lessons & projects in Prof. John Gallaugher's course "Physical Computing: Art, Robotics, and Tech for Good".
-  * [CircuitPython Firmware for the Raspberry Pi Pico 2 W][03] — the firmware flashed onto the board tonight
-  * [CircuitPython.org — Libraries download][17] — where to get the version-matched Library Bundle
-  * [CircuitPython Libraries][06] — what the Library Bundle is and how `/lib` gets used starting Class 1
-  * [The CIRCUITPY Drive][04] — what the `CIRCUITPY` drive is and how it behaves
-  * [The REPL][11] — using the interactive REPL prompt
-  * [flash_nuke.uf2 — erase the Pico's flash memory][18] — used to remove flash memory entirely
-* Mu / Thonny Editor
-  * [codewith.mu — Mu Editor download][08] — where the Mu installer comes from
-  * [Installing the Mu Editor][01] — step-by-step Mu install guide
-  * [Creating and Editing Code][07] — saving and editing `code.py`
-  * [Connecting to the Serial Console][09] — how to open the serial console in Mu/Thonny
-  * [Thonny — official site and download][16] — where the Thonny installer comes from
-  * [Thonny setup for CircuitPython][02] — step-by-step Thonny install guide
-* Sources of Components & Projects
-  * [Instructables][12] — maker-community tutorials referenced throughout the course
-  * [Adafruit Learn][13] — primary source for CircuitPython guides used across the course
-  * [SparkFun Tutorials][22] — step-by-step guide on how to build with SparkFun products
-  * [DFRobot][30]
-  * [Raspberry Pi Pico projects][28]
-  * [All3DP: Raspberry Pi Pico Projects][29]
+## References & Resources
+See the "References & Resources" document in <https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/handouts>
 
 ---
 
@@ -993,37 +960,20 @@ In the code above, printing sensor status to the TFT instead of (or in addition 
 [01]:https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor
 [02]:https://learn.adafruit.com/circuitpython-libraries-on-micropython-using-the-raspberry-pi-pico/thonny-setup
 [03]:https://circuitpython.org/board/raspberry_pi_pico2_w/
-[04]:https://learn.adafruit.com/welcome-to-circuitpython/the-circuitpy-drive
 [05]:https://circuitpython.org/downloads
-[06]:https://learn.adafruit.com/welcome-to-circuitpython/circuitpython-libraries
-[07]:https://learn.adafruit.com/welcome-to-circuitpython/creating-and-editing-code
 [08]:https://codewith.mu
 [09]:https://learn.adafruit.com/welcome-to-circuitpython/kattni-connecting-to-the-serial-console
-[11]:https://learn.adafruit.com/welcome-to-circuitpython/the-repl
 [12]:https://www.instructables.com/
 [13]:https://learn.adafruit.com/
-[14]:https://www.adafruit.com/product/6315
-[15]:https://learn.adafruit.com/welcome-to-circuitpython/what-is-circuitpython
 [16]:https://thonny.org
 [17]:https://circuitpython.org/libraries
 [18]:https://datasheets.raspberrypi.com/soft/flash_nuke.uf2
 [19]:https://www.proculustech.com/tft-vs-lcd
 [20]:https://pico2w.pinout.xyz/
-[21]:https://pip-assets.raspberrypi.com/categories/1088-raspberry-pi-pico-2-w/documents/RP-008304-DS-3-pico-2-w-datasheet.pdf
 [22]:https://learn.sparkfun.com/tutorials
 [23]:https://github.com/
-[24]:https://www.py4e.com/
-[25]:https://www.freecodecamp.org/learn/python-v9/
-[26]:https://www.freecodecamp.org/news/the-python-handbook/
-[27]:https://coddy.tech/landing/python
-[28]:https://www.raspberrypi.com/news/raspberry-pi-pico-projects/
-[29]:https://all3dp.com/2/raspberry-pi-pico-projects/
-[30]:https://www.dfrobot.https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2com/
-[31]:https://www.youtube.com/playlist?list=PL9VJ9OpT-IPSsQUWqQcNrVJqy4LhBjPX2
-[32]:https://www.youtube.com/playlist?list=PLBJJ76R_ry5T3X72OIDkMOXQIdmcvSkue
 [33]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
 [34]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
 [35]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers
 [36]:https://code.circuitpython.org/
-
 

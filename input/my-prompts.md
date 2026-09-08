@@ -696,6 +696,33 @@ Use the `/grill-me` skill to clarify any questions you may have.
 
 When complete, do the same for class-04, class-05, class-06.
 
+----
+
+## My 26th Prompt - Fix bad code in Homework assignments 2 to 8 in class-02-lesson-script.md
+Use /model Opus 5
+I'm have discovered that KY-040 Rotary Encoder debouncing code has not been implemented correctly,
+or has not been implemented at all, in `@lesson_scripts/class-02-lesson-script.md` Homework assignments 2 to 8.
+This is a surprise since Rotary Encoder debouncing code was properly implement in `@lesson_scripts/class-02-lesson-script.md`.
+
+Make a recommendation on next step on how to correct the fact that
+KY-040 Rotary Encoder debouncing code has not been implemented correctly
+or has not been implemented at all.
+Prior to doing this, execute the agents defined below:
+
+Using a separate agent,
+research online successful implementations of Adafruit's `adafruit_debouncer` library applied to the KY-040 rotary encoder.
+Summarize your implementation findings are report in a form useful for CircuitPython projects.
+Put these findings in `@lesson_scripts/ky-040-debouncing-methodology.md`.
+Pause and allow me to review.
+
+Using a separate agent,
+Using `@lesson_scripts/ky-040-debouncing-methodology.md`, research and report how
+`@lesson_scripts/class-02-lesson-script.md` Homework assignments 2 to 8
+code must be modified to properly debounce the KY-040 Rotary Encoder.
+Give working code proposal in `@lesson_scripts/ky-040-proposed-debouncing-code.md`
+Pause and allow me to review.
+
+
 
 
 

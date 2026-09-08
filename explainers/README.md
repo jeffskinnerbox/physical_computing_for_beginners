@@ -51,7 +51,7 @@ These are future explainer topics but not yet written:
 * what-are-pull-up-pull-down-resistors.md
 * what-are-the-types-of-displays.md
 * devices-that-need-debouncing.md
-* what-devices-have-deceptive-behavior.md
+* what-devices-have-deceptive-behavior-like-buttons.md
 
 * what-is-an-odometer.md
 * what-is-an-imu.md
@@ -59,6 +59,11 @@ These are future explainer topics but not yet written:
 * what-is-git-and-github.md
 * what-is-wheel-odometry.md
 * how-does-a-microcontroller-host-a-website.md
+* what-are-quaternion-and-why-use-them.md
+* what-is-gimbal-lock.md
+* why-5v-for-digital-but-33v-for-analog.md
+* what-is-a-servo-motor.md
+* why-is-analog-output-used-for-transducers.md
 
 
 

@@ -23,7 +23,7 @@ you turn the knob.
 Here's the twist: you're going to build it *wrong* first, on purpose. You'll write code that reads
 the button and encoder in the simplest, most naive way possible, and you'll watch it produce
 garbage — a single button press registering as five, seven, twelve presses. That garbage has a
-name (**switch bounce**) and a fix (**debouncing**), and by the end of this script you'll have
+name (**switch bounce**) and a fix (**debouncing**), and by the end of this script you'll hav
 added that fix yourself and watched the same button press turn into exactly one clean reading.
 
 This circuit doesn't get torn down at the end of class — it stays on your breadboard for the rest
@@ -95,6 +95,7 @@ motor driver in Class 3, so this is your first look at a pattern you'll reuse al
 | `GP2` | Button input |
 | `GP3` | Encoder `CLK` input |
 | `GP4` | Encoder `DT` input |
+| `GP18` | Encoder `SW` input |
 | `GP14` | Encoder brightness LED output (PWM) |
 | `GP15` | Button LED output (plain on/off) |
 | `VSYS 5V` | Encoder `+`/VCC power |
@@ -118,7 +119,7 @@ only the code does.
 | Pushbutton switch, other leg | `GND` |
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
-| Rotary encoder `SW` | not used |
+| Rotary encoder `SW` | `GP18` |
 | Rotary encoder `+` / `VCC` | `VSYS 5V` |
 | Rotary encoder `GND` | `GND` |
 | Button LED anode, through resistor | `GP15` |
@@ -154,16 +155,72 @@ to give an input pin a clear, default voltage state and prevent a "floating" (un
 ### What this code does
 
 This first version reads the button and encoder in the most straightforward way possible: check
-the pin, and if it changed, count it. No filtering, no waiting, nothing fancy. It's deliberately
-naive so you can see exactly what goes wrong.
+the pin, and if it changed, count it. No filtering, no waiting, nothing fancy.
+It's deliberately naive so you can see exactly what goes wrong.
 
-### The code - No Debouncing
-
+### The code - No Debouncing - Just the Rotary Encoder --DONE
 Save this as `code.py` on your `CIRCUITPY` drive.
 
 ```python
-# class-1-code-1.py
-# Phase 1: read the button and rotary encoder with NO debouncing at all.
+# class-1-code-1A.py
+# Phase 1: read the rotary encoder and its push button with NO debouncing at all.
+# Goal: watch a single physical press/turn produce multiple, erratic readings.
+
+import time
+import board
+import digitalio
+import rotaryio
+
+# 1. Initialize the rotary encoder on adjacent pins
+# rotaryio automatically handles internal pull-up resistors for these two pins
+encoder = rotaryio.IncrementalEncoder(board.GP3, board.GP4)
+
+# 2. Initialize the built-in push button switch on the rotary encoder
+button = digitalio.DigitalInOut(board.GP18)
+button.direction = digitalio.Direction.INPUT
+button.pull = digitalio.Pull.UP
+
+# Track the last known state of the encoder position
+last_position = encoder.position
+
+print("Rotary Encoder Ready!")
+
+while True:
+    # Read the current position value
+    current_position = encoder.position
+
+    # If the encoder has been turned, print the new position
+    if current_position != last_position:
+        print(f"Position: {current_position}")
+        last_position = current_position
+
+    # Check if the button is pressed (it connects to GND, so it falls to False/0)
+    if not button.value:
+        print("Button Pressed! Resetting counter.")
+        encoder.position = 0  # You can manually rewrite or reset the position
+        last_position = 0
+        time.sleep(0.2)       # Debounce delay to prevent multiple triggers from one press
+
+    # Small delay to keep the loop breathing
+    # time.sleep(0.5)
+    # time.sleep(0.1)
+    time.sleep(0.001)
+```
+
+### Try it / what you should see
+Turn the know and you should see the position increment increase or decrease
+depending on which way you turn the knob.
+It you push the knob, the position count should go to zero.
+
+No push and hold the knob switch .. What happens?
+Change the sleep time form 0.001 to 0.1 to 0.5.  Turn the know fast ... What happens?
+
+### The code - No Debouncing - Rotary Encoder + Momentary Button --DONE
+Save this as `code.py` on your `CIRCUITPY` drive.
+
+```python
+# class-1-code-1B.py
+# Phase 1: read the rotary encoder and its push button, plus momentary button with NO debouncing at all.
 # Goal: watch a single physical press/turn produce multiple, erratic readings.
 
 import time
@@ -188,6 +245,11 @@ encoder_clk.pull = digitalio.Pull.UP
 encoder_dt = digitalio.DigitalInOut(board.GP4)
 encoder_dt.direction = digitalio.Direction.INPUT
 encoder_dt.pull = digitalio.Pull.UP
+
+# 2. Initialize the built-in push button switch on the rotay encoder
+button_encoder = digitalio.DigitalInOut(board.GP18)
+button_encoder.direction = digitalio.Direction.INPUT
+button_encoder.pull = digitalio.Pull.UP
 
 # --- Button LED setup ---
 # A plain digital output: fully on or fully off, no in-between.
@@ -235,8 +297,16 @@ while True:
         print("RAW encoder_position:", encoder_position)
     last_clk_state = clk_state
 
+    # Check if the button is pressed (it connects to GND, so it falls to False/0)
+    if not button_encoder.value:
+        print("Rotary Encoder Button Pressed! Resetting counter.")
+        encoder_position = 0  # You can manually rewrite or reset the position
+        time.sleep(0.2)  # Debounce delay to prevent multiple triggers from one press
+
     # Sample very fast on purpose -- this is what exposes the bounce.
     # A slower loop would accidentally hide some of the bouncing.
+    # time.sleep(0.5)
+    # time.sleep(0.1)
     time.sleep(0.001)
 ```
 
@@ -260,7 +330,7 @@ Before moving on, confirm: pressing the button turns `button_led` on, turning th
 nothing prints at all when you press/turn, check your wiring against the table above before
 touching the code — a miss-wired pin is far more likely than a code bug at this stage.
 
-## 5. Build It: Phase 2 — Fix It With Debouncing
+## 5. Build It: Phase 2 — Fix It With Debouncing --DONE
 
 ### Wiring for this phase
 
@@ -327,8 +397,8 @@ last_step_time = 0.0
 # Ignore encoder edges that arrive less than this many seconds after the last
 # accepted one. Raise this if your encoder is still jittery; lower it if fast
 # turns feel like they're getting missed.
-#MIN_STEP_INTERVAL = 0.02
-MIN_STEP_INTERVAL = 0.5
+#MIN_STEP_INTERVAL = 0.5
+MIN_STEP_INTERVAL = 0.02
 
 print("Class 1, Phase 2 -- debounced readings starting...")
 print("Press the button and turn the knob. Each action should now print exactly once.")
@@ -408,7 +478,7 @@ used in the Pre-Class and will keep using for the rest of the course:
 | Serial console shows nothing at all | Wrong COM/serial port selected, or a charge-only USB cable/port | Reselect the correct port in Mu/Thonny; try a different cable or USB port |
 | Button LED stays on permanently | Wiring assumes active-low but the switch's other leg is on `3V3` instead of `GND` | Move that leg to `GND`; confirm `pull = digitalio.Pull.UP` in the code |
 
-## 8. Build It: Put It All Together
+## 8. Build It: Put It All Together --DONE
 
 This is the finished project in one place — everything you need to build it from scratch without
 following the phase-by-phase walkthrough above.
@@ -436,7 +506,7 @@ project should be in when you're done. Print statements are trimmed to the essen
 console stays readable.
 
 ```python
-# class-1-code-2.py -- complete, debounced button + rotary encoder project.
+# class-1-complete-code.py -- complete, debounced button + rotary encoder project.
 import time
 import board
 import digitalio
@@ -525,7 +595,7 @@ what the code teaches and why it's useful, the full commented code to save as `c
 this exact technique shows up outside a classroom. Only Homework 4 and Homework 6 need a part
 beyond tonight's circuit — see [Section 2](#2-what-youll-need).
 
-### Homework 1 — Long-Press vs. Short-Press Detection
+### Homework 1 — Long-Press vs. Short-Press Detection --DONE
 
 **What this teaches:** So far you've only asked the button one question: "did you just get
 pressed?" (`.fell`). Real buttons usually need to answer a second question too: "*how long* were
@@ -534,7 +604,8 @@ you held?" This exercise uses `Debouncer.fell` and `Debouncer.rose` together wit
 a quick tap or a long hold.
 
 ```python
-# code.py - distinguish a quick tap from a held press
+# class-1-homework-1.py -- Long-Press vs. Short-Press Detection
+
 import time
 import board
 import digitalio
@@ -581,7 +652,7 @@ Try changing `LONG_PRESS_SECONDS` and see how it changes where the line falls.
   multi-second hold force-shuts-down the device.
 * Camera shutter buttons: a tap takes one photo, a held press triggers burst mode on many cameras.
 
-### Homework 2 — Encoder Acceleration (Speed-Sensitive Stepping)
+### Homework 2 — Encoder Acceleration (Speed-Sensitive Stepping) --DONE
 
 **What this teaches:** Tonight's Phase 2 encoder code already measures the time between accepted
 steps (`MIN_STEP_INTERVAL`) to filter out bounce. This exercise reuses that same timing measurement
@@ -591,8 +662,9 @@ deliberate turn, exactly like a volume knob or a mouse scroll wheel that speeds 
 flick.
 
 ```python
-# code.py - rotary encoder that jumps by more than 1
+# class-1-homework-2.py - rotary encoder that jumps by more than 1
 # per detent when spun quickly, like a volume knob or a scroll wheel.
+# There is no deboucing so it doesn't work all that well
 import time
 import board
 import digitalio
@@ -612,7 +684,7 @@ encoder_position = 0
 last_clk_state = encoder_clk.value
 last_step_time = 0.0
 MIN_STEP_INTERVAL = 0.02  # same debounce filter as tonight's Phase 2
-#MIN_STEP_INTERVAL = 0.5
+# MIN_STEP_INTERVAL = 0.5
 
 print("Class 1 Homework 2 -- turn the knob slowly, then turn it fast, and compare.")
 
@@ -623,11 +695,13 @@ while True:
         # The faster consecutive steps arrive, the bigger a jump we apply.
         time_since_last_step = now - last_step_time
         if time_since_last_step < 0.05:
-            step_size = 5      # very fast turn
-        elif time_since_last_step < 0.15:
-            step_size = 2      # medium turn
+            step_size = 10  # very fast turn
+        elif time_since_last_step < 0.25:
+            step_size = 5  # fast turn
+        elif time_since_last_step < 0.5:
+            step_size = 2  # medium turn
         else:
-            step_size = 1      # slow, deliberate turn
+            step_size = 1  # slow, deliberate turn
 
         if encoder_dt.value != clk_state:
             encoder_position += step_size
@@ -654,7 +728,7 @@ time, same as tonight's Phase 2. Now spin it quickly through several detents —
 * Car radio and thermostat volume/temperature knobs often speed up their response the faster you
   turn them, so a big adjustment doesn't take dozens of individual clicks.
 
-### Homework 3 — Persistent Press Counter (Survives Power-Off)
+### Homework 3 — Persistent Press Counter (Survives Power-Off) --DONE
 
 **What this teaches:** Every variable in your code so far has lived in RAM, which means it resets
 to its starting value the instant the board loses power — unplug it and `press_count` goes back to 0.
@@ -682,7 +756,8 @@ After you do the initialization with the code above,
 load and run the code below:
 
 ```python
-# code.py - press_count that survives unplugging the board
+# class-1-homework-3.py - Persistent Press Counter (Survives Power-Off)
+
 import time
 import board
 import digitalio
@@ -733,7 +808,7 @@ it's separate from `code.py` itself — re-flashing CircuitPython firmware does 
 * Video games save your progress to persistent storage (a save file or memory card) for exactly the
   same reason: the console's RAM forgets everything the instant it powers off.
 
-### Homework 4 — Add the IR Obstacle Sensor as a Second Debounced Input
+### Homework 4 — Add the IR Obstacle Sensor as a Second Debounced Input --DONE
 
 **What this teaches:** *(Requires the IR Obstacle Avoidance Sensor — already in the course's bill
 of materials for the Random Rover in Class 5, see [Section 2](#2-what-youll-need).)* Tonight you
@@ -754,7 +829,7 @@ same sensor, same pin, and same read pattern you'll reuse on the Random Rover in
 | `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
 
 ```python
-# code.py - run the IR Obstacle Avoidance Sensor through
+# class-1-homework-4.py - run the IR Obstacle Avoidance Sensor through
 # the SAME Debouncer pattern used for the pushbutton -- proof that debouncing
 # isn't a "button-only" trick, it's a general technique for noisy digital
 # inputs. This exact sensor and pin comes back in Class 5 on the Random Rover.
@@ -824,12 +899,13 @@ into a simple sequential state machine — a 3-digit combination lock.
 
 | Pico 2 W Pin | Encoder Pin | Signal / Function |
 | :------------- | :------------ | :-------------------- |
-| `GP5` | `SW` | Encoder's built-in pushbutton, active-low with internal pull-up — pressing the knob shorts it to `GND` |
+| `GP18` | `SW` | Encoder's built-in pushbutton, active-low with internal pull-up — pressing the knob shorts it to `GND` |
 
 ```python
-# code.py - use the KY-040's built-in SW pushbutton as a
-# THIRD independent input (never used until now) to build a simple 3-digit
+# class-1-homework-5.py - use the KY-040's built-in SW pushbutton as a
+# THIRD independent input to build a simple 3-digit
 # combination lock out of the button + rotary encoder already on your board.
+
 import time
 import board
 import digitalio
@@ -877,6 +953,7 @@ def show_digit(d):
 print("Class 1 Homework 5 -- Combination Lock")
 print("Turn the knob to pick a digit (0-9), press SW to lock it in.")
 print("Press the outer button any time to reset. Code length:", len(CODE))
+print("The 3-digit combination to match is ", CODE)
 
 while True:
     reset_button.update()
@@ -950,11 +1027,12 @@ behind any on-screen analog gauge: read a live value, then re-render the display
 | `GP22` | `RST` / `BL` | Reset |
 
 ```python
-# code.py - draw a live bar gauge on the TFT display,
+# class-1-homework-6.py - draw a live bar gauge on the TFT display,
 # redrawn every loop from the rotary encoder's position -- unlike the
 # Pre-Class TFT homework's self-running bounce animation, this bar is
 # driven directly by live sensor input, the same pattern a real analog
 # gauge or meter uses.
+
 import time
 import board
 import busio
@@ -1046,10 +1124,11 @@ to browser. This exercise reverses that: an `<input type="range">` slider on the
 **sets** the Pico's hardware state, the first two-way (browser-to-Pico) control in the course.
 
 ```python
-# code.py - a webpage slider sets the encoder LED's
+# class-1-homework-7.py - a webpage slider sets the encoder LED's
 # brightness over WiFi -- the first TWO-WAY control in the course. The
 # Pre-Class WiFi homework only reported LED status (read-only); here the
 # browser actually changes hardware state on the Pico.
+
 import board
 import pwmio
 import wifi
@@ -1125,10 +1204,11 @@ machine: the encoder sets a duration up front, the button starts the clock, and 
 brightness scales down in real time to show *time remaining*, not a value you set once.
 
 ```python
-# code.py - encoder sets a countdown duration, the
+# class-1-homework-8.py - encoder sets a countdown duration, the
 # button starts it, and the PWM LED dims in real time as it counts down --
 # a live "armed / running / done" state machine, unlike Homework 1's
 # after-the-fact elapsed-time measurement.
+
 import time
 import board
 import digitalio
@@ -1253,9 +1333,10 @@ After you do the initialization with the code above,
 load and run the code below:
 
 ```python
-# code.py - store the last 10 button/encoder events as
+# class-1-homework-9.py - store the last 10 button/encoder events as
 # a RING BUFFER in NVM -- a structured log of multiple records, not a
 # single stored number like Homework 3's press counter.
+
 import time
 import board
 import digitalio
@@ -1366,6 +1447,8 @@ capped at 10.
     Homework 6
 * [IR Obstacle Avoidance Sensor Pinout][34] — sensor pinout reference for Homework 4
 
+Also see the "References & Resources" document in <https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/handouts>
+
 ---
 
 
@@ -1384,5 +1467,4 @@ capped at 10.
 [37]:https://www.electronics-tutorials.ws/logic/pull-up-resistor.html
 [38]:https://www.datasheethub.com/ky-040-rotary-encoder-sensor-module/
 [39]:https://www.build-electronic-circuits.com/what-is-an-led/
-
 
