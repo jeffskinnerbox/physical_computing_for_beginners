@@ -158,7 +158,7 @@ This first version reads the button and encoder in the most straightforward way 
 the pin, and if it changed, count it. No filtering, no waiting, nothing fancy.
 It's deliberately naive so you can see exactly what goes wrong.
 
-### The code - No Debouncing - Just the Rotary Encoder --DONE
+### The code - No Debouncing - Just the Rotary Encoder
 Save this as `code.py` on your `CIRCUITPY` drive.
 
 ```python
@@ -215,7 +215,7 @@ It you push the knob, the position count should go to zero.
 No push and hold the knob switch .. What happens?
 Change the sleep time form 0.001 to 0.1 to 0.5.  Turn the know fast ... What happens?
 
-### The code - No Debouncing - Rotary Encoder + Momentary Button --DONE
+### The code - No Debouncing - Rotary Encoder + Momentary Button
 Save this as `code.py` on your `CIRCUITPY` drive.
 
 ```python
@@ -330,7 +330,7 @@ Before moving on, confirm: pressing the button turns `button_led` on, turning th
 nothing prints at all when you press/turn, check your wiring against the table above before
 touching the code — a miss-wired pin is far more likely than a code bug at this stage.
 
-## 5. Build It: Phase 2 — Fix It With Debouncing --DONE
+## 5. Build It: Phase 2 — Fix It With Debouncing
 
 ### Wiring for this phase
 
@@ -478,7 +478,7 @@ used in the Pre-Class and will keep using for the rest of the course:
 | Serial console shows nothing at all | Wrong COM/serial port selected, or a charge-only USB cable/port | Reselect the correct port in Mu/Thonny; try a different cable or USB port |
 | Button LED stays on permanently | Wiring assumes active-low but the switch's other leg is on `3V3` instead of `GND` | Move that leg to `GND`; confirm `pull = digitalio.Pull.UP` in the code |
 
-## 8. Build It: Put It All Together --DONE
+## 8. Build It: Put It All Together
 
 This is the finished project in one place — everything you need to build it from scratch without
 following the phase-by-phase walkthrough above.
@@ -595,7 +595,7 @@ what the code teaches and why it's useful, the full commented code to save as `c
 this exact technique shows up outside a classroom. Only Homework 4 and Homework 6 need a part
 beyond tonight's circuit — see [Section 2](#2-what-youll-need).
 
-### Homework 1 — Long-Press vs. Short-Press Detection --DONE
+### Homework 1 — Long-Press vs. Short-Press Detection
 
 **What this teaches:** So far you've only asked the button one question: "did you just get
 pressed?" (`.fell`). Real buttons usually need to answer a second question too: "*how long* were
@@ -652,7 +652,7 @@ Try changing `LONG_PRESS_SECONDS` and see how it changes where the line falls.
   multi-second hold force-shuts-down the device.
 * Camera shutter buttons: a tap takes one photo, a held press triggers burst mode on many cameras.
 
-### Homework 2 — Encoder Acceleration (Speed-Sensitive Stepping) --DONE
+### Homework 2 — Encoder Acceleration (Speed-Sensitive Stepping)
 
 **What this teaches:** Tonight's Phase 2 encoder code already measures the time between accepted
 steps (`MIN_STEP_INTERVAL`) to filter out bounce. This exercise reuses that same timing measurement
@@ -728,7 +728,7 @@ time, same as tonight's Phase 2. Now spin it quickly through several detents —
 * Car radio and thermostat volume/temperature knobs often speed up their response the faster you
   turn them, so a big adjustment doesn't take dozens of individual clicks.
 
-### Homework 3 — Persistent Press Counter (Survives Power-Off) --DONE
+### Homework 3 — Persistent Press Counter (Survives Power-Off)
 
 **What this teaches:** Every variable in your code so far has lived in RAM, which means it resets
 to its starting value the instant the board loses power — unplug it and `press_count` goes back to 0.
@@ -808,7 +808,7 @@ it's separate from `code.py` itself — re-flashing CircuitPython firmware does 
 * Video games save your progress to persistent storage (a save file or memory card) for exactly the
   same reason: the console's RAM forgets everything the instant it powers off.
 
-### Homework 4 — Add the IR Obstacle Sensor as a Second Debounced Input --DONE
+### Homework 4 — Add the IR Obstacle Sensor as a Second Debounced Input
 
 **What this teaches:** *(Requires the IR Obstacle Avoidance Sensor — already in the course's bill
 of materials for the Random Rover in Class 5, see [Section 2](#2-what-youll-need).)* Tonight you
