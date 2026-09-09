@@ -93,11 +93,11 @@ motor driver in Class 3, so this is your first look at a pattern you'll reuse al
 | Pin | What we use it for |
 | :---- | :-------------------- |
 | `GP2` | Button input |
+| `GP15` | Button LED output (plain on/off) |
 | `GP3` | Encoder `CLK` input |
 | `GP4` | Encoder `DT` input |
 | `GP18` | Encoder `SW` input |
 | `GP14` | Encoder brightness LED output (PWM) |
-| `GP15` | Button LED output (plain on/off) |
 | `VSYS 5V` | Encoder `+`/VCC power |
 | `GND` | Encoder `GND`, button's second leg, both LED cathodes |
 
@@ -129,6 +129,20 @@ only the code does.
 
 >**NOTE:** Identifying an LED Anode** The positive anode is always the longer wire leg.
 >The short leg, near the flat notch on the plastic rim, is the negative cathode.
+>
+>```text
+>Protect the LED from 5 volts by attaching current-limiting resistor (220-330 ohm)
+>
+> Button LED      Encoder Brightness LED
+>
+>   GND                    GND
+>    |                      |       <--- LED cathode
+>   LED                    LED
+>    |                      |       <--- LED anode
+> 330 ohms               330 ohms
+>    |                      |
+>   GP15                   GP14
+>```
 
 Before writing any code, trace your own wiring against this table out loud — wiring mistakes are
 much faster to catch now than after you're staring at confusing code output.
