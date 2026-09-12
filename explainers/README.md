@@ -59,7 +59,7 @@ These are future explainer topics but not yet written:
 * what-is-git-and-github.md
 * what-is-wheel-odometry.md
 * how-does-a-microcontroller-host-a-website.md
-* what-are-quaternion-and-why-use-them.md
+* what-are-quaternion-and-why-use-them.md - [Why Robots Use Quaternions](https://akshetpatel.substack.com/p/why-robots-use-quaternions)
 * what-is-gimbal-lock.md
 * why-5v-for-digital-but-33v-for-analog.md
 * what-is-a-servo-motor.md

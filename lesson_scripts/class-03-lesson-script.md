@@ -1,6 +1,5 @@
 # Lesson Script: Class 3 — Dual H-Bridge Motor Driver
 
-
 * **Class:** 3 of 6 (plus Pre-Class)
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
@@ -137,6 +136,7 @@ network can watch live wheel telemetry with no serial cable at all.
 | Pico `3V3` | Both optocouplers `VCC` |
 | Pico `GND` | Both optocouplers `GND` |
 
+
 ## 4. Build It: Phase 1 — Motor Driver Library and Basic Test
 
 ### Wiring for this phase
@@ -182,7 +182,7 @@ Save this first file as `motor_driver.py` on your `CIRCUITPY` drive (not `code.p
 imports this one).
 
 ```python
-# class-3-code-1.py -- save as motor_driver.py
+# class-3-phase-1-motor-driver -- save as motor_driver.py
 # DRV8833 motor driver library -- forward/reverse/stop/speed, per channel.
 
 import board
@@ -199,7 +199,7 @@ pwm_ain2 = pwmio.PWMOut(board.GP10, frequency=50)
 pwm_bin1 = pwmio.PWMOut(board.GP11, frequency=50)
 pwm_bin2 = pwmio.PWMOut(board.GP12, frequency=50)
 
-# DCMotor wraps the pin pair behind a simple .throttle property:
+# DC Motor wraps the pin pair behind a simple .throttle property:
 # -1.0 (full reverse) to 1.0 (full forward), 0.0 brakes, None coasts.
 motor_a = motor.DCMotor(pwm_ain1, pwm_ain2)
 motor_b = motor.DCMotor(pwm_bin1, pwm_bin2)
@@ -307,7 +307,7 @@ Save this as `code.py`, replacing Phase 1's scratch test script. `motor_driver.p
 drive unchanged — this new file imports it.
 
 ```python
-# class-3-code-2.py
+# class-3-phase-2-code.py
 # Phase 2: attempt a 12" square and a 12"-diameter circle -- open-loop, timed moves only.
 
 import time
@@ -417,7 +417,7 @@ hand on your own wheel's disc — the value shown is a placeholder, not a measur
 Save this as `wheel_odometry.py` on your `CIRCUITPY` drive.
 
 ```python
-# class-3-code-3.py -- save as wheel_odometry.py
+# class-3-phase-3-wheel_odometry.py -- save as wheel_odometry.py
 # Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP16/GP17,
 # direction borrowed from motor_driver's last-commanded state.
 
@@ -510,7 +510,7 @@ stay on the drive unchanged — this file imports `wheel_odometry` (which in tur
 `motor_driver`).
 
 ```python
-# class-3-code-4.py -- save as rover_server.py
+# class-3-phase-4-rover_server -- save as rover_server.py
 # Pico-hosted rover status website -- joins WiFi, serves /data.json plus a
 # minimal page that polls it.
 
@@ -867,7 +867,7 @@ not at all — but it still says nothing about which way the *car* is pointed. T
 check your heading against where you meant to be pointed — is exactly what an IMU (inertial
 measurement unit) starts to address. That's next class, and it'll show up on this same website.
 
-----
+---
 ## 11. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with

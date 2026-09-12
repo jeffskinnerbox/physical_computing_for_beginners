@@ -708,6 +708,29 @@ to the design pattern used in `@lesson_scripts/class-01-lesson-script.md`
 in section "The code - No Debouncing - Just the Rotary Encoder".
 Create a new document with the debouncing design strategy changes here `lesson_scripts/updated-class-02-lesson-script.md`.
 
+----
+
+## My 27th Prompt - Documentation for Class 3 to 6 Need to Include 5V Buck, Plus Other Things
+Starting in Class 03, the 5V Buck Converter Module needs to be included.
+The buck converter will be take the 9V battery down to 5V to support the Raspberry Pi Pico 2W
+and any other component or breakout board needing 5V power.
+
+### Step 1
+Make sure the 9V Alkaline Battery, 5V Buck Converter Module, and I TYPE 9 Volt Battery Clip
+are included in class 03, 04, 05, 06 component tables.
+Update all class 03, 04, 05, 06 documentation including BOM tables and wiring tables.
+
+Use the `/grill-me` skill to clarify any questions you may have.
+Before you modify each document, review the changes with me and get my approval.
+
+### Step 2
+Once all above steps are completed,
+use a sub-agent to check all documents in the directory for consistency and completeness.
+Do this for all for all features, not just what was done in "Step 1".
+Use the `/grill-me` skill to clarify any questions you may have.
+When you find inconsistencies or incompleteness, describe to me what you found,
+list the options for changes to correct it,
+recommend the changes to apply, and get my approval before making any changes.
 
 
 

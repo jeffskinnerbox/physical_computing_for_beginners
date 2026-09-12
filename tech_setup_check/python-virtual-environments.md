@@ -1,7 +1,22 @@
 
+# Add This
+
+## CircUp
+A tool to manage and update libraries (modules) on a CircuitPython device.
+
+The `circup` program will look at our `code.py` file,
+determine if our board needs any additional libraries in our "lib" folder,
+and if so, it will find them on the Internet and automatically install them.
+
+* [CircUp: Easily Install or Upgrade CircuitPython Libraries](https://www.youtube.com/watch?v=R9AArkVi3eE)
+* [Use circup to easily keep your CircuitPython libraries up to date](https://learn.adafruit.com/keep-your-circuitpython-libraries-on-devices-up-to-date-with-circup/overview)
+* [Circup Documentation](https://docs.circuitpython.org/projects/circup/en/latest/)
+
+---
 
 ```bash
 # Sources:
+#   An Effective Python Development Environment - https://realpython.com/effective-python-environment/
 #   Python Virtual Environments: A Primer - https://realpython.com/python-virtual-environments-a-primer/
 #   Managing Multiple Python Versions With pyenv - https://realpython.com/intro-to-pyenv/
 #   Managing Python Projects With uv: An All-in-One Solution - https://realpython.com/python-uv/
