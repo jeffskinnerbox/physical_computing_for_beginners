@@ -47,9 +47,9 @@ the Cost Summary below.
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
 | Momentary Push Button Tactile Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99) [VERIFY PRICE]; Class 1 button + spare |
 | Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course |
-| I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power |
-| 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
-| 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); onboard 5V power |
+| I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power, reused Class 4-6 |
+| 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1; Class 3 motor + Pico power (via buck converter), reused Class 4-6 |
+| 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); Class 3 onward — regulated 5V for the Pico's `VSYS` power input, reused Class 4-6 |
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
 | Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch; Class 5 rover bump sensor, reused Class 6 |
 | IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
@@ -128,11 +128,11 @@ All free — no paid software is required anywhere in this course.
 | CircuitPython Firmware for Pico 2 W | [Firmware Download][20] | flashed onto the Pico in the Pre-Class |
 | Mu Editor | [Install Guide][21] | recommended editor, installed in the Pre-Class |
 | Thonny | [Setup Guide][22] | alternate editor, installed in the Pre-Class |
-| Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver`, `adafruit_st7789`, `adafruit_display_text` |
+| Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
-| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 6 stretch #2, to view the live WiFi chart served by `class-6-code-2.py` |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 6 stretch #2, so the Pico 2 W and the student's laptop can both reach the rover's web server |
+| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
+| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 3, so the Pico 2 W and the student's laptop can both reach the rover's web server |
 
 ----
 
@@ -147,8 +147,9 @@ lesson plan — no separate cost, but listed here for completeness.
 | `class-1-code-1.py` / `class-1-code-2.py` | 2 | Instructor | undebounced vs. debounced button + rotary encoder, Class 1 |
 | `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
-| `class-4-code-1.py` / `class-4-code-2.py` | 2 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop), Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), Class 5 |
+| `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, WiFi IMU chart, TFT status display — Class 6 stretch goals |
 
 ----

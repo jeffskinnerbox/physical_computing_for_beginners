@@ -57,7 +57,8 @@ not just copying.
 | Micro limit switch | 1 | Physical bumper on the chassis front — last-resort stop-and-reverse on contact |
 | IR obstacle avoidance sensor | 1 | Fixed forward-facing near-field detector — stop-and-reverse between ultrasonic scans |
 | Emo Smart Robot Car Chassis Kit | 1 | Your completed (or near-complete) car |
-| 9V battery clip and 9V battery | 1 each | Motor power, independent of the Pico's logic power |
+| 9V battery clip and 9V battery (from Class 3) | 1 each | Powers the motors (raw, via `VM`) and, through the buck converter, your Pico's own logic power |
+| 5V Buck Converter Module (from Class 3) | 1 | Steps the 9V battery down to a regulated 5V for your Pico's `VSYS` power input — no rewiring needed today |
 | Breadboard (from prior classes) | 1 | No rewiring needed today |
 | USB cable or portable battery | 1 | Power for untethered floor runs |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
@@ -480,6 +481,7 @@ are still updating too — they shouldn't have stopped just because you edited t
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
 | Rover doesn't drive at all | `motor_driver.py` missing from `CIRCUITPY`, or the 9V battery is dead | Confirm `motor_driver.py` is present alongside `code.py`; check battery voltage |
+| Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Rover drives but never stops to scan | `SCAN_INTERVAL` too long, or `STOP_DISTANCE_CM` too small to ever trigger | Lower `SCAN_INTERVAL` and/or raise `STOP_DISTANCE_CM` and re-test |
 | Rover stops constantly, barely drives | `STOP_DISTANCE_CM` set too large, triggering on normal sensor noise | Lower `STOP_DISTANCE_CM` in small steps |
 | Rover always turns the same direction regardless of readings | Scan readings all coming back `None` (sensor errors), falling back to `CENTER_ANGLE` every time | Check the Class 2 sensor wiring; confirm `read_distance()` isn't always returning `None` |

@@ -19,8 +19,9 @@
 This is the third Class of the course and the first of Phase 2 (Outputs & Motion) — the first Class
 where students make the car actually move. Students wire a DRV8833 dual H-bridge motor driver to
 their Pico 2 W and the two DC gearbox motors in the Emo Smart Robot Car Chassis Kit, running the
-motors from their own 9V battery rather than the Pico's logic power. After a simple forward/reverse/
-stop test, students try to drive the car in a 12-inch square and a 12-inch-diameter circle using
+motors from their own 9V battery rather than the Pico's logic power — that same 9V battery, stepped
+down through a 5V buck converter, also now supplies the Pico's own `VSYS` power input. After a
+simple forward/reverse/stop test, students try to drive the car in a 12-inch square and a 12-inch-diameter circle using
 timed, uncorrected ("open-loop") moves — and discover that hitting an exact size is much harder than
 just making the car move in *some* square or circle shape. That gap is the pedagogical point: by the
 end of the first half of the Class, students will have directly experienced why "dead reckoning"
@@ -75,12 +76,12 @@ than building a new one.
   laptop from reaching another device's IP) — this is the single biggest risk to the website
   working at all, and is worth confirming days ahead, not day-of. (~15 min)
 * **1-2 days before:** Charge or freshly stock 9V batteries — one per student workstation, plus 2-3
-  spares. Confirm each battery clip and 5V buck converter module (if used for other onboard power)
-  is present and wired correctly. (~15 min)
+  spares. Confirm each battery clip and 5V buck converter module is present and wired: buck
+  converter input from the 9V battery, buck converter output to the Pico's `VSYS` pin. (~15 min)
 * **Day of, before students arrive:**
-  * Set out one DRV8833 breakout board, one 9V battery with clip, two Slot Type IR Optocoupler
-        modules, and continued access to each workstation's existing breadboard and chassis kit at
-        each workstation.
+  * Set out one DRV8833 breakout board, one 9V battery with clip, one 5V buck converter module,
+        two Slot Type IR Optocoupler modules, and continued access to each workstation's existing
+        breadboard and chassis kit at each workstation.
   * Pre-fill each student's `settings.toml` with the classroom WiFi SSID/password (`WIFI_SSID`,
         `WIFI_PASSWORD`) ahead of time, or write them on the board — don't spend Class time on WiFi
         credential typos. (~10 min)
@@ -110,7 +111,8 @@ quantities, and sourcing.
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
 | DRV8833 Dual H-Bridge DC/Stepper Motor Driver Breakout Board | Drives both DC gearbox motors' speed and direction from PWM logic signals |
 | Emo Smart Robot Car Chassis Kit (DC gearbox motors + wheels) | The two motors under test, and the chassis they drive — its wheels' molded-in encoder discs are what today's optocouplers read |
-| 9V battery clip and 9V battery | Separate power supply for the motors, independent of the Pico's logic power |
+| 9V battery clip and 9V battery | Power supply for the motors (raw, via `VM`) and, through the buck converter, the Pico's own logic power (regulated 5V, via `VSYS`) |
+| 5V Buck Converter Module | Steps the 9V battery down to a regulated 5V for the Pico's `VSYS` power input — separate from the motors' raw, unregulated 9V `VM` supply |
 | Slot Type IR Optocoupler for Motor Speed (2 per student) | Reads each driven wheel's built-in encoder disc for wheel-odometry tick counting |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Class 1 and 2 circuits stay on it, untouched |
 | Dupont jumper wires (shared) | Point-to-point wiring |
@@ -196,8 +198,10 @@ than its rated voltage). `MAX_THROTTLE` in `motor_driver.py` exists specifically
 — not to set a "speed" in any precise sense.
 
 **Concept 3 — Why two separate power sources still need a common ground.**
-The motors run off their own 9V battery (`VM` on the DRV8833), completely separate from the Pico's
-USB-supplied logic power — this protects the Pico from motor electrical noise and current spikes.
+The motors run off the 9V battery's raw, unregulated voltage (`VM` on the DRV8833) — separate from
+the Pico's own power, which now comes through a 5V buck converter (`VSYS`) or USB, either regulated
+to a clean 5V. Keeping the motors on the raw, unregulated rail (rather than sharing the Pico's
+regulated 5V) protects the Pico's logic from motor electrical noise and current spikes.
 But the DRV8833's logic pins (`AIN1`/`AIN2`/`BIN1`/`BIN2`) still receive PWM signals *referenced to*
 the Pico's 0V (ground). If the two power supplies don't share a common ground, the DRV8833 has no
 consistent "zero" to measure the Pico's signal against, and the logic won't work reliably even
@@ -259,8 +263,8 @@ live wheel telemetry with no serial cable at all.
 Instructor builds along on the projector; students wire up and test in parallel.
 
 **Wiring — third circuit of the course, alongside (not replacing) Class 1 and 2's.** Leave both
-prior circuits exactly as-is on the breadboard; today's wiring uses entirely new pins and a
-separate 9V power source.
+prior circuits exactly as-is on the breadboard; today's wiring uses entirely new pins, plus a 9V
+battery that (through a buck converter) now also powers the Pico itself.
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
@@ -272,6 +276,8 @@ separate 9V power source.
 | DRV8833 `GND` | 9V battery `-` **and** Pico `GND` (common ground) |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
+| Buck converter IN+/IN− | 9V battery `+`/`−` |
+| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
 | Optocoupler A signal out (Motor A wheel) | `GP16` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
@@ -635,6 +641,7 @@ Class 4 references in the syllabus if they want to read ahead.
 | Motor spins the wrong direction | Motor leads swapped at `AOUT1`/`AOUT2` (or `BOUT1`/`BOUT2`) | Swap the two motor leads, or swap the sign of that motor's throttle in code |
 | Both motors spin the same direction on a "turn" command | Motor B's leads wired with opposite polarity convention from Motor A | Swap Motor B's leads, or its throttle sign, so `+1` means the same physical direction for both |
 | Logic behaves erratically even though wiring looks right | Missing common ground between the 9V battery circuit and the Pico | Add a jumper from DRV8833 `GND` to Pico `GND` |
+| Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Square/circle attempt drifts wildly between runs on the same settings | Battery voltage sagging as it depletes during the session | Swap in a fresh 9V battery and re-calibrate `SPEED`/timing constants |
 | Car pulls consistently to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values, or note the asymmetry in the build journal |
 | `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-code-1.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-code-1.py` |

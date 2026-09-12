@@ -788,6 +788,9 @@ bounce animation (Pre-Class homework) or a value set once and left alone.
 | `GP21` | `DC` | Data/Command select |
 | `GP22` | `RST` / `BL` | Reset |
 
+**Note:** if you've also done Class 1's Homework 5 (encoder `SW` combination lock, also on
+`GP18`), only one of the two can be wired at a time — swap the `GP18` jumper between them rather
+than running both simultaneously.
 
 ### Complete code
 

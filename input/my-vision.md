@@ -323,9 +323,9 @@ Tips for Students:
   built as a small, reusable base (a JSON data route plus a simple HTML page) so that Classes 4, 5, and 6 can
   each add more fields to the same site (IMU orientation, ultrasonic/IR/bump-switch status, and eventually a
   rolling history chart) instead of building a new server from scratch every class.
-* **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`, and `GP16`/`GP17`
-  for the two wheel optocouplers &mdash; `GP16` on the Motor A wheel, `GP17` on the Motor B wheel) &mdash; Classes 1
-  and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
+* **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`, a 5V buck converter
+  feeding the Pico's own `VSYS` power, and `GP16`/`GP17` for the two wheel optocouplers &mdash; `GP16` on the Motor A
+  wheel, `GP17` on the Motor B wheel) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
   server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
   and make the car drive in a 12 inch square and a 12 inch diameter circle.
@@ -413,7 +413,8 @@ Tips for Students:
 
   If you have time, continue working the assembly of the Car Chassis Kit.
 * **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched,
-  including the Class 3 optocouplers (`GP16`/`GP17`) and the rover website they feed. This same I2C wiring is
+  including the Class 3 optocouplers (`GP16`/`GP17`), the buck converter still powering the Pico's `VSYS`, and
+  the rover website they feed. This same I2C wiring is
   reused unchanged for the Class 6 stretch goal's rolling-history chart (`class-6-code-2.py`).
 * **Objective**: The objective is to read data from an IMU and display the results by communicating to a Python 3D
   graphical display on the laptop, and by extending the Class 3 rover website with the same orientation data.
@@ -529,8 +530,9 @@ Tips for Students:
   optocouplers (`GP16`/`GP17`), and the Class 4 IMU (`GP0`/`GP1`). Stretch #2 also needs no new wiring &mdash;
   it only extends software already running on the existing Class 3 WiFi/web-server circuit. The Class 5
   limit switch (`GP5`) and IR sensor (`GP13`) also carry forward unchanged, needing no rewiring. Stretch #3
-  is the only new wiring this class: a TFT on `GP18`-`GP22`, pins not used by anything else in the course,
-  so it drops in without disturbing the rover.
+  is the only new wiring this class: a TFT on `GP18`-`GP22` &mdash; `GP18` reclaims the encoder's `SW` pin,
+  wired but functionally unused since Class 1 (unplug that one jumper first); `GP19`-`GP22` are otherwise
+  untouched by anything else in the course, so the TFT otherwise drops in without disturbing the rover.
 * **Objective**: Stretch Objectives are to
   1. Add a rotary encoder to control speed.
   1. Extend the rover website (running since Class 3) with a rolling historical chart.
@@ -599,11 +601,11 @@ purchase (and any spares that come with it) noted below the table and priced in 
 | STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
-| Tactile Push Button Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99); Class 1 button + spare |
+| Tactile Push Button Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99) [VERIFY PRICE]; Class 1 button + spare |
 | Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course |
-| I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power |
-| 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
-| 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); onboard 5V power |
+| I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power, reused Class 4-6 |
+| 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1; Class 3 motor + Pico power (via buck converter), reused Class 4-6 |
+| 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); Class 3 onward — regulated 5V for the Pico's `VSYS` power input, reused Class 4-6 |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
@@ -709,7 +711,7 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [07]:https://www.adafruit.com/product/4210
 [08]:https://www.amazon.com/WGCD-KY-040-Degree-Encoder-Arduino/dp/B07B68H6R8/
 [09]:https://www.adafruit.com/product/6113
-[10]:https://www.amazon.com/VIBICCK-500pcs-Momentary-Electronics-Prototyping/dp/B0FPC5J3Z7/?th=1
+[10]:https://www.amazon.com/gp/product/B0B47XZCX2/
 [11]:https://www.amazon.com/EL-CP-003-Breadboard-Solderless-Distribution-Connecting/dp/B01EV6LJ7G/?th=1
 [12]:https://www.amazon.com/LampVPath-Battery-Connector-Plastic-Housing/dp/B079HY8DD9?th=1
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1

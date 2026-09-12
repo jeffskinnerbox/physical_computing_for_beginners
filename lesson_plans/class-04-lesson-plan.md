@@ -11,8 +11,9 @@
   `GP16`-`GP17`) on their breadboard, and has just finished Class 3 having directly experienced how
   open-loop, timed moves drift off target. Students should have Python installed on their laptop
   (from the Pre-Class) and be comfortable running a script from a terminal. All three prior circuits
-  stay on the breadboard, powered but unused, all Class — nothing from Class 1, 2, or 3 is touched or
-  rewired today. The Class 3 rover status website (`rover_server.py`) and its classroom WiFi
+  stay on the breadboard, powered but unused, all Class — except the Class 3 buck converter, which
+  keeps actively supplying the Pico's own `VSYS` power all Class — nothing from Class 1, 2, or 3 is
+  touched or rewired today. The Class 3 rover status website (`rover_server.py`) and its classroom WiFi
   connection must still be working — a quick spot-check, not a rebuild.
 
 ---
@@ -95,6 +96,7 @@ quantities, and sourcing.
 | Component | Purpose This Class |
 | :---------- | :-------------------- |
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
+| 9V battery, clip, and 5V buck converter (from Class 3) | Powers the Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
 | IMU: LSM9DS1 9-DOF Breakout Board (STEMMA) | Measures acceleration and rotation rate; fused into orientation |
 | STEMMA QT/Qwiic cable | I2C connection between the Pico and the IMU |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Classes 1-3 circuits stay on it, untouched |

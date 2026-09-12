@@ -79,7 +79,7 @@ to a working file beats rebuilding from scratch each time.
         during Guided Practice. (~40 min)
   * Set up 2-3 shared demo/test areas: the open floor space from Class 5 for rover runs, and a
         table with a projector or shared screen for browsing to the stretch #2 chart page.
-  * Have spare 9V batteries, TFT displays, and SPI jumper wires on hand.
+  * Have spare 9V batteries, 5V buck converter modules, TFT displays, and SPI jumper wires on hand.
 * **Have ready:** A short list of discussion prompts for the closing "what's missing, looking back
   across all 6 Classes?" reflection and the "what carries forward to the line-following course?"
   discussion (see Closing below).
@@ -92,7 +92,7 @@ quantities, and sourcing.
 | Component | Purpose This Class |
 | :---------- | :-------------------- |
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
-| Complete Class 5 rover circuit (HC-SR04, SG90, DRV8833, limit switch, IR sensor, chassis, 9V battery) | The rover being finished and tuned |
+| Complete Class 5 rover circuit (HC-SR04, SG90, DRV8833, limit switch, IR sensor, chassis, 9V battery, buck converter) | The rover being finished and tuned — the buck converter still powers the Pico's `VSYS` from the same 9V battery |
 | KY-040 Rotary Encoder Module (from Class 1, already wired) | Stretch #1: live speed control |
 | IMU: LSM9DS1 9-DOF Breakout Board (from Class 4, already wired) | Stretch #2: source of the roll/pitch history plotted on the already-running rover website |
 | 1.14" 240x135 Color TFT Display | Stretch #3: on-board status display |
@@ -338,6 +338,11 @@ same failure mode Class 5 already taught students to check for.
 
 **Stretch #3 wiring (the only new wiring this Class):**
 
+Before wiring the TFT, unplug the single jumper from the encoder's `SW` pin to `GP18` — `SW` has
+been wired but functionally unused since Class 1, and the TFT's `SCK` line needs `GP18` for
+itself. No other wiring changes to the encoder circuit (`CLK`/`DT` on `GP3`/`GP4` stay exactly as
+they are).
+
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
 | TFT `SCK` | `GP18` |
@@ -451,7 +456,7 @@ driver skills built here, with N20 geared motors and a new competitive line-sens
 
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
-| Core rover regressed since Class 5 | Loose connection, dead 9V battery, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
+| Core rover regressed since Class 5 | Loose connection, dead 9V battery, failed buck converter, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch #1: `current_speed` never changes | Encoder wiring drifted since Class 1, or `class-6-code-1.py` not actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was actually done, not just run standalone |
 | Stretch #1: rover speed changes but jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
 | Stretch #2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then runs `class-6-code-2.py`'s edit |

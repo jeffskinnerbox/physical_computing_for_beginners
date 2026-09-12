@@ -86,7 +86,8 @@ already have working — not a new website, and not new wiring.
 * Project the instructor's serial console output so the whole class can see scan readings, chosen
         headings, and drive state stream by during the reference run. (~5 min)
 * Have a few spare 9V batteries charged and ready — today's Class runs motors continuously for
-        longer stretches than Class 3 did.
+        longer stretches than Class 3 did, and the same battery now also powers the Pico via the
+        buck converter.
 * **Have ready:** A short list of discussion prompts for the "stop-look-go" tradeoff, the "largest
   reading picks a bad direction" scenario, and "how would you measure this?" (see Direct Teaching and
   Closing below).
@@ -105,7 +106,8 @@ quantities, and sourcing.
 | Micro Limit Switch | Physical bumper on the chassis front — last-resort stop-and-reverse override on contact |
 | IR Obstacle Avoidance Sensor | Fixed forward-facing near-field detector — stop-and-reverse override between ultrasonic scans |
 | Emo Smart Robot Car Chassis Kit | The completed (or near-complete) car chassis and wheels |
-| 9V battery clip and 9V battery | Motor power, independent of the Pico's logic power |
+| 9V battery clip and 9V battery (from Class 3) | Powers the motors (raw, via `VM`) and, through the buck converter, the Pico's own logic power |
+| 5V Buck Converter Module (from Class 3) | Steps the 9V battery down to a regulated 5V for the Pico's `VSYS` power input — no rewiring needed this Class |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — no rewiring needed this Class |
 | Dupont jumper wires (shared) | Only if any connection needs reseating |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop, or portable battery for untethered runs |

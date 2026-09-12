@@ -120,8 +120,10 @@ with N20 geared motors.
 * KY-040 Rotary Encoder Module
 * 1.14" 240x135 Color TFT Display
 * Slot Type IR Optocoupler for Motor Speed (2 per student — one per driven wheel, for wheel odometry)
+* Micro Limit Switch
+* IR Obstacle Avoidance Sensor
 * Tactile push buttons
-* Breadboard, STEMMA QT/Qwiic cable, JST PH male header cable, JST PH female socket cable
+* Breadboard, STEMMA QT/Qwiic cable
 * 9V battery clip, 9V batteries, 5V buck converter module
 
 **Shared Tools** (provided by Makersmiths)

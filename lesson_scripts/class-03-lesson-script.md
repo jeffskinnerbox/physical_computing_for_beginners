@@ -15,7 +15,8 @@
 Every circuit you've built so far has been about *reading* the world — a switch, a knob, a
 distance sensor. Today's the first day you *move* something with real force behind it. You'll wire
 a DRV8833 dual H-bridge motor driver to your Pico and the two DC gearbox motors in your car
-chassis kit, running them off their own 9V battery instead of your Pico's power.
+chassis kit, running them off their own 9V battery instead of your Pico's power — that same 9V
+battery, stepped down through a 5V buck converter, now also powers your Pico's own `VSYS` input.
 
 First you'll get both wheels spinning forward, reverse, and stopped on command — that part will
 feel easy. Then you'll try to drive your car in an exact 12-inch square and a 12-inch-diameter
@@ -40,7 +41,8 @@ more to this same site rather than you building a new one.
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
 | DRV8833 dual H-bridge motor driver breakout | 1 | Drives both DC gearbox motors from PWM logic signals |
 | Emo Smart Robot Car Chassis Kit | 1 | The two motors under test and the chassis they drive |
-| 9V battery clip and 9V battery | 1 each | Separate power for the motors, independent of the Pico's logic power |
+| 9V battery clip and 9V battery | 1 each | Powers the motors (raw, via `VM`) and, through the buck converter, your Pico's own logic power |
+| 5V Buck Converter Module | 1 | Steps the 9V battery down to a regulated 5V for your Pico's `VSYS` power input |
 | Slot Type IR Optocoupler for Motor Speed | 2 | Reads each driven wheel's built-in encoder disc for wheel-odometry tick counting |
 | Breadboard (from Classes 1-2) | 1 | Your existing circuits stay on it, untouched |
 | Dupont jumper wires | ~10 | Point-to-point connections |
@@ -62,7 +64,8 @@ switching circuit (named for its shape — an "H" with the motor as the crossbar
 arranged so flipping which pair is closed reverses current through the motor, without your Pico
 ever sourcing that current itself. The DRV8833 packs two complete H-bridges onto one board — one
 per motor — so your Pico only has to send small logic-level signals to control both motors'
-direction and speed, while a separate 9V battery supplies the actual driving current.
+direction and speed, while a separate 9V battery — also, through a buck converter, your Pico's own
+power — supplies the actual driving current.
 
 **Locked-antiphase control.** The DRV8833 supports a couple of control schemes; this project uses
 **locked-antiphase**, where each motor gets two PWM signal pins (`AIN1`/`AIN2` for Motor A,
@@ -77,9 +80,11 @@ minimum voltage just to overcome friction and start moving at all), gearbox/whee
 voltage sag (a loaded 9V battery delivers less than its rated voltage). That's why this project
 caps throttle with a `MAX_THROTTLE` constant — to limit current draw, not to set a precise speed.
 
-**Why two power sources still need a common ground.** The motors run off their own 9V battery
-(`VM` on the DRV8833), completely separate from the Pico's USB-supplied logic power — this
-protects the Pico from motor electrical noise and current spikes. But the DRV8833's logic pins
+**Why two power sources still need a common ground.** The motors run off the 9V battery's raw,
+unregulated voltage (`VM` on the DRV8833) — separate from your Pico's own power, which now comes
+through a 5V buck converter (`VSYS`) or USB, either regulated to a clean 5V. Keeping the motors on
+the raw, unregulated rail protects your Pico's logic from motor electrical noise and current
+spikes. But the DRV8833's logic pins
 still receive PWM signals measured relative to the Pico's 0V (ground). If the two power supplies
 don't share a common ground, the DRV8833 has no consistent "zero" to measure the Pico's signal
 against, and the logic won't behave reliably even though each supply is individually fine. This is
@@ -133,6 +138,8 @@ network can watch live wheel telemetry with no serial cable at all.
 | `GP17` | Optocoupler B signal out (Motor B wheel) |
 | 9V battery `+` | DRV8833 `VM` (motor power) |
 | 9V battery `-` and Pico `GND` | DRV8833 `GND` (common ground) |
+| 9V battery `+`/`-` | Buck converter IN+/IN− |
+| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` |
 | Pico `3V3` | Both optocouplers `VCC` |
 | Pico `GND` | Both optocouplers `GND` |
 
@@ -155,6 +162,8 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 | DRV8833 `GND` | 9V battery `-` **and** Pico `GND` (common ground) |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
+| Buck converter IN+/IN− | 9V battery `+`/`−` |
+| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
 | Optocoupler A signal out (Motor A wheel) | `GP16` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
@@ -599,6 +608,7 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | A motor spins the wrong direction | Its leads are swapped at `AOUT1`/`AOUT2` (or `BOUT1`/`BOUT2`) | Swap the two leads, or swap that motor's throttle sign in code |
 | Both motors spin the same direction on a "turn" command | Motor B's leads are wired with opposite polarity convention from Motor A | Swap Motor B's leads (or throttle sign) so `+1` means the same physical direction for both |
 | Logic behaves erratically even though wiring looks right | Missing common ground between the 9V circuit and the Pico | Add a jumper from DRV8833 `GND` to Pico `GND` |
+| Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
@@ -627,6 +637,8 @@ odometry, and your own rover status website, without going through the individua
 | DRV8833 `GND` | 9V battery `-` **and** Pico `GND` (common ground) |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
+| Buck converter IN+/IN− | 9V battery `+`/`−` |
+| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
 | Optocoupler A signal out (Motor A wheel) | `GP16` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
@@ -848,8 +860,8 @@ know:
     signals, and why the DRV8833 needs two logic pins per motor (locked-antiphase control)
 * Why PWM duty cycle isn't the same thing as motor speed — stall torque, friction, and voltage sag
     all eat into it
-* Why two separate power supplies (the Pico's logic power and the motors' 9V battery) still need a
-    shared ground reference to work together reliably
+* Why the motors' raw 9V supply and your Pico's regulated 5V power (now from the same battery, via
+    the buck converter) still need a shared ground reference to work together reliably
 * What "open-loop control" (dead reckoning) means, and — from direct experience — why it drifts:
     no wheel/heading feedback to check against, battery voltage sag over time, and wheel slip or
     friction differences between the two motors

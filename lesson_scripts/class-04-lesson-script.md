@@ -6,7 +6,8 @@
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
 * **Before You Start:** Your Class 1-3 circuits (button/encoder, sensor/servo sweep, motor driver)
-    should still be working and stay exactly as they are on your breadboard. You should also have
+    should still be working and stay exactly as they are on your breadboard — including the Class 3
+    buck converter, which keeps powering your Pico's own `VSYS` all Class. You should also have
     Python 3 installed on your laptop from the Pre-Class — this class is the first one that runs
     code on your laptop as well as your Pico. Your Class 3 rover status website (`rover_server.py`)
     should still connect to the classroom WiFi and serve `/data.json` — a quick spot-check, not a
@@ -37,6 +38,7 @@ Class 3's square-and-circle problem on its own.
 | Component | Quantity | Purpose This Project |
 | :---------- | :--------: | :---------------------- |
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
+| 9V battery, clip, and 5V buck converter (from Class 3) | 1 each | Powers your Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
 | LSM9DS1 9-DOF IMU breakout board (STEMMA) | 1 | Measures acceleration and rotation rate |
 | STEMMA QT/Qwiic cable (or Dupont jumpers) | 1 | I2C connection between the Pico and the IMU |
 | Breadboard (from Classes 1-3) | 1 | Your existing circuits stay on it, untouched |
