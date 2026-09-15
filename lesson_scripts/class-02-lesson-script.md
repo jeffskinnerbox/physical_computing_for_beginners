@@ -377,7 +377,8 @@ Save as `code.py`.
 Mount the HC-SR04 onto the servo horn/shaft with double-sided tape before running this.
 
 ```python
-# class-2-code-3.py -- complete sweep-and-report project: HC-SR04 mounted on SG90.
+# class-2-all-code-3.py -- complete sweep-and-report project: HC-SR04 mounted on SG90.
+
 import time
 import board
 import pwmio
@@ -523,9 +524,10 @@ circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
 ### Complete code
 
 ```python
-# class-02-homework-2-code.py - Homework 2: drive the servo directly from the rotary encoder.
-# Turn the knob, the sensor-on-servo rig points wherever you turn it, and
-# distance at that angle prints live. Unlike tonight's auto-sweep, position
+# class-02-homework-2-code.py
+# Homework 2: drive the servo directly from the rotary encoder.
+# Turn the knob, the sensor-on-servo rig points wherever you turn it,
+# and distance at that angle prints live. Unlike tonight's auto-sweep, position
 # is now a live command from the encoder, not a fixed loop. The encoder is
 # read with rotaryio.IncrementalEncoder -- the same pattern used in Class
 # 1's "No Debouncing -- Just the Rotary Encoder" section, where rotaryio's
@@ -678,7 +680,8 @@ much faster to catch now than after you're staring at confusing code output.
 ### Complete code
 
 ```python
-# class-02-homework-3-code.py - Homework 3: ONE sweep per button press (not a forever loop),
+# class-02-homework-3-code.py
+# Homework 3: ONE sweep per button press (not a forever loop),
 # then blink an LED at a rate that reports how close the nearest object
 # was -- fast blink means close, slow blink means clear.
 
@@ -795,10 +798,12 @@ than running both simultaneously.
 ### Complete code
 
 ```python
-# class-02-homework-4-code.py - Homework 4: the angle/distance sweep from tonight, now drawn
+# class-02-homework-4-code.py
+# Homework 4: the angle/distance sweep from tonight, now drawn
 # live on the TFT instead of only printed to the console -- the first time
 # in the course the TFT shows sensor data that changes every loop, not a
 # canned animation or a static message.
+
 import time
 import board
 import busio
@@ -815,6 +820,7 @@ sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
 my_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)
 
+# --- TFT setup -- same wiring and pins as the Pre-Class TFT homework ---
 displayio.release_displays()
 spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
@@ -823,10 +829,11 @@ display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, 
 main_group = displayio.Group()
 display.root_group = main_group
 
+# --- Numeric label above the bar ---
 readout = label.Label(terminalio.FONT, text="Class 2, HW4", color=0xFFFFFF)
 readout.scale = 2
-readout.anchor_point = (0.5, 0.5)
-readout.anchored_position = (display.width // 2, display.height // 2)
+readout.anchor_point = (0.5, 0.0)
+readout.anchored_position = (display.width // 2, 4)
 main_group.append(readout)
 
 SETTLE_TIME = 0.15
@@ -892,11 +899,13 @@ sensors starting in Class 5.
 ### Complete code
 
 ```python
-# code.py - Homework 5: cross-check the sweeping HC-SR04 against a FIXED,
+# class-02-homework-5-code.py
+# Homework 5: cross-check the sweeping HC-SR04 against a FIXED,
 # forward-facing IR obstacle sensor -- flags when both sensors agree
 # something is close near the forward (90 degree) angle, versus when only
 # one does. This is the course's first sensor-fusion / cross-validation
 # exercise, exactly why the Random Rover eventually carries both sensors.
+
 import time
 import board
 import pwmio
@@ -972,7 +981,7 @@ both printed side by side.
 **What this teaches:** Tonight's sweep code uses `time.sleep(SETTLE_TIME)` inside the loop, which
 freezes the *entire* program for that pause — there's no way to interrupt it mid-sweep except
 unplugging the board. This exercise rewrites the sweep using `time.monotonic()` timing instead, so
-the main loop keeps running and stays responsive, and lets the Class 1 pushbutton pause and resume
+the main loop keeps running and stays responsive, and lets the Class 1 push-button pause and resume
 the sweep at whatever angle it's currently at — not just at the end of a cycle. This is your first
 non-blocking loop and your first simple two-state (running/paused) state machine layered on top of
 a loop.
@@ -984,10 +993,12 @@ circuit.
 ### Complete code
 
 ```python
-# code.py - Homework 6: the same sweep-and-report project as tonight, but
+# class-02-homework-6-code.py
+# Homework 6: the same sweep-and-report project as tonight, but
 # rewritten with time.monotonic() timing instead of time.sleep(), so the
-# main loop stays responsive -- and the pushbutton pauses/resumes the sweep
+# main loop stays responsive -- and the push-button pauses/resumes the sweep
 # wherever it currently is, not just at the end of a cycle.
+
 import time
 import board
 import pwmio
@@ -1066,11 +1077,24 @@ in the course a whole set of sensor readings, not just one flag, is exposed to a
 
 ### Complete code
 
+Set your SSID & Password for the webserver:
+
+```toml
+# settings.toml — save this on CIRCUITPY, next to code.py
+# WiFi credentials for the Pico's own access point (not your home WiFi)
+CIRCUITPY_WIFI_AP_SSID="<your-name>"
+CIRCUITPY_WIFI_AP_PASSWORD="password"   # must be at least 8 characters — WiFi requirement, not a suggestion
+```
+
+Program for the webserver:
+
 ```python
-# code.py - Homework 7: the Pico becomes its own WiFi access point and
+# class-02-homework-7-code.py
+# Homework 7: the Pico becomes its own WiFi access point and
 # serves a live table of the most recent full sweep's angle/distance pairs
 # -- the first time sensor DATA (not just an on/off flag) is published over
 # the web, reusing the WiFi AP pattern from the Pre-Class homework.
+
 import time
 import board
 import pwmio
@@ -1165,12 +1189,25 @@ takes further as a stretch goal in Class 6.
 
 ### Complete code
 
+Set your SSID & Password for the webserver:
+
+```toml
+# settings.toml — save this on CIRCUITPY, next to code.py
+# WiFi credentials for the Pico's own access point (not your home WiFi)
+CIRCUITPY_WIFI_AP_SSID="<your-name>"
+CIRCUITPY_WIFI_AP_PASSWORD="password"   # must be at least 8 characters — WiFi requirement, not a suggestion
+```
+
+Program for the webserver:
+
 ```python
-# code.py - Homework 8: combines Homework 2 and Homework 7 -- a webpage
+# class-02-homework-8-code.py
+# Homework 8: combines Homework 2 and Homework 7 -- a webpage
 # sets the servo's target angle over WiFi, and the same page shows the
 # distance reading at wherever the servo is currently pointed. Full
 # closed-loop remote control and feedback through a browser, no laptop
 # cable needed -- a step toward Class 6's remote-monitoring stretch goal.
+
 import board
 import pwmio
 import wifi
@@ -1291,3 +1328,6 @@ Also see the "References & Resources" document in <https://github.com/jeffskinne
 [37]:https://howtomechatronics.com/tutorials/arduino/ultrasonic-sensor-hc-sr04/
 [38]:https://www.hackster.io/chip-pk/sg90-servo-motor-interfacing-with-arduino-complete-beginner-849eef
 [39]:class-01-lesson-script.md#the-code---no-debouncing---just-the-rotary-encoder
+
+
+

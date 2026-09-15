@@ -20,7 +20,7 @@ Sources:
 * [How to Write Readable Python Functions Even If You’re a Beginner][01]
 * [How to Write Efficient Python Code Even If You’re a Beginner][02]
 * [How To Write Efficient Python Code: A Tutorial for Beginners][03]
-
+* [7 Python Best Practices Senior Developers Follow (That Beginners Often Miss)](https://www.kdnuggets.com/7-python-best-practices-senior-developers-follow-that-beginners-often-miss)
 ----
 
 ## Write Pythonic Code
@@ -771,6 +771,26 @@ then joins them all at once at the end.
 This avoids creating and destroying multiple intermediate string objects.
 This pattern becomes particularly important when building long strings iteratively,
 such as when generating reports, concatenating file contents, or building large XML or HTML documents.
+
+----
+
+## Best Practices Senior Developers Follow
+
+### Passing Dependencies In Instead of Hiding Them
+Code is easier to test and to replace when the caller can see which collaborator it needs.
+
+### Letting Context Managers Own Resource Cleanup
+
+### Giving Every External Wait a Deadline
+An unbounded `await` is an undeclared failure mode, and most network calls ship with one by default.
+
+### Logging Events With the Context Needed to Investigate Them
+
+### Testing the Failure Contract, Not Only the Happy Path
+
+### Treating Package Metadata as Part of the Code Contract
+
+### Deprecating Public Behavior Before You Delete It
 
 ----
 

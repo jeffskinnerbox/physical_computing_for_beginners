@@ -151,23 +151,28 @@ network can watch live wheel telemetry with no serial cable at all.
 This is the complete wiring for the whole project, including the two optocouplers you'll mount and
 use starting in Phase 3 — nothing changes for Phase 2, 3, or 4. You can wire the optocouplers now
 too, but leave them unmounted at each wheel until Phase 3, once you've counted each disc's slots.
+* [Raspberry Pi Pico 2w Pinout][20]
+* [SG90 Servo Pinout][38]
+* [HC-SR04 Pinout][37]
+* [DRV8833 DC/Stepper Motor Driver Pinout][39]
+* [Slot Type IR Optocoupler][40]
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
+| Buck converter IN+/IN− | 9V battery `+`/`−` |
+| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
 | DRV8833 `AIN1` (Motor A) | `GP9` |
 | DRV8833 `AIN2` (Motor A) | `GP10` |
 | DRV8833 `BIN1` (Motor B) | `GP11` |
 | DRV8833 `BIN2` (Motor B) | `GP12` |
-| DRV8833 `VM` (motor power) | 9V battery `+` |
-| DRV8833 `GND` | 9V battery `-` **and** Pico `GND` (common ground) |
+| DRV8833 `VM` (motor power, `+` green post) | 9V battery `+` |
+| DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` (common ground) |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
-| Buck converter IN+/IN− | 9V battery `+`/`−` |
-| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
-| Optocoupler A signal out (Motor A wheel) | `GP16` |
-| Optocoupler B signal out (Motor B wheel) | `GP17` |
-| Both optocouplers `VCC` | Pico `3V3` |
-| Both optocouplers `GND` | Pico `GND` |
+| Optocoupler Motor A wheel `DO` | `GP16` |
+| Optocoupler Motor B wheel `DO` | `GP17` |
+| Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` |
+| Both Slot Type IR Optocoupler `GND` | Pico `GND` (common ground) |
 
 Your Class 1 and Class 2 circuits stay exactly where they are on the breadboard. Before writing
 any code, trace this wiring out loud, and specifically confirm the Pico's `GND` is jumpered to the
@@ -256,7 +261,9 @@ def stop():
 Now save this second file as `code.py`, replacing whatever was there before, to test the library:
 
 ```python
+# class-3-phase-1-code.py -- save as code.py
 # Scratch test script for motor_driver.py -- exercises forward/reverse/turn/stop.
+
 import time
 import motor_driver
 
@@ -612,6 +619,7 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
+| `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
@@ -920,3 +928,10 @@ Add the following:
 [06]:https://articulatedrobotics.xyz/mobile-robot-8-odometry/
 [07]:https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/
 [08]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
+
+[20]:https://pico2w.pinout.xyz/
+[37]:https://howtomechatronics.com/tutorials/arduino/ultrasonic-sensor-hc-sr04/
+[38]:https://www.hackster.io/chip-pk/sg90-servo-motor-interfacing-with-arduino-complete-beginner-849eef
+[39]:https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board/pinouts
+[40]:https://www.handsontec.com/dataspecs/sensor/Slot%20IR%20Detector.pdf
+

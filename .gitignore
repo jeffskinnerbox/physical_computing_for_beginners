@@ -27,7 +27,7 @@
 
 
 ### --------------------------- Project Specific --------------------------- ###
-*.bak
+*.bak*
 *.pdf
 expenses/
 communications/registration.md

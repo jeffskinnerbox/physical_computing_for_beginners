@@ -198,7 +198,9 @@ part of the course budget above.
 [12]:https://www.amazon.com/LampVPath-Battery-Connector-Plastic-Housing/dp/B079HY8DD9?th=1
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1
 [16]:https://www.amazon.com/dp/B0FTF8P9DQ
-[18]:https://www.amazon.com/Connector-Solderless-Multicolor-Electronic-Breadboard/dp/B09FPGT7JT/?th=1
+
+
+[18]:https://www.amazon.com/Connector-Solde
 [19]:https://www.amazon.com/Invisible-Mounting-Double-Sided-Permanent-Classroom/dp/B07LFRN1K8/
 [20]:https://circuitpython.org/board/raspberry_pi_pico2_w/
 [21]:https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor
