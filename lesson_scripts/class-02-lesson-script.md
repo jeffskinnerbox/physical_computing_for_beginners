@@ -121,7 +121,7 @@ Before writing any code, trace this new wiring out loud.
 >    |               ^
 > 2K ohms        3.3 volts
 >    |
->   GRD
+>   GND
 >```
 
 ### What this code does
