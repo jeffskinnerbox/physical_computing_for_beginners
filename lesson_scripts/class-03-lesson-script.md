@@ -91,6 +91,24 @@ against, and the logic won't behave reliably even though each supply is individu
 why the wiring table below includes a Pico-to-DRV8833 ground jumper even though the motors have
 their own separate battery.
 
+**Why `nSLEEP` needs its own jumper.** The DRV8833 has a chip-enable pin, `nSLEEP`, that must be
+held HIGH for the chip to respond to any PWM input at all — pulled LOW (or left floating), it stays
+in a low-power sleep state and silently ignores everything on `AIN1`/`AIN2`/`BIN1`/`BIN2`. The
+Adafruit breakout used in this project has **no onboard pull-up resistor** on this pin, so it must
+be wired to a HIGH source explicitly. Tying it straight to Pico `3V3` is enough for this project,
+since nothing here needs to put the driver to sleep from code. Skipping this jumper produces a
+distinctive symptom: your code runs and prints normally, but the motors never move at all — as if
+the Pico were disconnected from the DRV8833 entirely.
+
+One tradeoff of tying `nSLEEP` permanently to `3V3`: the DRV8833 also uses this same pin's LOW→HIGH
+transition to clear a **latched fault**. Both H-bridges on the chip share one overcurrent/thermal
+protection circuit — if either motor draws an excessive current spike (for example, a jammed or
+mechanically stalled wheel), the chip disables *both* channels at once and leaves them disabled
+until the fault is cleared. With `nSLEEP` hardwired high, there's no code-level way to cycle it, so
+a latched fault shows up as *both* motors suddenly going dead — even a motor that was working fine
+moments earlier — and the only fix is to power-cycle the DRV8833 itself (unplug and reseat the 9V
+battery, or briefly disconnect and reconnect the `nSLEEP` jumper).
+
 **Slot Type IR Optocoupler (wheel-speed sensor).** Each optocoupler module is a small IR LED and
 phototransistor facing each other across a slot, plus an onboard LM393 comparator chip. Your
 chassis kit's wheel already has an encoder disc with alternating slots and teeth molded around its
@@ -134,6 +152,7 @@ network can watch live wheel telemetry with no serial cable at all.
 | `GP10` | DRV8833 `AIN2` (Motor A) |
 | `GP11` | DRV8833 `BIN1` (Motor B) |
 | `GP12` | DRV8833 `BIN2` (Motor B) |
+| Pico `3V3` | DRV8833 `nSLEEP` (must be tied HIGH — no onboard pull-up) |
 | `GP16` | Optocoupler A signal out (Motor A wheel) |
 | `GP17` | Optocoupler B signal out (Motor B wheel) |
 | 9V battery `+` | DRV8833 `VM` (motor power) |
@@ -157,27 +176,29 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 * [DRV8833 DC/Stepper Motor Driver Pinout][39]
 * [Slot Type IR Optocoupler][40]
 
-| Component | Pico 2 W Pin |
-| :---------- | :------------- |
-| Buck converter IN+/IN− | 9V battery `+`/`−` |
-| Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
-| DRV8833 `AIN1` (Motor A) | `GP9` |
-| DRV8833 `AIN2` (Motor A) | `GP10` |
-| DRV8833 `BIN1` (Motor B) | `GP11` |
-| DRV8833 `BIN2` (Motor B) | `GP12` |
-| DRV8833 `VM` (motor power, `+` green post) | 9V battery `+` |
-| DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` (common ground) |
-| DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
-| DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
-| Optocoupler Motor A wheel `DO` | `GP16` |
-| Optocoupler Motor B wheel `DO` | `GP17` |
-| Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` |
-| Both Slot Type IR Optocoupler `GND` | Pico `GND` (common ground) |
+| Component | Pico 2 W Pin | Notes |
+| :---------- | :------------- |:----------|
+| Buck converter `IN+`/`IN−` | 9V battery `+`/`−` | |
+| Buck converter `OUT+`/`OUT−` | Pico `VSYS` / `GND` | make sure this is a common `GND` |
+| DRV8833 `AIN1` (Motor A) | `GP9` | |
+| DRV8833 `AIN2` (Motor A) | `GP10` | |
+| DRV8833 `BIN1` (Motor B) | `GP11` | |
+| DRV8833 `BIN2` (Motor B) | `GP12` | |
+| DRV8833 `SLP` | Pico `3V3` or `5V` | must be tied HIGH, see Adafruit documentation |
+| DRV8833 `VM` (motor power, `+` green post) | 9V battery `+` | |
+| DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` | make sure this is a common `GND` |
+| DRV8833 `AOUT1`/`AOUT2` | Motor A leads | |
+| DRV8833 `BOUT1`/`BOUT2` | Motor B leads | |
+| Optocoupler Motor A wheel `DO` | `GP16` | |
+| Optocoupler Motor B wheel `DO` | `GP17` | |
+| Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` | |
+| Both Slot Type IR Optocoupler `GND` | Pico `GND` | make sure this is a common `GND` |
 
 Your Class 1 and Class 2 circuits stay exactly where they are on the breadboard. Before writing
-any code, trace this wiring out loud, and specifically confirm the Pico's `GND` is jumpered to the
-DRV8833's `GND` — a missing common ground is the wiring mistake that produces the most confusing
-symptoms later (logic that "sort of" works, or works intermittently).
+any code, trace this wiring out loud, and specifically confirm two things: the Pico's `GND` is
+jumpered to the DRV8833's `GND` (a missing common ground produces logic that "sort of" works, or
+works intermittently), and `SLP`/`nSLEEP` is jumpered to Pico `3V3` (a missing `SLP`/`nSLEEP` jumper produces
+code that runs and prints normally while the motors never move at all).
 
 ### What this code does
 
@@ -269,17 +290,20 @@ import motor_driver
 
 print("Class 3, Phase 1 -- motor driver test starting...")
 
-print("forward")
+# both motors half speed forward for 2 seconds
+print("both wheels forward")
 motor_driver.drive(0.5, 0.5)
-time.sleep(1)
+time.sleep(2)
 
-print("reverse")
+# both motors half speed reverse for 2 seconds
+print("both wheels reverse")
 motor_driver.drive(-0.5, -0.5)
-time.sleep(1)
+time.sleep(2)
 
-print("turn (left wheel back, right wheel forward)")
+# left wheel A backward, right wheel B forward,both wheels half speed reverse for 2 seconds
+print("turn (left wheel A backward, right wheel B forward)")
 motor_driver.drive(-0.5, 0.5)
-time.sleep(1)
+time.sleep(2)
 
 print("stop")
 motor_driver.stop()
@@ -610,12 +634,15 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
 | Neither motor spins | `VM` not connected to the 9V battery, or the battery is dead | Check battery voltage; confirm `VM` and battery `GND` wiring |
+| Neither motor spins, but the serial console prints `forward`/`reverse`/`turn`/`stop` normally | DRV8833 `nSLEEP` pin is floating — the Adafruit breakout has no onboard pull-up, so the chip stays asleep and ignores all PWM input even though the Pico is sending correct signals | Jumper `nSLEEP` to Pico `3V3` |
 | One motor doesn't spin | Loose wire on a DRV8833 output pin, or a dead motor | Reseat jumper wires; swap in a spare motor to isolate the fault |
 | Both motors spin but the car barely moves | `MAX_THROTTLE` set too low, or wheels aren't touching the floor | Raise `MAX_THROTTLE` in small steps; confirm the chassis is set down properly |
 | A motor spins the wrong direction | Its leads are swapped at `AOUT1`/`AOUT2` (or `BOUT1`/`BOUT2`) | Swap the two leads, or swap that motor's throttle sign in code |
 | Both motors spin the same direction on a "turn" command | Motor B's leads are wired with opposite polarity convention from Motor A | Swap Motor B's leads (or throttle sign) so `+1` means the same physical direction for both |
+| One motor goes dead on a specific command (e.g. reverse), then a *previously-working* motor also goes dead on the next command | A latched DRV8833 fault — a current spike on one motor (jammed wheel, shorted output leads) tripped the chip's shared overcurrent/thermal protection, which disables both H-bridges at once until cleared | Check the failing motor for mechanical binding and shorted `AOUT`/`BOUT` leads, then power-cycle the DRV8833 (reseat the 9V battery, or briefly disconnect/reconnect the `nSLEEP` jumper) before retesting |
 | Logic behaves erratically even though wiring looks right | Missing common ground between the 9V circuit and the Pico | Add a jumper from DRV8833 `GND` to Pico `GND` |
 | Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
+| Works fine over USB, but fails and the optocoupler LED flickers when running off the 9V battery alone | Voltage sag/brownout on the shared battery: motor startup current spikes drag down the 9V battery's own voltage, which drags down the buck converter's output feeding the Pico's `VSYS`/`3V3` rail (the optocoupler LED runs off `3V3`, so its flicker is really the Pico's logic power dipping) | Try a fresh 9V battery first; if flicker persists, measure the buck converter's output with a multimeter while the motors run, and add a bulk capacitor (470-1000uF electrolytic) across `VM`/`GND` at the DRV8833 to buffer motor current spikes |
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
@@ -641,6 +668,7 @@ odometry, and your own rover status website, without going through the individua
 | DRV8833 `AIN2` (Motor A) | `GP10` |
 | DRV8833 `BIN1` (Motor B) | `GP11` |
 | DRV8833 `BIN2` (Motor B) | `GP12` |
+| DRV8833 `nSLEEP` | Pico `3V3` (must be tied HIGH — no onboard pull-up) |
 | DRV8833 `VM` (motor power) | 9V battery `+` |
 | DRV8833 `GND` | 9V battery `-` **and** Pico `GND` (common ground) |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads |
@@ -892,8 +920,7 @@ measurement unit) starts to address. That's next class, and it'll show up on thi
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
-[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
-does, full commented code, and real-world examples).
+[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code does, full commented code, and real-world examples).
 
 Add the following:
 * watchdog timer - [CircuitPython Watchdog Module](https://learn.adafruit.com/circuitpython-watchdog-module)
