@@ -117,6 +117,15 @@ LM393 comparator turns that raw interruption into a clean digital HIGH/LOW pulse
 needed the way your Class 1 switch/encoder needed it, since this is a much faster, cleaner signal
 straight off a comparator chip, not a noisy mechanical contact.
 
+**Why the optocouplers land on `GP17`/`GP19`, not `GP16`.** The RP2040/RP2350 chip has no dedicated
+pulse-counter peripheral, so CircuitPython's `countio.Counter` is implemented using the chip's PWM
+hardware in an edge-counting mode — and that mode only works on a PWM **Channel B** pin. Pico GPIO
+pins alternate PWM channel in pairs: even-numbered GPIOs (`GP16`, `GP18`, ...) are Channel A, and
+odd-numbered GPIOs (`GP17`, `GP19`, ...) are Channel B. Trying `countio.Counter` on an even/Channel-A
+pin like `GP16` raises `RuntimeError: Pin must be on PWM Channel B` — that's why this project uses
+`GP17` and `GP19` (both odd/Channel B) for the two optocouplers instead of the more obvious
+consecutive pair `GP16`/`GP17`.
+
 Turning a pulse train into a speed is a short chain of math: count pulses ("ticks") from one
 optocoupler over a fixed time window, divide by `SLOTS_PER_REV` (how many slots you counted on the
 disc by hand) to get revolutions in that window, multiply by the wheel's circumference
@@ -153,7 +162,7 @@ network can watch live wheel telemetry with no serial cable at all.
 | `GP11` | DRV8833 `BIN1` (Motor B) |
 | `GP12` | DRV8833 `BIN2` (Motor B) |
 | Pico `3V3` | DRV8833 `nSLEEP` (must be tied HIGH — no onboard pull-up) |
-| `GP16` | Optocoupler A signal out (Motor A wheel) |
+| `GP19` | Optocoupler A signal out (Motor A wheel) — must be a PWM Channel B (odd) pin, see note below |
 | `GP17` | Optocoupler B signal out (Motor B wheel) |
 | 9V battery `+` | DRV8833 `VM` (motor power) |
 | 9V battery `-` and Pico `GND` | DRV8833 `GND` (common ground) |
@@ -163,7 +172,7 @@ network can watch live wheel telemetry with no serial cable at all.
 | Pico `GND` | Both optocouplers `GND` |
 
 
-## 4. Build It: Phase 1 — Motor Driver Library and Basic Test
+## 4. Build It: Phase 1 — Motor Driver Library and Basic Test - DONE
 
 ### Wiring for this phase
 
@@ -173,7 +182,7 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 * [Raspberry Pi Pico 2w Pinout][20]
 * [SG90 Servo Pinout][38]
 * [HC-SR04 Pinout][37]
-* [DRV8833 DC/Stepper Motor Driver Pinout][39]
+* [Adafruit DRV8833 DC/Stepper Motor Driver Pinout][39]
 * [Slot Type IR Optocoupler][40]
 
 | Component | Pico 2 W Pin | Notes |
@@ -189,16 +198,21 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 | DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` | make sure this is a common `GND` |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads | |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads | |
-| Optocoupler Motor A wheel `DO` | `GP16` | |
+| Optocoupler Motor A wheel `DO` | `GP19` | must be a PWM Channel B (odd-numbered) pin, see Section 3 |
 | Optocoupler Motor B wheel `DO` | `GP17` | |
 | Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` | |
 | Both Slot Type IR Optocoupler `GND` | Pico `GND` | make sure this is a common `GND` |
+| 1000uF electrolytic capacitor `+` on DRV8833 `VM` | does not apply | optional to reduce current spike from motors |
+| same capacitor `-` on `GND` | does not apply |  make sure this is a common `GND` |
 
-Your Class 1 and Class 2 circuits stay exactly where they are on the breadboard. Before writing
-any code, trace this wiring out loud, and specifically confirm two things: the Pico's `GND` is
-jumpered to the DRV8833's `GND` (a missing common ground produces logic that "sort of" works, or
-works intermittently), and `SLP`/`nSLEEP` is jumpered to Pico `3V3` (a missing `SLP`/`nSLEEP` jumper produces
-code that runs and prints normally while the motors never move at all).
+Before writing any code, trace this wiring out loud, and specifically confirm two things:
+1. The Pico's `GND` is jumpered to the DRV8833's `GND`.
+1. DRV8833 `SLP` isjumpered to Pico `3V3`
+
+>**NOTE:** Make sure to create a commond ground (aka `GND`).
+>A missing common ground produces logic that "sort of" works, or works intermittently.<br>
+>**NOTE:** Make sure you have the DRV8833 `SLP`/`nSLEEP` jumpered to Pico `3V3`.
+>A missing `SLP`/`nSLEEP` jumper produces code that runs and prints normally while the motors never move at all.
 
 ### What this code does
 
@@ -325,7 +339,7 @@ Confirm: `drive(0.5, 0.5)` moves both wheels forward together, `drive(-0.5, -0.5
 together, and `drive(-0.5, 0.5)` spins the wheels in opposite directions (a turn-in-place).
 `stop()` should halt both wheels immediately.
 
-## 5. Build It: Phase 2 — Attempt the Square and Circle
+## 5. Build It: Phase 2 — Attempt the Square and Circle - DONE
 
 ### Wiring for this phase
 
@@ -347,7 +361,7 @@ Save this as `code.py`, replacing Phase 1's scratch test script. `motor_driver.p
 drive unchanged — this new file imports it.
 
 ```python
-# class-3-phase-2-code.py
+# class-3-phase-2-code.py -- save as code.py
 # Phase 2: attempt a 12" square and a 12"-diameter circle -- open-loop, timed moves only.
 
 import time
@@ -363,6 +377,7 @@ SECONDS_PER_INCH = 0.09        # calibrate: time a measured straight run, divide
 SECONDS_PER_90_DEGREES = 0.4   # calibrate: time a measured 90-degree turn
 
 
+# drive straight forward
 def drive_straight(inches):
     print("move: straight", inches, "in")
     motor_driver.drive(SPEED, SPEED)
@@ -370,6 +385,7 @@ def drive_straight(inches):
     motor_driver.stop()
 
 
+# turn 90 degrees left
 def turn_90():
     print("move: turn 90 deg")
     motor_driver.drive(-SPEED, SPEED)
@@ -377,6 +393,7 @@ def turn_90():
     motor_driver.stop()
 
 
+# drive in a square
 def drive_square(side_inches=12):
     print("attempt: square, side", side_inches, "in")
     for _ in range(4):
@@ -387,6 +404,7 @@ def drive_square(side_inches=12):
     print("attempt: square complete")
 
 
+# drive in a circle
 def drive_circle(diameter_inches=12):
     # Approximate a circle as many short straight segments, each followed
     # by a small turn -- like walking a circle by taking short steps and
@@ -415,8 +433,10 @@ drive_circle(12)
 Your car should complete a full attempted square and a full attempted circle without you touching
 anything, printing a status line for each individual move as it happens. The shape it traces will
 almost certainly *not* be a clean 12-inch square or circle — corners may not be square, sides may
-be different lengths, the circle may be lopsided. That's expected. Ask yourself: you told it to go
-exactly 12 inches — what did it actually do, and why might that be?
+be different lengths, the circle may be lopsided. That's expected.
+
+Ask yourself: you told it to go exactly 12 inches.
+What did it actually do, and why might that be?
 
 ### Checkpoint
 
@@ -435,7 +455,7 @@ that count in a moment.
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
-| Optocoupler A signal out (Motor A wheel) | `GP16` |
+| Optocoupler A signal out (Motor A wheel) | `GP19` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
 | Both optocouplers `GND` | Pico `GND` |
@@ -443,7 +463,7 @@ that count in a moment.
 ### What this code does
 
 `wheel_odometry.py` is a second library file, saved alongside `motor_driver.py` — it doesn't run on
-its own either. It uses the built-in `countio` module to count optocoupler pulses on `GP16`/`GP17`
+its own either. It uses the built-in `countio` module to count optocoupler pulses on `GP19`/`GP17`
 over a short sampling window (`SAMPLE_SECONDS`), converts that tick count to a wheel speed in cm/s
 using `SLOTS_PER_REV` and the 67mm wheel diameter (see Section 3's math walkthrough), and pairs each
 wheel's speed with `motor_driver`'s last-commanded direction for that same wheel — since, as Section
@@ -453,40 +473,54 @@ Before this will read correctly, set `SLOTS_PER_REV` below to the number of slot
 hand on your own wheel's disc — the value shown is a placeholder, not a measurement.
 
 ### The code
-
-Save this as `wheel_odometry.py` on your `CIRCUITPY` drive.
+You will use `motor_driver.py` from the previous phase.
+It stays on the `CIRCUITPY` drive unchanged.
+Save this as `wheel_odometry.py` on your `CIRCUITPY` drive and it will import `motor_driver.py`.
 
 ```python
 # class-3-phase-3-wheel_odometry.py -- save as wheel_odometry.py
-# Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP16/GP17,
+# Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP19/GP17,
 # direction borrowed from motor_driver's last-commanded state.
 
 import time
 import board
-import countio
-import motor_driver
+import countio            # library for counting slots in IR optocouplers
+import motor_driver       # imports the file you created in phase 1
 
-WHEEL_DIAMETER_MM = 67
-SLOTS_PER_REV = 20  # count your own wheel's encoder disc slots by hand and set this
-WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
-SAMPLE_SECONDS = 0.25  # sampling window for one speed reading
+WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
+SLOTS_PER_REV = 20        # count your own wheel's encoder disc slots by hand and set this
+SAMPLE_SECONDS = 0.25     # sampling window for one speed reading
+WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05
+WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # fraction of circumference per slot = 1.05 centimeters
+TICKS_PER_CM = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # ticks per centimeter = 4.21
 
-counter_a = countio.Counter(board.GP16)  # Motor A wheel
-counter_b = countio.Counter(board.GP17)  # Motor B wheel
+counter_a = countio.Counter(board.GP19)  # slot counter for Motor A wheel -- must be a PWM Channel B pin
+counter_b = countio.Counter(board.GP17)  # slot counter for Motor B wheel
 
-
+# Derivation of Formula
+# revolutions = ticks / SLOTS_PER_REV
+# ticks_to_cms = (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+#              = ((ticks / SLOTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+#              = ticks * (WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV) / SAMPLE_SECONDS
 def _ticks_to_cms(ticks):
-    """Convert a tick count, taken over SAMPLE_SECONDS, to a speed in cm/s."""
+    """Convert a wheel's tick count, taken over SAMPLE_SECONDS, to a speed in cm/s."""
     revolutions = ticks / SLOTS_PER_REV
     return (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+    # return ticks / TICKS_PER_CM
 
 
 def read_speed():
     """Sample both optocouplers over SAMPLE_SECONDS; return
     (speed_left_cms, dir_left, speed_right_cms, dir_right)."""
+
+    # initialize slot count
     counter_a.count = 0
     counter_b.count = 0
+
+    # sleep and let slot count accumulate
     time.sleep(SAMPLE_SECONDS)
+
+  # get the counts and convert to centimeters per second (speed)
     speed_left = _ticks_to_cms(counter_a.count)
     speed_right = _ticks_to_cms(counter_b.count)
     return (speed_left, motor_driver.last_direction_a,
@@ -496,6 +530,7 @@ def read_speed():
 Test it with a short scratch `code.py` that drives forward and prints `read_speed()` each cycle:
 
 ```python
+# class-3-phase-3-code.py -- save as code.py
 # Scratch test script for wheel_odometry.py.
 import motor_driver
 import wheel_odometry
@@ -647,6 +682,7 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
+| `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` runs | `countio.Counter` is implemented using the RP2040/RP2350's PWM edge-counting hardware, which only works on a PWM Channel B (odd-numbered) GPIO — `GP16` is Channel A and will always raise this | Use `GP19` (or another unused odd-numbered GPIO) instead of `GP16` for the Motor A optocoupler, both in wiring and in `wheel_odometry.py`'s `counter_a = countio.Counter(board.GP19)` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
@@ -675,7 +711,7 @@ odometry, and your own rover status website, without going through the individua
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
 | Buck converter IN+/IN− | 9V battery `+`/`−` |
 | Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
-| Optocoupler A signal out (Motor A wheel) | `GP16` |
+| Optocoupler A signal out (Motor A wheel) | `GP19` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
 | Both optocouplers `GND` | Pico `GND` |
@@ -753,7 +789,7 @@ SLOTS_PER_REV = 20  # count your own wheel's encoder disc slots by hand and set 
 WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
 SAMPLE_SECONDS = 0.25
 
-counter_a = countio.Counter(board.GP16)
+counter_a = countio.Counter(board.GP19)  # must be a PWM Channel B pin
 counter_b = countio.Counter(board.GP17)
 
 
