@@ -73,6 +73,8 @@ with N20 geared motors.
 * Explain why open-loop "dead reckoning" movement (timed, uncorrected motor moves) drifts off target
 * Measure each wheel's real speed with an IR optocoupler and explain what that reading does and does
   not tell you (it catches slip/stall, but not which way the wheel is turning or the rover's heading)
+* (Stretch) Explain how feedback control lets a car correct its own path — measure both wheels, compare,
+  and adjust — and why matching wheel speeds still doesn't guarantee driving straight
 
 **Design & Problem-Solving**
 
@@ -146,7 +148,7 @@ with N20 geared motors.
 * Windows 11 laptop, one per student (no sharing)
 * At least one free USB port for the Pico 2 W
 * Internet access for downloading software and researching projects
-* Starting Class 3, laptop WiFi on the Makersmiths classroom network to reach the Pico's status website
+* Starting Class 3, laptop WiFi able to join the Pico's own network (the Pico broadcasts it — no classroom network needed) to reach the Pico's status website; the laptop loses normal internet access while joined
 
 See the course **Bill of Materials** for full pricing, sourcing links, and purchase quantities.
 
@@ -240,6 +242,9 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Discuss: does knowing each wheel's real speed fix the square/circle drift from the first talking
   point above? It catches slip/stall, but says nothing about heading — that gap isn't closed until
   the Class 4 IMU
+* (Stretch) Make the car drive straight: no two motors are identical, so equal throttle makes it
+  curve — use the wheel-speed readings to compare the two wheels and nudge the faster one down
+  (closed-loop feedback), and measure the sideways drift with and without it
 * **Milestone:** Car reliably drives a 12-inch square and a 12-inch-diameter circle, with live
   wheel-speed telemetry visible on the terminal and on the Pico's own status webpage
 

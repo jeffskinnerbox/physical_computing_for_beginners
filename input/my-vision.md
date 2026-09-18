@@ -323,14 +323,27 @@ Tips for Students:
   built as a small, reusable base (a JSON data route plus a simple HTML page) so that Classes 4, 5, and 6 can
   each add more fields to the same site (IMU orientation, ultrasonic/IR/bump-switch status, and eventually a
   rolling history chart) instead of building a new server from scratch every class.
+
+  Optional stretch, for students who finish early: the car will curve on a "straight" run even at equal
+  throttle, because no two motors are identical &mdash; equal throttle is not equal speed, and open-loop code
+  can't see the difference. Using the wheel-speed readings just built, students close the loop: each cycle
+  read both wheels, compare them, and nudge the *faster* wheel's throttle down (small, accumulated nudges, so
+  one-tick measurement noise of about 4 cm/s doesn't make the car snake) until the two match. Students measure
+  sideways drift on a taped line with and without feedback. This is closed-loop (feedback) control, the
+  counterpart to the open-loop dead reckoning used for the square/circle &mdash; and its limit sets up Class 4:
+  wheels that turn at the same speed do not guarantee the car goes straight (a slipping wheel still veers it),
+  which needs a heading sensor.
 * **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`, a 5V buck converter
-  feeding the Pico's own `VSYS` power, and `GP16`/`GP17` for the two wheel optocouplers &mdash; `GP16` on the Motor A
-  wheel, `GP17` on the Motor B wheel) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
+  feeding the Pico's own `VSYS` power, the DRV8833's `nSLEEP` pin jumpered to `3V3` (the Adafruit breakout has no
+  onboard pull-up), and `GP19`/`GP17` for the two wheel optocouplers &mdash; `GP19` on the Motor A wheel, `GP17` on
+  the Motor B wheel; both must be odd-numbered PWM Channel B pins because `countio.Counter` on the RP2040/RP2350
+  only counts on Channel B, so `GP16` cannot be used) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
   server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
   and make the car drive in a 12 inch square and a 12 inch diameter circle.
   Then add wheel odometry so real, measured wheel speed and direction &mdash; not just what was commanded &mdash;
   can be watched live in the serial terminal and on a webpage served by the Pico itself.
+  (Stretch: make the car drive straight using that wheel-speed feedback.)
 * **Talking Points**:
   * First, make it move in a square & circle of any random size. Is this easy?
     Now make it move in a 12 inch square and a 12 inch diameter circle. This is harder? Why ... What is missing? How can the fix this?
@@ -338,6 +351,10 @@ Tips for Students:
   * Now that wheel odometry exists, revisit that list: does knowing each wheel's actual speed fix *all* of it?
     It catches slip/stall (a wheel spinning slower than commanded, or not at all) but says nothing about
     heading/orientation &mdash; that gap isn't closed until the Class 4 IMU.
+  * (Stretch) Why does the car curve when both motors get the same throttle? What does the car need in
+    order to notice and correct that itself &mdash; and why slow the *faster* wheel rather than speed up the
+    slower one (`MAX_THROTTLE` headroom)? Why must the correction be small (measurement noise)? And what
+    does matching wheel speeds still not guarantee (a slipping wheel; heading &mdash; see Class 4)?
   * A single slotted optocoupler gives you a pulse train, not a direction arrow &mdash; why does counting slots
     alone leave "which way is it turning" unanswered, and why is "ask the motor driver what it was last told
     to do" a reasonable (if imperfect) stand-in for a true quadrature sensor?
@@ -351,7 +368,9 @@ Tips for Students:
 * **Features/Capabilities**: Print a discrete status message to the terminal each time a move happens
   (forward, reverse, stop, square/circle attempt). Once wheel odometry is added, also stream each wheel's
   live speed (cm/s) and direction to the terminal and to a Pico-hosted webpage (`/data.json` plus a simple
-  HTML view), the first version of a rover status site that grows through Class 6.
+  HTML view), the first version of a rover status site that grows through Class 6. (Stretch) A
+  wheel-feedback straight-drive routine that evens out the two wheels' speeds, printing each wheel's speed
+  and the applied trim as it runs.
 * **Course Pseudocode**:
   * [`class-3-code-1.py`](./class-3-code-1.py) &mdash; motor driver test library (save as `motor_driver.py`).
     Motor A: `AIN1`/`AIN2` on `GP9`/`GP10`; Motor B: `BIN1`/`BIN2` on `GP11`/`GP12`. Uses
@@ -362,13 +381,15 @@ Tips for Students:
     yet). `SPEED`, `SECONDS_PER_INCH`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
     the resulting drift is the built-in prompt for the "what is missing?" discussion.
   * [`class-3-code-3.py`](./class-3-code-3.py) &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
-    unchanged through Class 6. Optocoupler A on `GP16`, optocoupler B on `GP17`, both digital inputs counted
+    unchanged through Class 6. Optocoupler A on `GP19`, optocoupler B on `GP17`, both digital inputs counted
     via interrupt/counter. `WHEEL_DIAMETER_MM = 67`, `SLOTS_PER_REV` must be measured/calibrated per robot
     (count the encoder disc's slots). Exposes `read_speed()` returning `(speed_left_cms, dir_left,
     speed_right_cms, dir_right)`; direction for each wheel comes from the last direction argument passed to
     `motor_driver.drive()` for that channel, not from the optocoupler alone (see Talking Points).
   * [`class-3-code-4.py`](./class-3-code-4.py) &mdash; Pico-hosted rover status website (save as `rover_server.py`).
-    Pico 2 W joins WiFi (credentials in `settings.toml`) and runs an `adafruit_httpserver` server serving
+    Pico 2 W broadcasts its own WiFi network in access-point mode (`wifi.radio.start_ap()`; network name/password
+    in `settings.toml` as `CIRCUITPY_WIFI_AP_SSID`/`CIRCUITPY_WIFI_AP_PASSWORD`, password at least 8 characters)
+    and runs an `adafruit_httpserver` server (started explicitly on port 80) serving
     `/data.json` (currently just `wheel_odometry.read_speed()`'s fields) and a minimal HTML page that polls
     it. Imports `wheel_odometry`; prints the same data to the serial console each loop. Designed to be
     edited in place across later Classes rather than rewritten from scratch: Class 4's
@@ -376,6 +397,14 @@ Tips for Students:
     `class-4-code-1.py`, since both end in their own blocking loop); Class 5 refactors it into an
     importable library (`server`/`scan_status`, no owned loop) so `class-5-code.py` can drive and
     serve at once; Class 6's `class-6-code-2.py` then genuinely imports and extends that library.
+  * [`class-3-code-5.py`](./class-3-code-5.py) &mdash; (stretch) wheel-feedback straight driving (save as
+    `straight_drive.py`). Imports `motor_driver` and `wheel_odometry`. `drive_straight_feedback(seconds)`
+    starts both wheels at `BASE_THROTTLE`, then each cycle reads `wheel_odometry.read_speed()`, computes
+    `error = speed_left - speed_right`, adds `KP * error` to a clamped running `trim` (`MAX_TRIM`), and slows
+    only the faster wheel by that trim. `KP` must be tuned per robot: too large chases one-tick measurement
+    noise (about 4 cm/s at `SLOTS_PER_REV = 20`, `SAMPLE_SECONDS = 0.25`) and makes the car snake. Runs as its
+    own `code.py`, mutually exclusive with `rover_server.py` (both call `read_speed()`, which resets the shared
+    tick counters). Class 4's IMU heading-hold is the next step beyond this.
 * **Potential Source Materials**:
   * [DC Motor Examples - Raspberry Pi Pico (CMU Creative Soft Robotics)](https://courses.ideate.cmu.edu/16-480/s2026/text/code/pico-motor.html)
   * [Driving A DC Motor With CircuitPython](https://www.woolseyworkshop.com/2022/07/25/driving-a-dc-motor-with-circuitpython/)
@@ -413,7 +442,7 @@ Tips for Students:
 
   If you have time, continue working the assembly of the Car Chassis Kit.
 * **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched,
-  including the Class 3 optocouplers (`GP16`/`GP17`), the buck converter still powering the Pico's `VSYS`, and
+  including the Class 3 optocouplers (`GP19`/`GP17`), the buck converter still powering the Pico's `VSYS`, and
   the rover website they feed. This same I2C wiring is
   reused unchanged for the Class 6 stretch goal's rolling-history chart (`class-6-code-2.py`).
 * **Objective**: The objective is to read data from an IMU and display the results by communicating to a Python 3D
@@ -678,7 +707,7 @@ All free.
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 3, so the Pico 2 W and the student's laptop can both reach the rover's web server |
+| (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
 #### Code Blocks
 

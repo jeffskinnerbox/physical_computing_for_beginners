@@ -34,6 +34,9 @@ status website, `rover_server.py`, so live wheel speed and direction show up on 
 with no serial cable at all. This website is built small on purpose — later classes will each add
 more to this same site rather than you building a new one.
 
+If you finish early, there's a Stretch section too: your car will curve on a "straight" run, because
+no two motors are identical — and you'll use the wheel-speed readings you built to fix it.
+
 ## 2. What You'll Need
 
 | Component | Quantity | Purpose This Project |
@@ -48,10 +51,11 @@ more to this same site rather than you building a new one.
 | Dupont jumper wires | ~10 | Point-to-point connections |
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
-| Classroom WiFi network (shared) | 1 | Your Pico joins this network to host the rover status website |
+| (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Pico hosts the rover status website on a network it creates itself (AP mode) |
 | Marked 12" square / 12"-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
+| Masking tape and a tape measure | 1 each | Stretch only: a straight start line, and measuring how far the car drifts sideways |
 
-**Additional components for the Homework Assignments** (Section 11) — no homework has been written
+**Additional components for the Homework Assignments** (Section 12) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
@@ -145,13 +149,16 @@ wheel is turning (or not, or slower than commanded), but assumes the wheel is ac
 last command it was given.
 
 **Hosting your own website.** The websites you normally visit are hosted on a server somewhere far
-away, reached over the internet. Today's website is the opposite: your Pico 2 W's own WiFi radio
-joins the classroom network, runs a tiny HTTP server (`adafruit_httpserver`) directly in
-CircuitPython, and answers requests at its own local IP address — the server, the sensor, and the
-thing being measured are all in your hand. `rover_server.py` serves two things at that address: a
-`/data.json` route (current wheel speed/direction, as machine-readable JSON) and a simple HTML page
-that polls `/data.json` every fraction of a second and displays it — so any laptop on the same
-network can watch live wheel telemetry with no serial cable at all.
+away, reached over the internet, and your laptop *joins* an existing network to reach it. Today's
+website flips that: your Pico 2 W's own WiFi radio broadcasts its *own* WiFi network (this is called
+**access point mode**, or AP mode) that your laptop connects to directly — there's no classroom
+router or internet connection involved at all. Once your laptop joins the Pico's network, the Pico
+runs a tiny HTTP server (`adafruit_httpserver`) directly in CircuitPython and answers requests at
+its own local IP address — the network, the server, the sensor, and the thing being measured are
+all in your hand. `rover_server.py` serves two things at that address: a `/data.json` route (current
+wheel speed/direction, as machine-readable JSON) and a simple HTML page that polls `/data.json`
+every fraction of a second and displays it — so any laptop connected to the Pico's own network can
+watch live wheel telemetry with no serial cable at all.
 
 **Pinout summary** (Raspberry Pi Pico 2 W — new pins only; Classes 1-2 are unaffected):
 
@@ -186,7 +193,7 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 * [Slot Type IR Optocoupler][40]
 
 | Component | Pico 2 W Pin | Notes |
-| :---------- | :------------- |:----------|
+| :---------- | :------------- | :---------- |
 | Buck converter `IN+`/`IN−` | 9V battery `+`/`−` | |
 | Buck converter `OUT+`/`OUT−` | Pico `VSYS` / `GND` | make sure this is a common `GND` |
 | DRV8833 `AIN1` (Motor A) | `GP9` | |
@@ -203,7 +210,7 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 | Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` | |
 | Both Slot Type IR Optocoupler `GND` | Pico `GND` | make sure this is a common `GND` |
 | 1000uF electrolytic capacitor `+` on DRV8833 `VM` | does not apply | optional to reduce current spike from motors |
-| same capacitor `-` on `GND` | does not apply |  make sure this is a common `GND` |
+| same capacitor `-` on `GND` | does not apply | make sure this is a common `GND` |
 
 Before writing any code, trace this wiring out loud, and specifically confirm two things:
 1. The Pico's `GND` is jumpered to the DRV8833's `GND`.
@@ -438,13 +445,16 @@ be different lengths, the circle may be lopsided. That's expected.
 Ask yourself: you told it to go exactly 12 inches.
 What did it actually do, and why might that be?
 
+Notice too whether your "straight" sides actually went straight. If the car curves even with equal
+throttle, that's real hardware, not a bug — and there's a way to fix it in the Stretch (Section 8).
+
 ### Checkpoint
 
 Run `drive_square(12)` and `drive_circle(12)` on your test track and confirm the car completes
 both attempts start to finish without help, tracing a recognizable (even if imperfect) square and
 circle shape.
 
-## 6. Build It: Phase 3 — Wheel Odometry
+## 6. Build It: Phase 3 — Wheel Odometry - DONE
 
 ### Wiring for this phase
 
@@ -532,20 +542,33 @@ Test it with a short scratch `code.py` that drives forward and prints `read_spee
 ```python
 # class-3-phase-3-code.py -- save as code.py
 # Scratch test script for wheel_odometry.py.
+
 import motor_driver
 import wheel_odometry
 
+print("Output format:\n( left_wheel_cm_per_sec,  left_wheel_dir,  right_wheel_cm_per_sec,  right_wheel_dir )")
+
+# set motors to half speed, moving forward
 motor_driver.drive(0.5, 0.5)
 for _ in range(10):
     print(wheel_odometry.read_speed())
+
+# set motors to half speed, moving backward
+print("\n")  # skill a line
+motor_driver.drive(-0.5, -0.5)
+for _ in range(10):
+    print(wheel_odometry.read_speed())
+
 motor_driver.stop()
 ```
 
 ### Try it / what you should see
 
-You should see ten printed tuples of `(speed_left_cms, dir_left, speed_right_cms, dir_right)`, with
-both speeds rising above `0.0` while the car drives forward and `dir_left`/`dir_right` both reading
-`1`. Stop the car (`motor_driver.stop()`), then try `motor_driver.drive(-0.5, -0.5)` and rerun the
+You should see ten printed tuples of
+`(left_wheel_cm_per_sec,  left_wheel_dir,  right_wheel_cm_per_sec,  right_wheel_dir)`,
+with both speeds rising above `0.0` while the car drives forward and `left_wheel_dir`/`right_wheel_dir`
+both reading `1`.
+Stop the car (`motor_driver.stop()`), then try `motor_driver.drive(-0.5, -0.5)` and rerun the
 loop — the direction values should flip to `-1` while the speeds stay positive (speed is always a
 magnitude; direction is a separate value).
 
@@ -564,19 +587,38 @@ measured speed and commanded direction combine into one reading.
 
 ### Wiring for this phase
 
-No new wiring — this phase is all software. Add `WIFI_SSID` and `WIFI_PASSWORD` to your
-`settings.toml` file if they aren't already filled in.
+No new wiring — this phase is all software. Add `CIRCUITPY_WIFI_AP_SSID` and
+`CIRCUITPY_WIFI_AP_PASSWORD` to your `settings.toml` file if they aren't already filled in. Unlike
+Phases 1-3, these aren't your classroom's existing WiFi credentials — they're the name and password
+*you're choosing* for the Pico's own broadcast network (pick a name nobody else in the room is
+using, since everyone's Pico broadcasts at once; the password must be at least 8 characters for
+CircuitPython's `start_ap()` to accept it).
 
 ### What this code does
 
-`rover_server.py` joins the classroom WiFi network and starts an `adafruit_httpserver` HTTP server
-that answers two routes: `/data.json` (the current wheel speed and direction from
-`wheel_odometry.read_speed()`, as machine-readable JSON) and `/` (a bare HTML page with a bit of
-JavaScript that polls `/data.json` twice a second and displays it). Unlike Phase 2's `code.py`,
-which ran the square/circle attempt directly, this file is saved under its own stable name,
-`rover_server.py`, so Classes 4-6 can keep extending it under that same name. It still ends in its
-own `while True:` loop that keeps answering requests forever — it just isn't `code.py` itself
+`rover_server.py` puts the Pico's WiFi radio into **access point (AP) mode** — it broadcasts its own
+WiFi network named `CIRCUITPY_WIFI_AP_SSID` instead of joining an existing one — then starts an
+`adafruit_httpserver` HTTP server that answers two routes: `/data.json` (the current wheel speed and
+direction from `wheel_odometry.read_speed()`, as machine-readable JSON) and `/` (a bare HTML page
+with a bit of JavaScript that polls `/data.json` twice a second and displays it). Unlike Phase 2's
+`code.py`, which ran the square/circle attempt directly, this file is saved under its own stable
+name, `rover_server.py`, so Classes 4-6 can keep extending it under that same name. It still ends in
+its own `while True:` loop that keeps answering requests forever — it just isn't `code.py` itself
 anymore. A separate, one-line `code.py` runs it (see below).
+
+**The mission for this phase, and why spinning a wheel by hand isn't the end goal.** Spinning a
+wheel by hand (below, in "Try it") only proves the plumbing works — that the sensor reading, the
+JSON route, and the web page are all wired together correctly. That's a necessary first check, but
+it's not the point of building a rover status website. The actual mission is for the website to
+update on its own *while the rover drives itself* — no hand ever touching a wheel, no human in the
+loop at all. Once a script is commanding the motors (Phase 2's `drive_square`/`drive_circle`, or
+free driving), this same `rover_server.py`, unmodified, should show that motion live on the page:
+speeds rising and falling as the car moves, direction flipping as it reverses or turns — entirely
+from the car's own behavior. Getting there for real means the motor-driving code and the server's
+`while True: server.poll()` loop have to run *together*, without one blocking the other (a
+`time.sleep()`-based drive command, like Phase 2 uses, would freeze the website for as long as it
+sleeps) — that's a real design problem worth sitting with, and it's exactly the kind of thing
+Classes 5-6 build toward as this website keeps growing.
 
 ### The code
 
@@ -586,8 +628,8 @@ stay on the drive unchanged — this file imports `wheel_odometry` (which in tur
 
 ```python
 # class-3-phase-4-rover_server -- save as rover_server.py
-# Pico-hosted rover status website -- joins WiFi, serves /data.json plus a
-# minimal page that polls it.
+# Pico-hosted rover status website -- broadcasts its own WiFi network (AP
+# mode), serves /data.json plus a minimal page that polls it.
 
 import os
 import wifi
@@ -595,11 +637,16 @@ import socketpool
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+# AP_PASSWORD must be at least 8 characters -- start_ap() rejects shorter ones.
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
+# server = Server(pool, debug=True)    # use for debugging
 
 STATUS_PAGE = """<!doctype html><html><body>
 <h1>Rover Status</h1>
@@ -615,12 +662,15 @@ setInterval(() => fetch('/data.json').then(r => r.json())
 @server.route("/data.json")
 def data_json(request: Request):
     speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
-    return JSONResponse(request, {
-        "speed_left_cms": speed_left,
-        "dir_left": dir_left,
-        "speed_right_cms": speed_right,
-        "dir_right": dir_right,
-    })
+    return JSONResponse(
+        request,
+        {
+            "speed_left_cms": speed_left,
+            "dir_left": dir_left,
+            "speed_right_cms": speed_right,
+            "dir_right": dir_right,
+        },
+    )
 
 
 @server.route("/")
@@ -628,7 +678,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
 print("Class 3, Phase 4 -- rover status website starting...")
 while True:
@@ -647,24 +697,217 @@ import rover_server
 
 ### Try it / what you should see
 
-Watch the serial console for a line like `rover server -- listening at 192.168.1.42`. Open a
-browser on a laptop that's on the *same* WiFi network and go to that address — you should see
-`Rover Status` and a block of JSON that updates itself twice a second. Spin a wheel by hand and
-watch that wheel's `speed_left_cms` or `speed_right_cms` jump on the page, even though nothing told
-the motor to move — a concrete reminder that this reading is measured, independent of whatever the
-motor was last commanded to do, while direction is not.
+Watch the serial console for a line like `rover server -- broadcasting WiFi network: RoverCar`
+followed by `rover server -- listening at 192.168.4.1`. On your laptop, open its WiFi settings and
+connect to that same network name (`CIRCUITPY_WIFI_AP_SSID` from `settings.toml`) using the password you set —
+this is a normal WiFi join, just to the Pico's network instead of the classroom's. Once connected,
+open a browser and go to the printed IP address (typically `192.168.4.1`) — you should see
+`Rover Status` and a block of JSON that updates itself twice a second.
 
-If the server never connects, double-check `settings.toml`'s WiFi credentials first, then confirm
-your laptop is on the *same* network as the Pico. If the page loads but never updates, try a hard
-refresh — your browser may be caching an old copy of the page.
+**Step 1 — verify the plumbing (manual check).** Spin a wheel by hand and watch that wheel's
+`speed_left_cms` or `speed_right_cms` jump on the page, even though nothing told the motor to move
+— a concrete reminder that this reading is measured, independent of whatever the motor was last
+commanded to do, while direction is not. This step only confirms the sensor, the route, and the
+page are correctly wired together — it is not the mission.
+
+**Step 2 — the actual mission.** With the website still open, drive the car with code instead of
+your hand — reconnect over serial and run `motor_driver.drive(0.5, 0.5)` from the REPL, or run one
+of Phase 2's `drive_straight`/`turn_90` moves. Watch the page update *while the car moves under its
+own power*, with no one touching a wheel. That's the behavior this phase is actually building
+toward: a website that reports what the rover is doing autonomously, not what a person did to it by
+hand.
+
+Note that while your laptop is connected to the Pico's network, it will likely lose its regular
+internet connection — the Pico's AP doesn't route traffic anywhere else, it just serves this one
+page. If the server never starts, double-check `settings.toml`'s `CIRCUITPY_WIFI_AP_PASSWORD` is at
+least 8 characters. If the page loads but never updates, try a hard refresh — your browser may be caching
+an old copy of the page.
 
 ### Checkpoint
 
-Open a browser to your Pico's printed IP address, confirm the `/data.json` fields update live when
-you spin a wheel by hand, and be able to say in one sentence why the direction shown on the page is
-"what we last told the car to do," not something the optocoupler itself measured.
+Connect your laptop to the Pico's own broadcast WiFi network and open a browser to its printed IP
+address. First confirm the `/data.json` fields update live when you spin a wheel by hand (the
+plumbing check) — then confirm the same fields update live while the car is driven by code, not by
+hand (the actual mission of this phase). Be able to say in one sentence why the direction shown on
+the page is "what we last told the car to do," not something the optocoupler itself measured.
 
-## 8. Troubleshooting Guide
+## 8. Stretch: Drive Straight with Wheel Feedback
+
+Complete Phase 3 first — this stretch needs both optocouplers mounted, `SLOTS_PER_REV` set, and
+`wheel_odometry.read_speed()` showing both wheels above `0.0`.
+
+### Why your car curves
+
+Put your car on the floor, point it down a long straight line, and run `drive(0.5, 0.5)`. Equal
+throttle, so it should go straight — and it doesn't. It curves, and you can't fix that by choosing a
+"better" throttle number. Here's why: two motors are never identical. Brush wear, gearbox
+friction, and tiny differences in the windings mean the *same* PWM duty cycle spins one wheel a bit
+faster than the other, and that's the same lesson as "duty cycle isn't the same as speed" from
+Section 3. Your code told both wheels the same thing; it has no idea they aren't doing the same
+thing back.
+
+Phase 2's dead reckoning can't see this, and the only fix so far has been to hand-tune the left and
+right throttle until it looks straight. That works until the battery sags or you change floors, and
+then it's wrong again. The real fix is to stop guessing and *measure*: your car can already read
+each wheel's actual speed (Phase 3), so let it compare the two and correct itself. Measuring the
+result, comparing it to what you wanted, and adjusting is called **closed-loop control** (or
+**feedback control**) — the opposite of the open-loop control you used in Phase 2. It's how a car's
+cruise control holds 65 mph up a hill, and how a thermostat holds a room at 70 degrees.
+
+### Wiring for this phase
+
+No new wiring — same circuit as Phase 3, with both optocouplers mounted and working.
+
+### What this code does
+
+`straight_drive.py` is a small library with one function, `drive_straight_feedback(seconds)`. It
+starts both wheels at the same throttle, then repeats this loop about four times a second until the
+time is up:
+
+1. **Measure** — call `wheel_odometry.read_speed()` to get each wheel's real speed in cm/s.
+2. **Compare** — `error = speed_left - speed_right`. Positive means the left wheel is running
+   faster; negative means the right is.
+3. **Nudge** — add a small amount, `KP * error`, to a running `trim` value. Then slow down the
+   *faster* wheel by that trim (and leave the other wheel alone).
+4. **Repeat** — with the next reading, the error should be a little smaller, so the nudge is a little
+   smaller, until the two wheels match and the trim stops changing.
+
+Two design choices are worth understanding, because they're the difference between a car that
+drives straight and one that snakes:
+
+* **It slows the faster wheel instead of speeding up the slower one.** `motor_driver` caps
+  throttle at `MAX_THROTTLE`. If the code sped up the slow wheel, it could run into that cap and
+  stop correcting. Slowing the fast wheel always has room to work.
+* **The nudges are small (`KP` is small).** Look at how `read_speed()` counts: one tick is
+  one slot of a 20-slot disc, which works out to about 4 cm/s in a quarter-second window. So even
+  a perfectly matched pair of wheels will sometimes read one tick apart — a fake "error" of 4 cm/s.
+  A big correction would chase that noise and make the car wobble. Many small nudges average the
+  noise out and respond only to a *steady* difference, which is the real motor mismatch.
+
+Since this loop adds up its nudges over time, engineers call the pattern an **integral controller**;
+it's one of the simple building blocks behind the feedback control in nearly every robot and drone.
+`KP` is the "gain" — how hard each nudge is — and choosing it is the tuning part of the exercise.
+
+One important limit: `read_speed()` is also what the rover status website calls, and both use the
+same tick counters. Two callers would keep resetting each other's counts, so this stretch runs *by
+itself* as `code.py`, not alongside the website — the same "run one or the other" pattern as Options
+A and B in Section 10.
+
+### The code
+
+Save this as `straight_drive.py` on your `CIRCUITPY` drive, next to `motor_driver.py` and
+`wheel_odometry.py`, which stay unchanged.
+
+```python
+# class-3-stretch-straight_drive.py -- save as straight_drive.py
+# Drive straight by nudging the faster wheel down until both wheels turn at the same speed.
+
+import time
+import motor_driver
+import wheel_odometry
+
+BASE_THROTTLE = 0.5   # throttle both wheels start at
+KP = 0.005            # nudge per cm/s of speed difference -- tune on your own car
+MAX_TRIM = 0.2        # never slow a wheel by more than this, so a bad reading can't stall it
+
+
+def drive_straight_feedback(seconds):
+    """Drive forward for `seconds`, evening out the two wheels' speeds as it goes."""
+    trim = 0.0        # positive slows the left wheel, negative slows the right wheel
+    end_time = time.monotonic() + seconds
+    motor_driver.drive(BASE_THROTTLE, BASE_THROTTLE)
+
+    while time.monotonic() < end_time:
+        # read_speed() waits SAMPLE_SECONDS while it counts ticks, so this loop runs ~4 times a second
+        speed_left, _, speed_right, _ = wheel_odometry.read_speed()
+
+        error = speed_left - speed_right   # positive: left wheel is faster
+        trim += KP * error                 # small nudge, remembered from cycle to cycle
+        trim = max(-MAX_TRIM, min(MAX_TRIM, trim))
+
+        # slow only the faster wheel: max(trim, 0) is the trim when left is fast, min(trim, 0) when right is
+        left = BASE_THROTTLE - max(trim, 0)
+        right = BASE_THROTTLE + min(trim, 0)
+        motor_driver.drive(left, right)
+
+        print("L:", round(speed_left, 1), "R:", round(speed_right, 1), "trim:", round(trim, 3))
+
+    motor_driver.stop()
+```
+
+Now save this as `code.py`, replacing whatever was there before. It runs the same straight line two
+ways — once with no feedback and once with — so you can compare them on the floor:
+
+```python
+# class-3-stretch-code.py -- save as code.py
+# Compare driving straight with no feedback (open loop) vs. with wheel feedback (closed loop).
+
+import time
+import motor_driver
+import straight_drive
+
+RUN_SECONDS = 4
+RESET_SECONDS = 15    # time to carry the car back to the start line
+
+print("Run 1 -- open loop: equal throttle, no feedback")
+motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
+time.sleep(RUN_SECONDS)
+motor_driver.stop()
+
+print("Put the car back on the start line, pointed down the line...")
+time.sleep(RESET_SECONDS)
+
+print("Run 2 -- closed loop: wheel feedback")
+straight_drive.drive_straight_feedback(RUN_SECONDS)
+
+print("done")
+```
+
+### Try it / what you should see
+
+Lay a long strip of masking tape on the floor as a straight line, and mark a start point on it.
+Use a fresh 9V battery, and set your car on the start point pointing down the tape.
+
+1. Save the files and let `code.py` run. **Run 1** (no feedback) drives for four seconds. Note
+   how far the car has drifted sideways from the tape, measured with a tape measure at its
+   furthest point — write it down.
+2. Carry the car back to the start point before the countdown ends. **Run 2** (feedback) drives
+   the same four seconds, and prints each cycle's left speed, right speed, and `trim`. Measure the
+   sideways drift the same way.
+3. Repeat the pair of runs three times and average each. Use the same battery and floor for all six.
+
+You should see the car end much closer to the tape with feedback than without. In the printed
+lines, watch `trim`: it should start at `0.0`, move away from zero in the first second or so as
+the code discovers which wheel is faster, and then settle near a steady value — that number *is*
+your car's motor mismatch, discovered by the car itself.
+
+**If it doesn't work the way you expect:**
+
+* **The car curves as much as before, and `trim` stays near `0.0`.** The correction is too weak or
+  not happening. Raise `KP` (try `0.01`), and check that both wheels' speeds print above `0.0` —
+  a `0.0` means that optocoupler isn't reading (see Troubleshooting).
+* **The car snakes left and right, and `trim` jumps around.** The nudges are too big. Lower `KP`
+  (try `0.003`), or increase `SAMPLE_SECONDS` in `wheel_odometry.py` from `0.25` to `0.5` so each
+  reading counts more ticks and is less jumpy.
+* **The car curves *more* than before, and `trim` runs to `MAX_TRIM`.** The correction is going the
+  wrong way. Check that Motor A's optocoupler is on `GP19` and Motor B's is on `GP17`, and that
+  Motor A is the left wheel — if the two are swapped, the code slows the wrong wheel.
+
+### Checkpoint
+
+Run the open-loop and feedback runs three times each on the same battery and floor. Confirm the
+average sideways drift with feedback is clearly smaller than without, and be able to explain in one
+sentence why the code slows the faster wheel instead of speeding up the slower one.
+
+### What this doesn't fix
+
+Wheel feedback makes the two wheels *turn at the same speed*. That's not quite the same as *going
+straight*: if one wheel slips on a patch of dust or a carpet edge, both wheels can still report the
+same speed while the car veers. Nothing here measures which way the car is actually *pointing*. That
+gap is the same one the last section of this script points at, and it's what next class's IMU is
+built to close.
+
+## 9. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
@@ -679,19 +922,23 @@ you spin a wheel by hand, and be able to say in one sentence why the direction s
 | Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Works fine over USB, but fails and the optocoupler LED flickers when running off the 9V battery alone | Voltage sag/brownout on the shared battery: motor startup current spikes drag down the 9V battery's own voltage, which drags down the buck converter's output feeding the Pico's `VSYS`/`3V3` rail (the optocoupler LED runs off `3V3`, so its flicker is really the Pico's logic power dipping) | Try a fresh 9V battery first; if flicker persists, measure the buck converter's output with a multimeter while the motors run, and add a bulk capacitor (470-1000uF electrolytic) across `VM`/`GND` at the DRV8833 to buffer motor current spikes |
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
-| Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors | Compensate with slightly different left/right throttle values |
+| Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use wheel feedback to fix it properly (see Section 8, Stretch) |
+| Stretch: car snakes left and right, and `trim` jumps around | `KP` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KP` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
+| Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — Motor A/B optocouplers or motors are swapped relative to left/right | Confirm the Motor A optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
 | `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` runs | `countio.Counter` is implemented using the RP2040/RP2350's PWM edge-counting hardware, which only works on a PWM Channel B (odd-numbered) GPIO — `GP16` is Channel A and will always raise this | Use `GP19` (or another unused odd-numbered GPIO) instead of `GP16` for the Motor A optocoupler, both in wiring and in `wheel_odometry.py`'s `counter_a = countio.Counter(board.GP19)` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
+| `ImportError: no module named 'wifi'` | The board is running the non-WiFi build of CircuitPython — `wifi` is only compiled into the build made for "Raspberry Pi Pico 2 W", not the plain "Raspberry Pi Pico 2" build, even on genuine Pico 2 W hardware | Download the correct `.uf2` for "Raspberry Pi Pico 2 W" from circuitpython.org, hold `BOOTSEL` while plugging in USB to mount `RPI-RP2`, drag the `.uf2` on to reflash, then re-copy `motor_driver.py`, `wheel_odometry.py`, `rover_server.py`, `code.py`, `settings.toml`, and `lib/` (including `adafruit_httpserver`) back onto `CIRCUITPY` |
+| Browser shows "This site can't be reached" / `curl` says "failed to connect" to the Pico's IP, even though the laptop is joined to the Pico's WiFi network and can `ping` it | `adafruit_httpserver`'s `Server.start()` defaults to port 5000 (visible if you add `debug=True` to `Server(pool, debug=True)`, which prints `Started development server on http://<ip>:5000`), but a browser typing a bare IP address assumes port 80 | Pass `port=80` explicitly: `server.start(str(wifi.radio.ipv4_address_ap), port=80)` |
 | `ImportError: no module named 'rover_server'` | The website code was saved as `code.py` directly instead of `rover_server.py`, so `code.py`'s `import rover_server` fails | Confirm the website code is saved as exactly `rover_server.py`, and `code.py` is only the one-line `import rover_server` wrapper |
-| `wifi.radio.connect()` hangs or raises `ConnectionError` | Wrong SSID/password in `settings.toml`, or the classroom network is blocking the connection | Double-check `settings.toml`; ask your instructor whether the network allows device-to-device traffic |
-| Website never loads in the browser, but the Pico prints an IP address | Your laptop is on a different network/VLAN than the Pico | Confirm your laptop is joined to the same classroom WiFi network as the Pico |
+| `wifi.radio.start_ap()` raises an error or the network never appears | `CIRCUITPY_WIFI_AP_PASSWORD` in `settings.toml` is shorter than 8 characters — CircuitPython's `start_ap()` requires it | Set `CIRCUITPY_WIFI_AP_PASSWORD` to at least 8 characters in `settings.toml` |
+| Website never loads in the browser, but the Pico prints an IP address | Your laptop hasn't joined the Pico's own broadcast WiFi network yet | In your laptop's WiFi settings, connect to the network named by `CIRCUITPY_WIFI_AP_SSID` (not your classroom's network) before opening the browser |
 | Website loads once but never updates | `server.poll()` not being called every loop, or the browser is caching the page | Confirm the `while True: server.poll()` loop is running; try a hard refresh |
 
-## 9. Put It All Together
+## 10. Put It All Together
 
 This is the finished project in one place — a calibrated square/circle attempt, wheel-speed
 odometry, and your own rover status website, without going through the individual phases above.
@@ -721,8 +968,9 @@ odometry, and your own rover status website, without going through the individua
 ### Complete code
 
 You need `motor_driver.py` and `wheel_odometry.py` on your `CIRCUITPY` drive either way (both
-libraries, unchanged from Phases 1 and 3), plus either Option A's `code.py` or Option B's
-`rover_server.py` and a thin `code.py` wrapper. Unlike Phase 2, where `code.py` was the square/circle
+libraries, unchanged from Phases 1 and 3), plus either Option A's `code.py`, Option B's
+`rover_server.py` and a thin `code.py` wrapper, or the Stretch's Option C (`straight_drive.py` plus
+its `code.py`). Unlike Phase 2, where `code.py` was the square/circle
 attempt outright, this Class actually finishes with *two different things* your car could be
 running — the square/circle attempt (Phase 2) or the rover status website (Phase 4) — since
 nothing here makes them run at the same time. Pick one to run and swap between them by replacing
@@ -812,6 +1060,7 @@ def read_speed():
 
 ```python
 # code.py -- complete project, option A: attempt a 12" square and 12"-diameter circle.
+
 import time
 import math
 import motor_driver
@@ -864,15 +1113,20 @@ drive_circle(12)
 **Option B — `rover_server.py` plus a thin `code.py` wrapper** (same as Phase 4, unchanged):
 
 ```python
-# rover_server.py -- complete project, option B: rover status website.
+# rover_server.py -- complete project, option B: rover status website (AP mode).
+
 import os
 import wifi
 import socketpool
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+# AP_PASSWORD must be at least 8 characters -- start_ap() rejects shorter ones.
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -904,7 +1158,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
 print("Class 3, Phase 4 -- rover status website starting...")
 while True:
@@ -916,12 +1170,65 @@ while True:
 import rover_server
 ```
 
+**Option C — the Stretch: `straight_drive.py` plus its `code.py`** (same as Section 8, unchanged):
+
+```python
+# straight_drive.py -- complete project, option C: drive straight with wheel feedback.
+import time
+import motor_driver
+import wheel_odometry
+
+BASE_THROTTLE = 0.5   # tune per robot
+KP = 0.005            # tune per robot
+MAX_TRIM = 0.2
+
+
+def drive_straight_feedback(seconds):
+    trim = 0.0        # positive slows the left wheel, negative slows the right wheel
+    end_time = time.monotonic() + seconds
+    motor_driver.drive(BASE_THROTTLE, BASE_THROTTLE)
+
+    while time.monotonic() < end_time:
+        speed_left, _, speed_right, _ = wheel_odometry.read_speed()
+        error = speed_left - speed_right
+        trim += KP * error
+        trim = max(-MAX_TRIM, min(MAX_TRIM, trim))
+        left = BASE_THROTTLE - max(trim, 0)
+        right = BASE_THROTTLE + min(trim, 0)
+        motor_driver.drive(left, right)
+        print("L:", round(speed_left, 1), "R:", round(speed_right, 1), "trim:", round(trim, 3))
+
+    motor_driver.stop()
+```
+
+```python
+# code.py -- runs the open-loop vs. closed-loop straight-line comparison
+import time
+import motor_driver
+import straight_drive
+
+RUN_SECONDS = 4
+RESET_SECONDS = 15
+
+print("Run 1 -- open loop: equal throttle, no feedback")
+motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
+time.sleep(RUN_SECONDS)
+motor_driver.stop()
+
+print("Put the car back on the start line, pointed down the line...")
+time.sleep(RESET_SECONDS)
+
+print("Run 2 -- closed loop: wheel feedback")
+straight_drive.drive_straight_feedback(RUN_SECONDS)
+print("done")
+```
+
 To satisfy this Class's milestone (a square/circle attempt *and* live wheel-speed telemetry
 visible somewhere), run Option A first to demonstrate the drive, then swap in Option B (both
 `rover_server.py` and its `code.py` wrapper) and spin a wheel by hand to show the website
 updating — the two don't need to run at the same instant to prove both work.
 
-## 10. What You Learned
+## 11. What You Learned
 
 You made your car move with real force for the first time, discovered exactly why moving it
 *precisely* is harder than it sounds, then closed part of that gap yourself by giving your car a
@@ -942,17 +1249,23 @@ know:
 * How to turn a tick count into a real wheel speed in cm/s, and why a single optocoupler per wheel
     can't tell you direction — and why borrowing the last-commanded direction from
     `motor_driver.py` is a reasonable, if imperfect, stand-in
-* What it means for your Pico to host its own website: joining WiFi, running
-    `adafruit_httpserver`, and serving both a machine-readable `/data.json` route and a simple page
-    that polls it, viewable from any laptop on the same network with no serial cable
+* What it means for your Pico to host its own website: broadcasting its own WiFi network (access
+    point mode), running `adafruit_httpserver`, and serving both a machine-readable `/data.json`
+    route and a simple page that polls it, viewable from any laptop that joins the Pico's network
+    with no serial cable
+* (Stretch) Why a car curves at equal throttle — no two motors are identical — and how closed-loop
+    control fixes it: measure both wheels, compare, and nudge the faster one down until they match,
+    using small corrections so measurement noise doesn't make the car wobble
 
 Knowing each wheel's real speed catches slip or stall — a wheel spinning slower than commanded, or
-not at all — but it still says nothing about which way the *car* is pointed. That gap — no way to
-check your heading against where you meant to be pointed — is exactly what an IMU (inertial
-measurement unit) starts to address. That's next class, and it'll show up on this same website.
+not at all — and, as the Stretch showed, lets the car even out its own wheels. But it still says
+nothing about which way the *car* is pointed: two wheels can match speed while the car veers. That
+gap — no way to check your heading against where you meant to be pointed — is exactly what an IMU
+(inertial measurement unit) starts to address. That's next class, and it'll show up on this same
+website.
 
 ---
-## 11. Homework Assignment
+## 12. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in

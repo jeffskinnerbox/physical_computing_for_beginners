@@ -72,9 +72,16 @@ it — the same reuse pattern the HC-SR04 and SG90 already follow from Class 2 o
 
 ### Per-Student Optional
 
-None. All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status
+All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status
 display) are treated as in-scope/required for this course rather than optional add-ons; their
 hardware (KY-040, LSM9DS1, TFT) already appears in Per-Student Required above.
+
+The one genuinely optional item is a bulk capacitor for the motor supply. It is **not** included in
+the Cost Summary or Grand Total below — buy it only if the instructor wants it on hand.
+
+| Item | Quantity | Item Cost | Source | Notes |
+| :-----: | :-----: | :-----: | :-----: | :--------: |
+| 1000µF electrolytic capacitor (16V or higher) | 1 | [VERIFY PRICE] | [VERIFY SOURCE] | Class 3 optional — across the DRV8833 `VM`/`GND` (`+` to `VM`) to buffer motor current spikes and battery sag; try a fresh 9V battery first, this is the fallback |
 
 ### Shared Supplies
 
@@ -132,7 +139,7 @@ All free — no paid software is required anywhere in this course.
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
-| Makersmiths classroom/guest WiFi network | facility infrastructure | required starting Class 3, so the Pico 2 W and the student's laptop can both reach the rover's web server |
+| (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
 ----
 
