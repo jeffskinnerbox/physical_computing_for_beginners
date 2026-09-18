@@ -64,8 +64,8 @@ to a working file beats rebuilding from scratch each time.
   (stretch #3) are present in the Library Bundle folder; have copies on a USB stick as backup.
   Not needed unless a student attempts that stretch goal. `adafruit_httpserver` (stretch #2) needs no
   new check — it's the same library already running since Class 3. (~5 min)
-* **1-2 days before:** Confirm every student's `rover_server.py` (from Classes 3-5) still connects to
-  the classroom WiFi and serves `/data.json` with all ten existing fields (wheel speed/direction,
+* **1-2 days before:** Confirm every student's `rover_server.py` (from Classes 3-5) still broadcasts
+  the Pico's own WiFi network and serves `/data.json` with all ten existing fields (wheel speed/direction,
   orientation, scan/drive/stop state) — nothing new to set up here, since today's stretch #2 edit is a
   small addition to this same already-working file. (~10 min)
 * **Day of, before students arrive:**
@@ -258,7 +258,7 @@ into `class-5-code.py` (replacing the `DRIVE_SPEED` constant with `current_speed
 main drive loop) is the actual integration step, not just running this file standalone.
 
 **Stretch #2 wiring:** None. No new WiFi join, no new `settings.toml`, no new IMU wiring — everything
-this stretch needs (the classroom WiFi connection, `adafruit_httpserver`, the Class 4 IMU on `SDA`
+this stretch needs (the Pico's own WiFi network, `adafruit_httpserver`, the Class 4 IMU on `SDA`
 `GP0`/`SCL` `GP1`) has been running since Class 3 and is already on every student's board.
 
 Load `class-6-code-2.py`. This file does **not** join WiFi or start a server — it imports the
@@ -529,8 +529,8 @@ a working demo running — no age brackets, no elimination, no formal scoring, p
   server from the Pico W, referenced for stretch #2's design
 * [Raspberry Pi Pico Web Server Control][03] — another worked example of a Pico-hosted web server and
   control page
-* [Raspberry Pi Pico W Soft Access Point Web Server Example][04] — an alternative WiFi setup (Pico W
-  as its own access point) worth mentioning if classroom WiFi access proves unreliable
+* [Raspberry Pi Pico W Soft Access Point Web Server Example][04] — background on the access-point
+  setup (Pico W as its own WiFi network) that the rover status website has used since Class 3
 
 ---
 

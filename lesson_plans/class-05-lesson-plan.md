@@ -7,12 +7,12 @@
   HC-SR04 + SG90 sensor-sweep circuit (`GP6`-`GP8`, from Class 2) and a working DRV8833 motor driver
   circuit (`GP9`-`GP12`, from Class 3) on their breadboard, calibrated turn timing from Class 3's
   square/circle attempt, and is comfortable wiring, saving `code.py`, and reading streamed serial
-  output. Class 1's button/encoder circuit and Class 4's IMU circuit are not needed for this build
-  and can stay on the breadboard unused or be set aside — but the Class 3 wheel-odometry
+  output. Class 1's button/encoder circuit isn't needed for this build, but leave it in place on the
+  breadboard — Class 6 reconnects it for Stretch 1. The Class 3 wheel-odometry
   optocouplers (`GP19`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) must stay wired and powered even
   though today's collision-avoidance code doesn't read them directly, because the growing rover
   status website (`rover_server.py`) still reports wheel speed/direction and orientation from those
-  same circuits. The website and its classroom WiFi connection must still be working — a quick
+  same circuits. The website and the WiFi network the Pico broadcasts (access point mode) must still be working — a quick
   spot-check, not a rebuild.
 
 ---
@@ -66,8 +66,8 @@ already have working — not a new website, and not new wiring.
 * **1-2 days before:** Confirm each student still has their Class 3 turn-time calibration notes
   (`SECONDS_PER_90_DEGREES` or equivalent) from their build journal — today's code reuses that
   calibration rather than re-deriving it from scratch. (~5 min)
-* **1-2 days before:** Confirm every student's `rover_server.py` from Class 4 still connects to the
-  classroom WiFi and serves `/data.json` with all seven existing fields (wheel speed/direction,
+* **1-2 days before:** Confirm every student's `rover_server.py` from Class 4 still broadcasts the
+  Pico's own WiFi network and serves `/data.json` with all seven existing fields (wheel speed/direction,
   orientation) — nothing new to set up here this Class, just confirm it still works, since today's
   website change is a small edit to this same file. (~10 min)
 * **Day of, before students arrive:**
@@ -112,7 +112,7 @@ quantities, and sourcing.
 | Dupont jumper wires (shared) | Only if any connection needs reseating |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop, or portable battery for untethered runs |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
-| Classroom WiFi network (shared, from Class 3) | Already-joined network the growing rover status website runs on; nothing new to set up |
+| (no classroom WiFi needed) | The Pico 2 W broadcasts its own network (access point mode) for the rover status website, as set up in Class 3; nothing new to set up |
 | Shared: open floor area with soft obstacles | Test space for autonomous driving runs |
 
 ## 5. Class Timeline
@@ -225,8 +225,8 @@ students paste in the finished Step 2 code instead of walking every line, and mo
 Instructor builds along on the projector; students wire up and test in parallel.
 
 **Wiring — Class 2 and Class 3 circuits are reconnect-only, no changes.** The only *new* wiring this
-Class is the limit switch and IR sensor. Class 1's button/encoder circuit and Class 4's IMU circuit
-are not used and can stay in place or be set aside.
+Class is the limit switch and IR sensor. Class 1's button/encoder circuit is not used today, but leave it in
+place — Class 6 reconnects it. Class 4's IMU circuit is not read today but must stay wired (see Prerequisites).
 
 | Component | Pico 2 W Pin | From Class |
 | :---------- | :------------- | :----------- |
@@ -429,7 +429,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 # NOTE: the old "while True: server.poll()" loop is gone from this file --
 # class-5-code.py's own main loop polls it now (see below). [VERIFY]
 ```

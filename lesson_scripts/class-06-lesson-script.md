@@ -196,7 +196,7 @@ encoder-reading code updates inside the main drive loop, and use `current_speed`
 ### Wiring for this stretch goal
 
 None. No new WiFi join, no new `settings.toml`, no new IMU wiring — everything this stretch needs
-(the classroom WiFi connection, `adafruit_httpserver`, the Class 4 IMU on `SDA` `GP0`/`SCL` `GP1`)
+(the Pico's own WiFi network, `adafruit_httpserver`, the Class 4 IMU on `SDA` `GP0`/`SCL` `GP1`)
 has been running since Class 3 and is already on your board.
 
 ### What this code does
@@ -280,7 +280,7 @@ def index(request: Request):
 
 ### Try it / what you should see
 
-Open your Pico's status webpage in a browser on the classroom WiFi, the same page you've had
+Open your Pico's status webpage in a browser on your Pico's own WiFi network, the same page you've had
 running since Class 3 — you should now see the same wheel-speed/orientation/scan-state numbers as
 before, plus a new "Recent History" chart below them that scrolls as the rover drives: an orange
 line for roll, a blue line for pitch, and a green line for left wheel speed.
@@ -466,8 +466,8 @@ does, full commented code, and real-world examples).
   TFT used in Stretch 3
 * [Raspberry Pi Pico W Asynchronous Web Server – MicroPython Code][02] — background on running a
   web server from the Pico W, referenced for Stretch 2's design
-* [Raspberry Pi Pico W Soft Access Point Web Server Example][03] — an alternative WiFi setup
-  (Pico W as its own access point), worth knowing about if classroom WiFi proves unreliable
+* [Raspberry Pi Pico W Soft Access Point Web Server Example][03] — background on the access-point
+  setup (Pico W as its own WiFi network) that your rover status website has used since Class 3
 * [Cerberus: Obstacle Avoiding Robot With Mecanum Wheels][04] - alternative physical design
   for the same type of robot
 

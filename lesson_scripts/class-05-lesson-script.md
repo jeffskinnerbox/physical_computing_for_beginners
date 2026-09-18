@@ -7,12 +7,12 @@
 * **Before You Start:** Your Class 2 sensor+servo circuit (`GP6`-`GP8`) and Class 3 motor driver
     circuit (`GP9`-`GP12`) should both still be working exactly as you left them. You'll also need
     your Class 3 turn-time calibration notes (`SECONDS_PER_90_DEGREES` or similar) from your build
-    journal. Class 1's button/encoder circuit isn't needed today — leave it in place or set it
-    aside. Class 3's wheel-odometry optocouplers (`GP19`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) are
+    journal. Class 1's button/encoder circuit isn't needed today, but leave it in place — Class 6
+    reconnects it. Class 3's wheel-odometry optocouplers (`GP19`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) are
     also not read by today's code directly, but they **must stay wired and powered** — the rover
     status website (`rover_server.py`) still reports wheel speed/direction and orientation from
     those same circuits, and today's website edit adds to that same page rather than replacing it.
-    That website should still connect to the classroom WiFi and serve `/data.json` with all seven
+    That website should still broadcast the Pico's own WiFi network (access point mode) and serve `/data.json` with all seven
     existing fields from Classes 3-4 — a quick spot-check, not a rebuild.
 
 ---
@@ -62,7 +62,7 @@ not just copying.
 | Breadboard (from prior classes) | 1 | No rewiring needed today |
 | USB cable or portable battery | 1 | Power for untethered floor runs |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
-| Classroom WiFi network (shared, from Class 3) | 1 | Already-joined network the growing rover status website runs on — nothing new to set up |
+| (none — the Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the rover status website runs on the network your Pico creates itself (access point mode, from Class 3) — nothing new to set up |
 | Open floor area with soft obstacles | shared | Test space for autonomous driving runs |
 
 **Additional components for the Homework Assignments** (Section 9) — no homework has been written
@@ -385,7 +385,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 # NOTE: the old "while True: server.poll()" loop is gone from this file --
 # class-5-code.py's own main loop polls it now (see below).
 ```
@@ -457,7 +457,7 @@ while True:
 
 ### Try it / what you should see
 
-Open your Pico's status webpage in a browser on the classroom WiFi — you should now see ten
+Open your Pico's status webpage in a browser on your Pico's own WiFi network — you should now see ten
 fields: the seven from Classes 3-4 (`speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`,
 `roll`, `pitch`, `yaw`) plus today's three (`scan_heading`, `drive_state`, `stop_reason`). Set your
 rover driving and watch `drive_state` flip between `"driving"` and `"scanning"` as it cycles, and
@@ -543,8 +543,11 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -646,7 +649,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 # NOTE: no "while True: server.poll()" loop here anymore -- code.py's own
 # main loop polls it now, once per cycle, so it can also keep driving.
 ```

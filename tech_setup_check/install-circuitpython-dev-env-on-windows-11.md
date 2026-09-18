@@ -438,21 +438,22 @@ joining someone else's. This exercise builds on the `blink.py` program from Part
 only blinking the LED, the board also runs a small web server that any phone or laptop can connect
 to and see the LED's current on/off status on a webpage, live, with no laptop cable required.
 
-Before running this, you need to create a **second file** on CIRCUITPY named `env.yaml` — this
+Before running this, you need to create a **second file** on CIRCUITPY named `settings.toml` — this
 keeps your network name and password out of your actual code, which is good practice for any
-project you might later share or post online:
+project you might later share or post online. `settings.toml` is a built-in CircuitPython feature
+(since CircuitPython 8) — no library needed to read it, just the `os` module that's already part
+of CircuitPython:
 
-```yaml
-# env.yaml — save this on CIRCUITPY, next to code.py
+```toml
+# settings.toml — save this on CIRCUITPY, next to code.py
 # WiFi credentials for the Pico's own access point (not your home WiFi)
-ap_ssid: "<your-name>"
-ap_password: "blinkblink"   # must be at least 8 characters — WiFi requirement, not a suggestion
+CIRCUITPY_WIFI_AP_SSID="<your-name>"
+CIRCUITPY_WIFI_AP_PASSWORD="blinkblink"   # must be at least 8 characters — WiFi requirement, not a suggestion
 ```
 
-> `env.yaml` needs the `adafruit_yaml` library copied into CIRCUITPY's `lib` folder the same way
+> This board also needs `adafruit_httpserver` in CIRCUITPY's `lib` folder, copied the same way
 > you copied `neopixel.mpy` in Part 4 — grab it from the same Adafruit CircuitPython Library
-> Bundle you already downloaded. This board also needs `adafruit_httpserver` in `lib` for the web
-> server piece.
+> Bundle you already downloaded.
 
 ```python
 # code.py - WiFi Captive Portal Access Point showing onboard LED status on a webpage
@@ -461,12 +462,12 @@ import board
 import digitalio
 import wifi                      # controls the Pico 2W's WiFi radio directly
 import socketpool                # lets CircuitPython open network sockets over that radio
-import yaml                      # reads our env.yaml file so credentials aren't hardcoded here
+import os                        # reads settings.toml via os.getenv() so credentials aren't hardcoded here
 from adafruit_httpserver import Server, Request, Response
 
-# --- Load WiFi credentials from env.yaml instead of hardcoding them in this file ---
-with open("/env.yaml", "r") as f:
-    creds = yaml.safe_load(f)
+# --- Load WiFi credentials from settings.toml instead of hardcoding them in this file ---
+ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
+ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 
 # --- Set up the onboard LED, same as blink.py ---
 led = digitalio.DigitalInOut(board.LED)
@@ -474,8 +475,8 @@ led.direction = digitalio.Direction.OUTPUT
 
 # --- Turn the Pico's WiFi radio into its OWN network (an access point) ---
 # Anyone nearby can now see and join "<your-name>" like any other WiFi network.
-wifi.radio.start_ap(ssid=creds["ap_ssid"], password=creds["ap_password"])
-print("Access point started. Connect to:", creds["ap_ssid"])
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+print("Access point started. Connect to:", ap_ssid)
 print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
 
 # --- Start a tiny web server on the Pico itself ---
@@ -520,7 +521,7 @@ while True:
 
 **Test it:** Save this as `code.py` on CIRCUITPY, wait for it to reboot, then on your phone or
 laptop open WiFi settings and connect to the `<your-name>` network using the password from
-`env.yaml`. Open a browser and go to the address printed in the serial console (something like
+`settings.toml`. Open a browser and go to the address printed in the serial console (something like
 `http://192.168.4.1/`) — the page should show ON/OFF and flip once a second, matching the physical
 LED on the board.
 
