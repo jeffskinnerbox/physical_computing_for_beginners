@@ -39,7 +39,7 @@ the Cost Summary below.
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
 | IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
-| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
+| STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable, 150mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward): JST-SH end plugs into the IMU's STEMMA QT port, male-header end plugs into the Pico's breadboard rows (the Pico has no QT port, so a JST-to-JST cable would not work) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
 | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.30 | [Amazon][03] | sold in 10-pack ($12.99); Class 2 sensor, reused Class 5-6 |
@@ -52,7 +52,7 @@ the Cost Summary below.
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); Class 3 onward — regulated 5V for the Pico's `VSYS` power input, reused Class 4-6 |
 | USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
 | Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch; Class 5 rover bump sensor, reused Class 6 |
-| IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
+| IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 4 standalone test |
 | Slot Type IR Optocoupler for Motor Speed | 2 | $0.90 | [Amazon][28] | sold in 10-pack ($8.99); Class 3 wheel-odometry sensor, one per driven wheel of the Emo Smart Robot Car Chassis Kit (2 per person); reads the chassis kit's built-in 67mm-wheel encoder discs; reused Class 4-6 |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
@@ -72,16 +72,17 @@ it — the same reuse pattern the HC-SR04 and SG90 already follow from Class 2 o
 
 ### Per-Student Optional
 
-All three Class 6 stretch-goal items (rotary encoder speed control, WiFi IMU chart, TFT status
+All three Class 6 stretch-goal items (rotary encoder speed control, rover-website history chart, TFT status
 display) are treated as in-scope/required for this course rather than optional add-ons; their
 hardware (KY-040, LSM9DS1, TFT) already appears in Per-Student Required above.
 
 The one genuinely optional item is a bulk capacitor for the motor supply. It is **not** included in
-the Cost Summary or Grand Total below — buy it only if the instructor wants it on hand.
+the Cost Summary or Grand Total below — buy it only if the instructor wants it on hand. One 15-pack
+covers all 9 people for **+$6.99** (about $0.78 per person) on top of the Grand Total.
 
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
-| 1000µF electrolytic capacitor (16V or higher) | 1 | [VERIFY PRICE] | [VERIFY SOURCE] | Class 3 optional — across the DRV8833 `VM`/`GND` (`+` to `VM`) to buffer motor current spikes and battery sag; try a fresh 9V battery first, this is the fallback |
+| 1000µF electrolytic capacitor (16V or higher) | 1 | $0.47 | [Amazon][29] | sold in 15-pack ($6.99); Class 3 optional — across DRV8833 `VM`/`GND` (`+` to `VM`) to buffer motor spikes and battery sag; fresh 9V battery first, this is the fallback; [VERIFY] voltage rating is 16V+ |
 
 ### Shared Supplies
 
@@ -155,9 +156,10 @@ lesson plan — no separate cost, but listed here for completeness.
 | `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
 | `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-3-code-5.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
 | `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
-| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, WiFi IMU chart, TFT status display — Class 6 stretch goals |
+| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
 
 ----
 
@@ -197,7 +199,7 @@ part of the course budget above.
 [04]:https://www.amazon.com/Micro-Helicopter-Airplane-Remote-Control/dp/B072V529YD/?th=1
 [05]:https://www.adafruit.com/product/3297
 [06]:https://www.adafruit.com/product/4634
-[07]:https://www.adafruit.com/product/4210
+[07]:https://www.adafruit.com/product/4209
 [08]:https://www.amazon.com/WGCD-KY-040-Degree-Encoder-Arduino/dp/B07B68H6R8/
 [09]:https://www.adafruit.com/product/6113
 [10]:https://www.amazon.com/gp/product/B0B47XZCX2/
@@ -218,4 +220,5 @@ part of the course budget above.
 [26]:https://www.amazon.com/dp/B07YKFX99S?th=1
 [27]:https://www.amazon.com/dp/B0DTJZ3432
 [28]:https://www.amazon.com/dp/B0B2NSQJDL
+[29]:https://www.amazon.com/ALLECIN-Electrolytic-Capacitor-0-39x0-67in-Capacitors/dp/B0CMQBD1C3/?th=1
 

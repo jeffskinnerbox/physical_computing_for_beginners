@@ -9,7 +9,7 @@
   square/circle attempt, and is comfortable wiring, saving `code.py`, and reading streamed serial
   output. Class 1's button/encoder circuit and Class 4's IMU circuit are not needed for this build
   and can stay on the breadboard unused or be set aside — but the Class 3 wheel-odometry
-  optocouplers (`GP16`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) must stay wired and powered even
+  optocouplers (`GP19`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) must stay wired and powered even
   though today's collision-avoidance code doesn't read them directly, because the growing rover
   status website (`rover_server.py`) still reports wheel speed/direction and orientation from those
   same circuits. The website and its classroom WiFi connection must still be working — a quick
@@ -583,7 +583,7 @@ references in the syllabus if they want to read ahead.
 | Rover reverses into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
 | Website's new fields (`scan_heading`/`drive_state`/`stop_reason`) never appear or never change | Old Class 4 `rover_server.py` still on CIRCUITPY, or its old `while True: server.poll()` loop wasn't removed | Confirm only one `rover_server.py` exists and it's the Class 5 version; confirm `class-5-code.py` calls `rover_server.server.poll()` itself |
 | Website hangs/never responds once the rover starts driving | Both `rover_server.py`'s old loop and `class-5-code.py`'s new loop are calling `server.poll()` in separate blocking loops | Delete the old `while True: server.poll()` block from `rover_server.py` entirely — only `class-5-code.py`'s main loop should call it now |
-| Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP16`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed; they're unrelated to today's `GP5`/`GP13` wiring |
+| Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP19`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed; they're unrelated to today's `GP5`/`GP13` wiring |
 
 ## 7. Age Differentiation Notes
 

@@ -736,6 +736,12 @@ the page is "what we last told the car to do," not something the optocoupler its
 Complete Phase 3 first — this stretch needs both optocouplers mounted, `SLOTS_PER_REV` set, and
 `wheel_odometry.read_speed()` showing both wheels above `0.0`.
 
+> **[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
+> validate: the starting values `KP`, `MAX_TRIM`, `BASE_THROTTLE`, `RUN_SECONDS`, and `RESET_SECONDS`;
+> the suggested fixes (`KP` of `0.01` or `0.003`, `SAMPLE_SECONDS` of `0.5`); the claim that `trim`
+> settles within about a second; and that feedback drift is clearly smaller than open-loop drift.
+> Replace the placeholders with measured values and delete this note once validated.
+
 ### Why your car curves
 
 Put your car on the floor, point it down a long straight line, and run `drive(0.5, 0.5)`. Equal
@@ -807,8 +813,8 @@ import motor_driver
 import wheel_odometry
 
 BASE_THROTTLE = 0.5   # throttle both wheels start at
-KP = 0.005            # nudge per cm/s of speed difference -- tune on your own car
-MAX_TRIM = 0.2        # never slow a wheel by more than this, so a bad reading can't stall it
+KP = 0.005            # [VERIFY] nudge per cm/s of speed difference -- tune on your own car
+MAX_TRIM = 0.2        # [VERIFY] never slow a wheel by more than this, so a bad reading can't stall it
 
 
 def drive_straight_feedback(seconds):
@@ -846,8 +852,8 @@ import time
 import motor_driver
 import straight_drive
 
-RUN_SECONDS = 4
-RESET_SECONDS = 15    # time to carry the car back to the start line
+RUN_SECONDS = 4       # [VERIFY] long enough to show a clear curve without leaving the tape
+RESET_SECONDS = 15    # [VERIFY] time to carry the car back to the start line
 
 print("Run 1 -- open loop: equal throttle, no feedback")
 motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
@@ -1179,8 +1185,8 @@ import motor_driver
 import wheel_odometry
 
 BASE_THROTTLE = 0.5   # tune per robot
-KP = 0.005            # tune per robot
-MAX_TRIM = 0.2
+KP = 0.005            # [VERIFY] tune per robot
+MAX_TRIM = 0.2        # [VERIFY]
 
 
 def drive_straight_feedback(seconds):

@@ -75,7 +75,7 @@ explicitly before Class 5 combines everything into the Random Rover.
   this is the first Class requiring a Python install on the laptop side rather than just an editor.
   (~15 min)
 * **Day of, before students arrive:**
-* Set out one LSM9DS1 9-DOF breakout board and a STEMMA QT/Qwiic cable (or Dupont jumpers if not
+* Set out one LSM9DS1 9-DOF breakout board and a STEMMA QT/Qwiic to male-header cable (or Dupont jumpers if not
         using STEMMA QT) at each workstation, alongside continued access to the existing breadboard.
 * Pre-build one reference circuit at the instructor bench and test `class-4-code-1.py` (on the
         Pico) together with `class-4-code-2.py` (on a laptop) end-to-end, confirming the 3D box
@@ -101,7 +101,7 @@ quantities, and sourcing.
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
 | 9V battery, clip, and 5V buck converter (from Class 3) | Powers the Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
 | IMU: LSM9DS1 9-DOF Breakout Board (STEMMA) | Measures acceleration and rotation rate; fused into orientation |
-| STEMMA QT/Qwiic cable | I2C connection between the Pico and the IMU |
+| STEMMA QT/Qwiic to male-header cable | I2C connection between the Pico and the IMU |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Classes 1-3 circuits stay on it, untouched |
 | Dupont jumper wires (shared) | Point-to-point wiring, if not using STEMMA QT directly |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |

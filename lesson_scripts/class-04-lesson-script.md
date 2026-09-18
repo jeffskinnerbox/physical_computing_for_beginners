@@ -40,7 +40,7 @@ Class 3's square-and-circle problem on its own.
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
 | 9V battery, clip, and 5V buck converter (from Class 3) | 1 each | Powers your Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
 | LSM9DS1 9-DOF IMU breakout board (STEMMA) | 1 | Measures acceleration and rotation rate |
-| STEMMA QT/Qwiic cable (or Dupont jumpers) | 1 | I2C connection between the Pico and the IMU |
+| STEMMA QT/Qwiic to male-header cable (or Dupont jumpers) | 1 | I2C connection between the Pico and the IMU |
 | Breadboard (from Classes 1-3) | 1 | Your existing circuits stay on it, untouched |
 | USB cable | 1 | Powers the Pico and carries the serial data |
 | Laptop with Mu or Thonny | 1 | Where you write/save the Pico's code |

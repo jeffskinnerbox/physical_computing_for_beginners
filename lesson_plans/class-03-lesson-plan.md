@@ -677,7 +677,7 @@ import wheel_odometry
 
 BASE_THROTTLE = 0.5   # throttle both wheels start at
 KP = 0.005            # [VERIFY] -- nudge per cm/s of speed difference; tune on your own car
-MAX_TRIM = 0.2        # never slow a wheel by more than this
+MAX_TRIM = 0.2        # [VERIFY] -- never slow a wheel by more than this
 
 
 def drive_straight_feedback(seconds):
@@ -697,6 +697,10 @@ def drive_straight_feedback(seconds):
 
     motor_driver.stop()
 ```
+
+**[VERIFY — bench test pending]** `KP`, `MAX_TRIM`, the 4-second run, and the 15-second reset below
+are untested starting values, as are the tuning suggestions (`KP` of `0.003`/`0.01`, `SAMPLE_SECONDS`
+of `0.5`); validate on the reference car and replace with measured values.
 
 The comparison `code.py` runs the same line open-loop, gives 15 seconds to carry the car back, then
 runs it with feedback:

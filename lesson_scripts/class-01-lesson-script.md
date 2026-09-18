@@ -915,9 +915,6 @@ into a simple sequential state machine — a 3-digit combination lock.
 | :------------- | :------------ | :-------------------- |
 | `GP18` | `SW` | Encoder's built-in pushbutton, active-low with internal pull-up — pressing the knob shorts it to `GND` |
 
-**Note:** this reuses `GP18`, the same pin the Pre-Class/Class 6 TFT homework uses for `SCK`. Only
-one can be wired at a time — swap the jumper rather than running both simultaneously.
-
 ```python
 # class-1-homework-5.py - use the KY-040's built-in SW pushbutton as a
 # THIRD independent input to build a simple 3-digit
@@ -1037,15 +1034,11 @@ behind any on-screen analog gauge: read a live value, then re-render the display
 | :------------- | :-------- | :-------------------- |
 | `3V3 OUT` | `VIN` / `V+` | Power |
 | `GND` | `GND` / `G` | Common ground |
-| `GP18` | `SCK` / `CL` | SPI clock |
-| `GP19` | `MOSI` / `DA` | SPI data, Pico → display |
+| `GP26` | `SCK` / `CL` | SPI clock |
+| `GP27` | `MOSI` / `DA` | SPI data, Pico → display |
 | `GP20` | `CS` | Chip select |
 | `GP21` | `DC` | Data/Command select |
 | `GP22` | `RST` / `BL` | Reset |
-
-**Note:** if you've also done Homework 5 (encoder `SW` combination lock, also on `GP18`), only one
-of the two can be wired at a time — swap the `GP18` jumper between them rather than running both
-simultaneously.
 
 ```python
 # class-1-homework-6.py - draw a live bar gauge on the TFT display,
@@ -1076,7 +1069,7 @@ encoder_dt.pull = digitalio.Pull.UP
 
 # --- TFT setup -- same wiring and pins as the Pre-Class TFT homework ---
 displayio.release_displays()
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 

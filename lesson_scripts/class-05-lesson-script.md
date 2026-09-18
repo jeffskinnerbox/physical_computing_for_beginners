@@ -8,7 +8,7 @@
     circuit (`GP9`-`GP12`) should both still be working exactly as you left them. You'll also need
     your Class 3 turn-time calibration notes (`SECONDS_PER_90_DEGREES` or similar) from your build
     journal. Class 1's button/encoder circuit isn't needed today — leave it in place or set it
-    aside. Class 3's wheel-odometry optocouplers (`GP16`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) are
+    aside. Class 3's wheel-odometry optocouplers (`GP19`/`GP17`) and Class 4's IMU (`GP0`/`GP1`) are
     also not read by today's code directly, but they **must stay wired and powered** — the rover
     status website (`rover_server.py`) still reports wheel speed/direction and orientation from
     those same circuits, and today's website edit adds to that same page rather than replacing it.
@@ -90,7 +90,7 @@ scan is simple and safe, since the sensor never has to interpret a reading taken
 robot is also moving — but it's slower than continuously sensing while driving would be.
 
 **From Class 3/4's website, still running: the wheel odometry optocouplers and the IMU.** Your
-Class 3 `GP16`/`GP17` optocoupler circuit and Class 4's `GP0`/`GP1` IMU circuit don't get read by
+Class 3 `GP19`/`GP17` optocoupler circuit and Class 4's `GP0`/`GP1` IMU circuit don't get read by
 `class-5-code.py` at all — today's collision-avoidance logic only touches `GP6`-`GP13`. But leave
 both circuits wired and powered anyway: `rover_server.py` still reads them to report wheel
 speed/direction and orientation on the rover status website, and today's website edit (Phase 2
@@ -121,7 +121,7 @@ Class 3 optocoupler and Class 4 IMU pins below stay wired for the website but ar
 | `GP11`/`GP12` | DRV8833 `BIN1`/`BIN2` (Motor B) | Class 3 |
 | `GP5` | Limit switch (internal pull-up) | New this Class |
 | `GP13` | IR obstacle sensor `OUT` | New this Class |
-| `GP16`/`GP17` | Wheel-odometry optocouplers (website only) | Class 3 |
+| `GP19`/`GP17` | Wheel-odometry optocouplers (website only) | Class 3 |
 | `GP0`/`GP1` | LSM9DS1 IMU `SDA`/`SCL` (website only) | Class 4 |
 
 ## 4. Build It: Phase 1 — The Collision-Avoidance Program
@@ -494,7 +494,7 @@ are still updating too — they shouldn't have stopped just because you edited t
 | Rover backs into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
 | Website's new fields (`scan_heading`/`drive_state`/`stop_reason`) never appear or never change | Old Class 4 `rover_server.py` still on `CIRCUITPY`, or its old `while True: server.poll()` loop wasn't removed | Confirm only one `rover_server.py` exists and it's the Class 5 version; confirm `class-5-code.py` calls `rover_server.server.poll()` itself |
 | Website hangs/never responds once the rover starts driving | Both `rover_server.py`'s old loop and `class-5-code.py`'s new loop are calling `server.poll()` in separate blocking loops | Delete the old `while True: server.poll()` block from `rover_server.py` entirely — only `class-5-code.py`'s main loop should call it now |
-| Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP16`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed — they're unrelated to today's `GP5`/`GP13` wiring |
+| Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP19`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed — they're unrelated to today's `GP5`/`GP13` wiring |
 | `NameError` or `AttributeError` mentioning `scan_status` or `server` | `class-5-code.py` imports `rover_server` but references `scan_status`/`server` directly instead of `rover_server.scan_status`/`rover_server.server` | Prefix both with `rover_server.` everywhere they're read or updated in `class-5-code.py` |
 
 ## 7. Put It All Together
@@ -516,7 +516,7 @@ this Class, plus the (now-library) `rover_server.py` this Class refactored.
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
 | Limit switch (internal pull-up) | `GP5` |
 | IR obstacle sensor `OUT` | `GP13` |
-| Wheel-odometry optocouplers (website only, unchanged from Class 3) | `GP16`/`GP17` |
+| Wheel-odometry optocouplers (website only, unchanged from Class 3) | `GP19`/`GP17` |
 | LSM9DS1 IMU `SDA`/`SCL` (website only, unchanged from Class 4) | `GP0`/`GP1` |
 
 ### Complete code

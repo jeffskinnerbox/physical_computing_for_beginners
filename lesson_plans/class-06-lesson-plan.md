@@ -338,15 +338,15 @@ same failure mode Class 5 already taught students to check for.
 
 **Stretch #3 wiring (the only new wiring this Class):**
 
-Before wiring the TFT, unplug the single jumper from the encoder's `SW` pin to `GP18` — `SW` has
-been wired but functionally unused since Class 1, and the TFT's `SCK` line needs `GP18` for
-itself. No other wiring changes to the encoder circuit (`CLK`/`DT` on `GP3`/`GP4` stay exactly as
-they are).
+Nothing already on the breadboard needs to move. The TFT's `SCK`/`MOSI` lines use `GP26`/`GP27`
+(the Pico's second SPI bus) because `GP19`, the first bus's `MOSI` pin, is taken by the Class 3
+wheel-odometry optocoupler. The encoder's `SW` pin on `GP18` can stay wired, and `CLK`/`DT` on
+`GP3`/`GP4` stay exactly as they are.
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
-| TFT `SCK` | `GP18` |
-| TFT `MOSI` | `GP19` |
+| TFT `SCK` | `GP26` |
+| TFT `MOSI` | `GP27` |
 | TFT `CS` | `GP20` |
 | TFT `DC` | `GP21` |
 | TFT `RST` | `GP22` |
@@ -371,7 +371,7 @@ from adafruit_display_text import label
 
 displayio.release_displays()
 
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270)
 

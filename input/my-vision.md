@@ -401,7 +401,7 @@ Tips for Students:
     `straight_drive.py`). Imports `motor_driver` and `wheel_odometry`. `drive_straight_feedback(seconds)`
     starts both wheels at `BASE_THROTTLE`, then each cycle reads `wheel_odometry.read_speed()`, computes
     `error = speed_left - speed_right`, adds `KP * error` to a clamped running `trim` (`MAX_TRIM`), and slows
-    only the faster wheel by that trim. `KP` must be tuned per robot: too large chases one-tick measurement
+    only the faster wheel by that trim. `KP` must be tuned per robot ([VERIFY] — bench test pending): too large chases one-tick measurement
     noise (about 4 cm/s at `SLOTS_PER_REV = 20`, `SAMPLE_SECONDS = 0.25`) and makes the car snake. Runs as its
     own `code.py`, mutually exclusive with `rover_server.py` (both call `read_speed()`, which resets the shared
     tick counters). Class 4's IMU heading-hold is the next step beyond this.
@@ -507,7 +507,7 @@ Tips for Students:
   pull-up, wired as a physical bumper on the chassis front) and `GP13` (IR obstacle sensor, digital
   input, fixed forward-facing). Both are carried forward unchanged into Class 6. Otherwise, reconnects
   exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`), the Class 3 motor driver circuit
-  (`GP9`-`GP12`) and wheel-odometry circuit (`GP16`/`GP17`), and the Class 4 IMU circuit (`GP0`/`GP1`)
+  (`GP9`-`GP12`) and wheel-odometry circuit (`GP19`/`GP17`), and the Class 4 IMU circuit (`GP0`/`GP1`)
   as they were left wired &mdash; nothing to move. The Class 1 circuit can stay on the breadboard unused
   or be set aside; it isn't needed for this build.
 * **Objective**: Create an autonomous car with wheel motors, operating at a constant speed,
@@ -527,7 +527,7 @@ Tips for Students:
   independent of the ultrasonic scan/timer logic.
 * **Course Pseudocode**:
   * [`class-5-code.py`](./class-5-code.py) &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
-    `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`) and `wheel_odometry` (`GP16`/`GP17`).
+    `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`) and `wheel_odometry` (`GP19`/`GP17`).
     Drives forward at `DRIVE_SPEED`; sweeps the sensor across `SCAN_ANGLES` on a timer or immediately if
     anything comes within `STOP_DISTANCE_CM`, turns toward the clearest heading (reusing Class 3's turn-time
     calibration), then continues. Also polls the IR sensor (`GP13`) and limit switch (`GP5`) every loop;
@@ -556,12 +556,12 @@ Tips for Students:
   (e.g. IMU tilt, wheel speed) scroll by, instead of only ever seeing the current instant.
 * **Wiring Continuity**: Stretch #1 needs no new wiring &mdash; it reconnects the Class 1 encoder (`GP3`/`GP4`)
   exactly as already wired, right alongside the Class 5 rover circuit (`GP6`-`GP12`), the Class 3 wheel
-  optocouplers (`GP16`/`GP17`), and the Class 4 IMU (`GP0`/`GP1`). Stretch #2 also needs no new wiring &mdash;
+  optocouplers (`GP19`/`GP17`), and the Class 4 IMU (`GP0`/`GP1`). Stretch #2 also needs no new wiring &mdash;
   it only extends software already running on the existing Class 3 WiFi/web-server circuit. The Class 5
   limit switch (`GP5`) and IR sensor (`GP13`) also carry forward unchanged, needing no rewiring. Stretch #3
-  is the only new wiring this class: a TFT on `GP18`-`GP22` &mdash; `GP18` reclaims the encoder's `SW` pin,
-  wired but functionally unused since Class 1 (unplug that one jumper first); `GP19`-`GP22` are otherwise
-  untouched by anything else in the course, so the TFT otherwise drops in without disturbing the rover.
+  is the only new wiring this class: a TFT on `GP26`/`GP27` (SPI1 `SCK`/`MOSI`) and `GP20`-`GP22` (`CS`/`DC`/`RST`)
+  &mdash; none of these pins is used by anything else in the course (`GP19`, SPI0's `MOSI`, is the Class 3 optocoupler),
+  so the TFT drops in without disturbing the rover.
 * **Objective**: Stretch Objectives are to
   1. Add a rotary encoder to control speed.
   1. Extend the rover website (running since Class 3) with a rolling historical chart.
@@ -586,7 +586,7 @@ Tips for Students:
     (from `class-4-code-1.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
     join or web server is created here &mdash; both already exist from Class 3.
   * [`class-6-code-3.py`](./class-6-code-3.py) &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
-    (`SCK`/`MOSI`/`CS`/`DC`/`RST` on `GP18`-`GP22`) shows distance/heading/speed as large on-board text via
+    (`SCK`/`MOSI` on `GP26`/`GP27`, `CS`/`DC`/`RST` on `GP20`-`GP22`) shows distance/heading/speed as large on-board text via
     `displayio` + `adafruit_display_text`, so rover status is visible without a USB cable. Ships with demo
     values; swap in the real variables from class-5-code.py / class-6-code-1.py.
 * **Potential Source Materials**:
@@ -615,42 +615,61 @@ fetch), so reconfirm those before ordering.
 
 ##### Per-Student Required
 
-Each of the 9 people (8 students + instructor) keeps one of everything in this table. Several items are sold in
-multi-packs; the "Item Cost" column is the *effective per-unit cost* for readability, with the actual pack
-purchase (and any spares that come with it) noted below the table and priced in the Cost Summary.
+Each of the 9 people (8 students + instructor) keeps one of everything in this table — this is the
+hardware that goes home with each person at the end of the course. Several items are sold in
+multi-packs; the "Item Cost" column is the *effective per-unit cost* for readability, with the
+actual pack purchase (and any spares that come with it) noted in the table and priced exactly in
+the Cost Summary below.
 
 | Item | Quantity | Item Cost | Source | Notes |
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
+| DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
+| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
+| STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable, 150mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward): JST-SH end plugs into the IMU's STEMMA QT port, male-header end plugs into the Pico's breadboard rows (the Pico has no QT port, so a JST-to-JST cable would not work) + 1 spare; the LSM9DS1 is the only I2C device in the course |
+| 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
 | HC-SR04 Ultrasonic Distance Sensor | 1 | $1.30 | [Amazon][03] | sold in 10-pack ($12.99); Class 2 sensor, reused Class 5-6 |
 | SG90 9g Micro Servo Motor | 1 | $2.00 | [Amazon][04] | sold in 10-pack ($19.99); Class 2 servo, reused Class 5-6 |
-| DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
-| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
-| STEMMA QT / Qwiic JST SH 4-pin Cable, 100mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
-| 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
-| Tactile Push Button Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99) [VERIFY PRICE]; Class 1 button + spare |
+| Momentary Push Button Tactile Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99) [VERIFY PRICE]; Class 1 button + spare |
 | Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course |
 | I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power, reused Class 4-6 |
 | 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1; Class 3 motor + Pico power (via buck converter), reused Class 4-6 |
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); Class 3 onward — regulated 5V for the Pico's `VSYS` power input, reused Class 4-6 |
+| USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
+| Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Lever Arm Long 28MM SPDT 3 Pins 3 Terminals Momentary Switch; Class 5 rover bump sensor, reused Class 6 |
+| IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); 2-30cm detection range, 3.3-5V; Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 4 standalone test |
+| Slot Type IR Optocoupler for Motor Speed | 2 | $0.90 | [Amazon][28] | sold in 10-pack ($8.99); Class 3 wheel-odometry sensor, one per driven wheel of the Emo Smart Robot Car Chassis Kit (2 per person); reads the chassis kit's built-in 67mm-wheel encoder discs; reused Class 4-6 |
 | LED (assorted) | 2 | $0.00 | Makersmiths | Class 1 button LED + encoder brightness LED; stocked by the makerspace |
 | Resistor (assorted, 220-330Ω for LEDs, ~1k/2k Ω for HC-SR04 voltage divider) | 4 | $0.00 | Makersmiths | Class 1 LED current-limiting + Class 2 HC-SR04 voltage divider; stocked by the makerspace |
-| USB A to Micro USB Charging Cable with Data Transfer | 1 | $1.00 | [Amazon][25] | backup for a student whose own cable fails; not the primary supply (see Tools below) |
-| Micro Limit Switch | 1 | $0.33 | [Amazon][26] | sold in 20-pack ($6.50); Class 5 rover bump sensor, reused Class 6 |
-| IR Obstacle Avoidance Sensor | 1 | $0.88 | [Amazon][27] | sold in 10-pack ($8.77); Class 5 rover near-field backup sensor, reused Class 6; also Pre-Class Homework 5 standalone test |
-| Slot Type IR Optocoupler for Motor Speed | 2 | $0.90 | [Amazon][28] | sold in 10-pack ($8.99); Class 3 wheel-odometry sensor (one per driven wheel of the Emo Smart Robot Car Chassis Kit), reused Class 4-6 |
 
 Per-Student Required Cost = 8.00 + 13.99 + 1.30 + 2.00 + 5.95 + 19.95 + 2×0.95 + 2.89 + 9.95 + 2×0.02 + 3.00 + 0.65 + 1.59 + 1.50 + 0 + 0 + 1.00 + 0.33 + 0.88 + 2×0.90 ≈ **$76.72 per person** (see Cost Summary for the exact bulk-purchase total, which accounts for whole-pack rounding)
 
+**Note on wheel odometry (new starting Class 3):** wheel odometry means measuring how fast — and
+in which direction — each driven wheel is *actually* turning, not just what speed the code
+commanded it to spin at. The Emo Smart Robot Car Chassis Kit already includes a molded encoder disc
+on each of its two 67mm drive wheels, but the kit has no sensor that can read those discs — the
+Slot Type IR Optocoupler for Motor Speed line above is that sensor (one optocoupler per driven
+wheel, so 2 per person). It's wired in during Class 3 alongside the DRV8833 motor driver, so the
+wheel-speed reading is available from the same class the motors first turn under code control, and
+that reading is then reused every class after: Class 4 IMU work, the Class 5 Random Rover's
+collision-avoidance logic, and Class 6's encoder speed control and rover status display all build on
+it — the same reuse pattern the HC-SR04 and SG90 already follow from Class 2 onward.
+
 ##### Per-Student Optional
 
-None. All three Class 6 stretch-goal items (rotary encoder speed control, rover-website history chart, TFT
-status display) have their hardware (KY-040, LSM9DS1, TFT) purchased/stocked for every student — treated as
-in-scope/required for procurement purposes. Whether a given student *attempts* all three builds in class is a
-pedagogical choice (see syllabus/class-06 lesson plan), not a procurement one; this section only concerns
-what's bought, not what's built.
+All three Class 6 stretch-goal items (rotary encoder speed control, rover-website history chart, TFT status
+display) are treated as in-scope/required for this course rather than optional add-ons; their
+hardware (KY-040, LSM9DS1, TFT) already appears in Per-Student Required above.
+
+The one genuinely optional item is a bulk capacitor for the motor supply. It is **not** included in
+the Cost Summary or Grand Total below — buy it only if the instructor wants it on hand. One 15-pack
+covers all 9 people for **+$6.99** (about $0.78 per person) on top of the Grand Total.
+
+| Item | Quantity | Item Cost | Source | Notes |
+| :-----: | :-----: | :-----: | :-----: | :--------: |
+| 1000µF electrolytic capacitor (16V or higher) | 1 | $0.47 | [Amazon][29] | sold in 15-pack ($6.99); Class 3 optional — across DRV8833 `VM`/`GND` (`+` to `VM`) to buffer motor spikes and battery sag; fresh 9V battery first, this is the fallback; [VERIFY] voltage rating is 16V+ |
 
 ##### Shared Supplies
 
@@ -693,10 +712,9 @@ Shipping = $10.00 total (~$1.11 per person)
 Grand Total = $722.69 + $21.98 + $10.00 = $754.67 for the course (~$83.85 per person, 9 people)
 ```
 
-
 #### Software
 
-All free.
+All free — no paid software is required anywhere in this course.
 
 | Item | Source | Notes |
 | :-----: | :-----: | :--------: |
@@ -711,7 +729,8 @@ All free.
 
 #### Code Blocks
 
-Pseudocode/reference implementations provided by the instructor, embedded inline in each class's lesson plan.
+Pseudocode/reference implementations provided by the instructor, embedded inline in each class's
+lesson plan — no separate cost, but listed here for completeness.
 
 | Item | Quantity | Source | Notes |
 | :-----: | :-----: | :-----: | :--------: |
@@ -720,11 +739,14 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 | `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
 | `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-3-code-5.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic, also posts scan/sensor telemetry to the rover website, Class 5 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
 
 #### Tools
+
+Equipment needed during the course that is not part of the take-home hardware kit.
 
 | Item | Quantity | Source | Notes |
 | :-----: | :-----: | :-----: | :--------: |
@@ -737,7 +759,7 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [04]:https://www.amazon.com/Micro-Helicopter-Airplane-Remote-Control/dp/B072V529YD/?th=1
 [05]:https://www.adafruit.com/product/3297
 [06]:https://www.adafruit.com/product/4634
-[07]:https://www.adafruit.com/product/4210
+[07]:https://www.adafruit.com/product/4209
 [08]:https://www.amazon.com/WGCD-KY-040-Degree-Encoder-Arduino/dp/B07B68H6R8/
 [09]:https://www.adafruit.com/product/6113
 [10]:https://www.amazon.com/gp/product/B0B47XZCX2/
@@ -756,6 +778,7 @@ Pseudocode/reference implementations provided by the instructor, embedded inline
 [26]:https://www.amazon.com/dp/B07YKFX99S?th=1
 [27]:https://www.amazon.com/dp/B0DTJZ3432
 [28]:https://www.amazon.com/dp/B0B2NSQJDL
+[29]:https://www.amazon.com/ALLECIN-Electrolytic-Capacitor-0-39x0-67in-Capacitors/dp/B0CMQBD1C3/?th=1
 
 These items are removed from consideration after iterating on the lesson plans
 

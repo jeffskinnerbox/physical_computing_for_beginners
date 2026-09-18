@@ -86,8 +86,8 @@ dedicated protocol for pushing pixel data to a screen.
 | :---- | :--------------------- | :------- |
 | `GP3`/`GP4` | Rotary encoder `CLK`/`DT` | Reused from Class 1 |
 | `GP0`/`GP1` | LSM9DS1 `SDA`/`SCL` | Reused from Class 4 |
-| `GP18` | TFT `SCK` | New |
-| `GP19` | TFT `MOSI` | New |
+| `GP26` | TFT `SCK` | New |
+| `GP27` | TFT `MOSI` | New |
 | `GP20` | TFT `CS` | New |
 | `GP21` | TFT `DC` | New |
 | `GP22` | TFT `RST` | New |
@@ -301,15 +301,15 @@ too.
 
 ### Wiring for this stretch goal
 
-This is the only genuinely new wiring in Class 6. Before wiring the TFT, unplug the single jumper
-from the encoder's `SW` pin to `GP18` — `SW` has been wired but functionally unused since Class 1,
-and the TFT's `SCK` line needs `GP18` for itself. No other wiring changes to the encoder circuit
-(`CLK`/`DT` on `GP3`/`GP4` stay exactly as they are).
+This is the only genuinely new wiring in Class 6. Nothing already on the breadboard needs to move.
+The TFT's `SCK`/`MOSI` lines use `GP26`/`GP27` (the Pico's second SPI bus) because `GP19`, the
+first bus's `MOSI` pin, is taken by the Class 3 wheel-odometry optocoupler. The encoder's `SW`
+pin on `GP18` can stay wired, and the encoder's `CLK`/`DT` on `GP3`/`GP4` stay exactly as they are.
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
-| TFT `SCK` | `GP18` |
-| TFT `MOSI` | `GP19` |
+| TFT `SCK` | `GP26` |
+| TFT `MOSI` | `GP27` |
 | TFT `CS` | `GP20` |
 | TFT `DC` | `GP21` |
 | TFT `RST` | `GP22` |
@@ -343,7 +343,7 @@ from adafruit_display_text import label
 # skipping this is the most common cause of a blank/garbled screen.
 displayio.release_displays()
 
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270)
 
@@ -417,7 +417,7 @@ in one place, so you can build straight to whichever combination you want.
 | IR obstacle sensor `OUT` | `GP13` | Core rover |
 | Rotary encoder `CLK`/`DT` | `GP3`/`GP4` | Stretch 1 |
 | LSM9DS1 `SDA`/`SCL` | `GP0`/`GP1` | Stretch 2 |
-| TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP18`-`GP22` | Stretch 3 |
+| TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP26`/`GP27`/`GP20`-`GP22` | Stretch 3 |
 
 ### Complete code
 

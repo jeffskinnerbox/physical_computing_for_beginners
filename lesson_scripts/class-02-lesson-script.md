@@ -46,7 +46,7 @@ class itself, only if you choose to do Homework 1, Homework 4, or Homework 5 at 
 
 | Component | Quantity | Purpose (Homework #) |
 | :---------- | :--------: | :---------------------- |
-| EMOZNY Smart Car Chassis Kit | 1 | Random Rover chassis assembly, unwired for now (Homework 1) — wired up starting in Class 5 |
+| Emo Smart Robot Car Chassis Kit | 1 | Random Rover chassis assembly, unwired for now (Homework 1) — wired up starting in Class 5 |
 | 1.14" 240x135 Color TFT Display (ST7789) | 1 | Live angle/distance readout (Homework 4) — also used in the Pre-Class and Class 1 homework and Class 6's stretch goal |
 | IR Obstacle Avoidance Sensor | 1 | Fixed, forward-facing cross-check against the sweeping HC-SR04 (Homework 5) — also used on the Random Rover in Class 5 |
 
@@ -100,7 +100,7 @@ need this protection because the Pico is the one driving that line, not the othe
 | Component | Pico 2 W Pin | Important !! |
 | :---------- | :-------------: | :----------: |
 | HC-SR04 `TRIG` | `GP6` | |
-| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protect the Pico's GPIO pin |
 | HC-SR04 `VCC` | `5V` / `VBUS` | |
 | HC-SR04 `GND` | `GND` | |
 
@@ -364,7 +364,7 @@ without going through the individual phases above.
 | Component | Pico 2 W Pin | Important !! |
 | :---------- | :-------------: | :----------: |
 | HC-SR04 `TRIG` | `GP6` | |
-| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protect the Pico's GPIO pin |
 | HC-SR04 `VCC` | `5V` / `VBUS` | |
 | HC-SR04 `GND` | `GND` | |
 | SG90 servo `signal` / `PWM` (orange) | `GP8` | |
@@ -452,7 +452,7 @@ same "read the instructions, adapt as you go" habit called out in the Pre-Class 
 build things. Getting the chassis built now, ahead of Class 5, means class time later goes to
 wiring and code instead of screws and standoffs.
 
-Assemble the EMOZNY Smart Car Chassis Kit by following the included instruction sheet (there are
+Assemble the Emo Smart Robot Car Chassis Kit by following the included instruction sheet (there are
 helpful videos below).
 **BUT** also do the following:
 * **do not** attach any wiring (we will do this together in class)
@@ -508,7 +508,7 @@ circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
 | Component | Pico 2 W Pin | Important !! |
 | :---------- | :-------------: | :----------: |
 | HC-SR04 `TRIG` | `GP6` | |
-| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protect the Pico's GPIO pin |
 | HC-SR04 `VCC` | `5V` / `VBUS` | |
 | HC-SR04 `GND` | `GND` | |
 | SG90 servo `signal` / `PWM` (orange) | `GP8` | |
@@ -650,7 +650,7 @@ sensor+servo circuit.
 | Button LED anode, through resistor | `GP15` | use a 330 ohms resistor |
 | Button LED cathode | `GND` | |
 | HC-SR04 `TRIG` | `GP6` | |
-| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protects the Pico's GPIO pin |
+| HC-SR04 `ECHO` | `GP7` | through 1K/2K ohm resistor voltage-divider to protect the Pico's GPIO pin |
 | HC-SR04 `VCC` | `5V` / `VBUS` | |
 | HC-SR04 `GND` | `GND` | |
 | SG90 servo `signal` / `PWM` (orange) | `GP8` | |
@@ -785,15 +785,11 @@ bounce animation (Pre-Class homework) or a value set once and left alone.
 | :------------- | :-------- | :-------------------- |
 | `3V3 OUT` | `VIN` / `V+` | Power |
 | `GND` | `GND` / `G` | Common ground |
-| `GP18` | `SCK` / `CL` | SPI clock |
-| `GP19` | `MOSI` / `DA` | SPI data, Pico → display |
+| `GP26` | `SCK` / `CL` | SPI clock |
+| `GP27` | `MOSI` / `DA` | SPI data, Pico → display |
 | `GP20` | `CS` | Chip select |
 | `GP21` | `DC` | Data/Command select |
 | `GP22` | `RST` / `BL` | Reset |
-
-**Note:** if you've also done Class 1's Homework 5 (encoder `SW` combination lock, also on
-`GP18`), only one of the two can be wired at a time — swap the `GP18` jumper between them rather
-than running both simultaneously.
 
 ### Complete code
 
@@ -822,7 +818,7 @@ my_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)
 
 # --- TFT setup -- same wiring and pins as the Pre-Class TFT homework ---
 displayio.release_displays()
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 

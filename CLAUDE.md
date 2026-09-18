@@ -21,8 +21,7 @@ sync with `my-vision.md` without also reconciling.
 
 `input/my-prompts.md` is a running log of the actual prompts used to generate each artifact
 (chronological, "My Nth Prompt" sections) — check it before regenerating something to see the
-exact invocation pattern and skill combination that produced the current version. Root-level
-`junk.md`/`junk2.md` are stray scratch copies, not canonical — use `input/my-prompts.md` instead.
+exact invocation pattern and skill combination that produced the current version.
 
 `methodology/course-methodology.md` has definitions/background the user reads before working the
 repo (class vs. course vs. workshop, external articles on applying coding agents to non-programming
@@ -122,8 +121,7 @@ PII, not course content; don't quote or propagate it into generated docs or else
 
 `explainers/` holds standalone explainer docs generated via the `/explainer` skill (e.g.
 microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
-`README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has a
-per-class handout (`class-00-handout.md` so far); its `README.md` is scratch notes and reference
+`README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has `class-00-handout.md`, `build-challenge.md`, and `references-and-resources.md`; its `README.md` is scratch notes and reference
 links (a glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` holds
 purchase receipts (photos, a `receipts/` subdir) — no established doc conventions there yet, not
 course content.
@@ -132,3 +130,10 @@ course content.
 install guides it has hand-maintained docs (`git-worktree-multitasking.md`,
 `python-virtual-environments.md`, `set-up-ssh-key-authentication.md`) and a `setup-github.sh`
 script — don't assume everything there came from the skill.
+
+## Working conventions
+
+Per the user's global rule, editing any file means first `cp -f file file.bak` in the same
+directory (overwriting an existing `.bak`) — that's why `*.md.bak` files sit beside lesson
+plans/scripts/BOM. They are throwaway backups, not canonical; don't edit or reconcile them.
+Each of `explainers/`, `handouts/`, `lesson_plans/`, `lesson_scripts/` has its own `README.md`.

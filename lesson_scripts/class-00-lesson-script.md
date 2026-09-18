@@ -695,13 +695,9 @@ velocity every frame and reversing that velocity on collision with a boundary. I
 square is added to the `displayio.Group` *after* the label, it draws on top and visually covers
 the text each time it passes over it, uncovering it again once it moves on.
 
-This uses the same TFT and the same pins (`GP18`-`GP22`) documented for the Class 6 stretch goal,
+This uses the same TFT and the same pins (`GP26`, `GP27`, `GP20`-`GP22`) documented for the Class 6 stretch goal,
 so if you've already wired the display for that class, this program will run on it as-is with no
 rewiring.
-
-**Note:** if you've also done Class 1's Homework 5 (encoder `SW` combination lock, also on
-`GP18`), only one of the two can be wired at a time — swap the `GP18` jumper between them rather
-than running both simultaneously.
 
 **Wiring — Raspberry Pi Pico 2W to ST7789 1.14" 240x135 TFT:**
 * [Raspberry Pi Pico 2w Pinout][20] - turn-off SPI/I2C/UART/Custom/Advanced/Flip/Rotate buttons at the top
@@ -711,8 +707,8 @@ than running both simultaneously.
 | ------------- | --------- | -------------------- |
 | `3V3 OUT` | `VIN` / `V+` | To power the board, give it the same power as the logic level of your microcontroller 3.3 volts |
 | `GND` | `GND` / `G` | Common ground |
-| `GP18` | `SCK` / `CL` | SPI clock |
-| `GP19` | `MOSI` / `DA` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
+| `GP26` | `SCK` / `CL` | SPI clock |
+| `GP27` | `MOSI` / `DA` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
 | `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
 | `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
 | `GP22` | `RST` / `BL` | Reset (lets CircuitPython force the display back to a known state on startup) |
@@ -737,7 +733,7 @@ from adafruit_st7789 import ST7789   # matches the TFT used later in this course
 # --- Wire up and initialize the TFT display over SPI ---
 # Pin assignments match the wiring table above (and the Class 6 stretch-goal wiring).
 displayio.release_displays()  # frees up the display in case code.py has run before
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 
@@ -897,7 +893,7 @@ from adafruit_st7789 import ST7789
 # before setting up our own -- this also stops the automatic console mirroring
 # once we assign our own root_group below.
 displayio.release_displays()
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
 display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 

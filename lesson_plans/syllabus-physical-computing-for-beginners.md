@@ -125,7 +125,7 @@ with N20 geared motors.
 * Micro Limit Switch
 * IR Obstacle Avoidance Sensor
 * Tactile push buttons
-* Breadboard, STEMMA QT/Qwiic cable
+* Breadboard, STEMMA QT/Qwiic to male-header cable
 * 9V battery clip, 9V batteries, 5V buck converter module
 
 **Shared Tools** (provided by Makersmiths)

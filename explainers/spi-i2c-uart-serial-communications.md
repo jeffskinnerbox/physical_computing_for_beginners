@@ -170,7 +170,7 @@ import board
 import busio
 from fourwire import FourWire
 
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)  # no MISO -- this display never talks back
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)  # no MISO -- this display never talks back
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
 ```
 
