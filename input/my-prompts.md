@@ -746,6 +746,15 @@ and add option 3 to class 4.  Make sure to also update the lesson plan documents
 let me review your plans for the update (then implement), then move on to class 4 updates (again letting me review
 you plans for the update).
 
+### 3rd prompt
+/clear
+/init
+Check all documents in the directory for consistency and completeness.
+Do this for all for all text and code.
+Use the `/grill-me` skill to clarify any questions you may have.
+When you find inconsistencies or incompleteness, describe to me what you found,
+list the options for changes to correct it,
+recommend the changes to apply, and get my approval before making any changes.
 
 
 
