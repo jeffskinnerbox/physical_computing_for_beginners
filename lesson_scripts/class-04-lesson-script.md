@@ -10,8 +10,8 @@
     buck converter, which keeps powering your Pico's own `VSYS` all Class. You should also have
     Python 3 installed on your laptop from the Pre-Class — this class is the first one that runs
     code on your laptop as well as your Pico. Your Class 3 rover status website (`rover_server.py`)
-    should still connect to the classroom WiFi and serve `/data.json` — a quick spot-check, not a
-    rebuild, since today's website work is a small edit to that same file.
+    should still broadcast its own WiFi network and serve `/data.json` once your laptop joins it — a
+    quick spot-check, not a rebuild, since today's website work is a small edit to that same file.
 
 ---
 
@@ -45,7 +45,7 @@ Class 3's square-and-circle problem on its own.
 | USB cable | 1 | Powers the Pico and carries the serial data |
 | Laptop with Mu or Thonny | 1 | Where you write/save the Pico's code |
 | Laptop with Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
-| Classroom WiFi network (shared, from Class 3) | 1 | Already-joined network your Class 3 rover status website runs on — nothing new to set up |
+| (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Class 3 rover status website runs on the network your Pico creates itself — nothing new to set up |
 
 **Additional components for the Homework Assignments** (Section 10) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
@@ -404,8 +404,11 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -496,7 +499,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
 print("Class 4, Phase 3 -- rover status website now serving orientation too...")
 while True:
@@ -505,9 +508,10 @@ while True:
 
 ### Try it / what you should see
 
-Watch the serial console for the same `rover server -- listening at ...` line from Class 3. Open
-your Pico's status webpage in a browser on the same WiFi network — you should now see seven fields
-updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
+Watch the serial console for the same `rover server -- broadcasting WiFi network: ...` and
+`rover server -- listening at ...` lines from Class 3. Join your Pico's own WiFi network from your
+laptop (same network name and password as Class 3 — `settings.toml` carries over unchanged), then
+open its status webpage in a browser — you should now see seven fields updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
 Spin a wheel by hand and watch the speed fields jump; tilt the board and watch `roll`/`pitch`/`yaw`
 change — all on the one page, with no separate display.
 
@@ -520,7 +524,7 @@ may be showing a cached copy of the page.
 
 ### Checkpoint
 
-Open your Pico's status webpage and confirm all seven fields — `speed_left_cms`, `dir_left`,
+Join your Pico's own WiFi network, open its status webpage, and confirm all seven fields — `speed_left_cms`, `dir_left`,
 `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw` — update live, with wheel speed responding to
 driving and orientation responding to tilting the board by hand. Be able to say in one sentence why
 adding orientation didn't require touching any HTML or JavaScript — only the dict returned from
@@ -540,7 +544,7 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-code-1.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-code-3.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
-| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP16`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
+| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP19`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
 ## 8. Put It All Together
 
@@ -707,8 +711,11 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -796,7 +803,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
 print("Class 4, Phase 3 -- rover status website now serving orientation too...")
 while True:

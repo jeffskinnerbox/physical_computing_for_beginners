@@ -8,13 +8,14 @@
 * **Prerequisites from prior Classes:** Classes 1-3 completed — every student has a working
   debounced pushbutton/rotary-encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`), a working HC-SR04 + SG90
   sensor-sweep circuit (`GP6`-`GP8`), and a working DRV8833 motor driver circuit (`GP9`-`GP12`,
-  `GP16`-`GP17`) on their breadboard, and has just finished Class 3 having directly experienced how
+  with the wheel optocouplers on `GP19`/`GP17`) on their breadboard, and has just finished Class 3 having directly experienced how
   open-loop, timed moves drift off target. Students should have Python installed on their laptop
   (from the Pre-Class) and be comfortable running a script from a terminal. All three prior circuits
   stay on the breadboard, powered but unused, all Class — except the Class 3 buck converter, which
   keeps actively supplying the Pico's own `VSYS` power all Class — nothing from Class 1, 2, or 3 is
-  touched or rewired today. The Class 3 rover status website (`rover_server.py`) and its classroom WiFi
-  connection must still be working — a quick spot-check, not a rebuild.
+  touched or rewired today. The Class 3 rover status website (`rover_server.py`) and the Pico's own
+  WiFi network it broadcasts (access point mode) must still be working — a quick spot-check, not a
+  rebuild.
 
 ---
 
@@ -62,9 +63,11 @@ explicitly before Class 5 combines everything into the Random Rover.
 
 * **1-2 days before:** Confirm every student's Class 1, 2, and 3 circuits are still intact and
   power up — a quick visual/serial spot-check, not a rebuild. (~15 min)
-* **1-2 days before:** Confirm every student's `rover_server.py` from Class 3 still connects to the
-  classroom WiFi and serves `/data.json` — nothing new to set up here this Class, just confirm it
-  still works, since today's website change is a small edit to this same file. (~10 min)
+* **1-2 days before:** Confirm every student's `rover_server.py` from Class 3 still broadcasts its
+  own WiFi network (access point mode, each student's own unique network name from
+  `settings.toml`) and serves `/data.json` once a laptop joins it — nothing new to set up here this
+  Class, just confirm it still works, since today's website change is a small edit to this same
+  file. (~10 min)
 * **1-2 days before:** Verify `adafruit_lsm9ds1` is present in each student's Library Bundle folder;
   have a few copies on a USB stick as backup. (~10 min)
 * **1-2 days before:** Confirm every student laptop can run `pip install pyserial matplotlib numpy`
@@ -104,7 +107,7 @@ quantities, and sourcing.
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
 | Windows 11 laptop with Python 3 installed (student-supplied) | Runs `class-4-code-2.py` to display the live 3D box |
-| Classroom WiFi network (shared, from Class 3) | Already-joined network the Class 3 rover status website runs on; nothing new to set up |
+| (no classroom WiFi needed) | The Pico 2 W broadcasts its own network (access point mode) for the rover status website, as set up in Class 3; nothing new to set up |
 | Emo Smart Robot Car Chassis Kit | Optional: continue assembly if time remains |
 
 ## 5. Class Timeline
@@ -407,8 +410,11 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.connect(os.getenv("WIFI_SSID"), os.getenv("WIFI_PASSWORD"))
-print("rover server -- listening at", wifi.radio.ipv4_address)
+wifi.radio.start_ap(
+    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
+)
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
+print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -499,8 +505,9 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
+print("Class 4 -- rover status website with orientation starting...")
 while True:
     server.poll()
 ```
@@ -510,7 +517,8 @@ is the same symptom as Step 1's flat-line output — check `SDA`/`SCL` wiring fi
 code. If the webpage doesn't pick up the new fields at all, confirm the browser actually reloaded
 `rover_server.py`'s new version and not a cached page.
 
-**Checkpoint 3:** Every pair should be able to open their Pico's status webpage and see all seven
+**Checkpoint 3:** Every pair should be able to join their Pico's own WiFi network (same network name
+and password as Class 3 — `settings.toml` carries over unchanged), open its status webpage, and see all seven
 fields — `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw` — update
 live, with wheel speed responding to driving and orientation responding to tilting the board by hand.
 
@@ -559,7 +567,7 @@ doesn't use the IMU or dead-reckoning distance at all — it solves navigation a
 way, using the sensor and servo you built back in Class 2."
 
 **Preview next Class:** Class 5 reuses no new pins — it reconnects exactly the Class 2 sensor+servo
-circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit (`GP9`-`GP12`, `GP16`-`GP17`) as they were
+circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit (`GP9`-`GP12`, with the wheel optocouplers on `GP19`/`GP17`) as they were
 left wired, combining them into the Random Rover's collision-avoidance behavior. Today's IMU circuit
 and Class 1's button/encoder circuit both stay untouched on the breadboard. The rover status website
 keeps growing too — Class 5 adds scan readings, chosen heading, and sensor-stop events to the same
@@ -580,7 +588,7 @@ students to the Class 5 references in the syllabus if they want to read ahead.
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_lsm9ds1.mpy` file from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-code-1.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-code-3.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on CIRCUITPY and it's the Class 4 version with all seven fields |
-| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed or wiring on `GP16`/`GP17` disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
+| Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed or wiring on `GP19`/`GP17` disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
 ## 7. Age Differentiation Notes
 
