@@ -732,6 +732,20 @@ When you find inconsistencies or incompleteness, describe to me what you found,
 list the options for changes to correct it,
 recommend the changes to apply, and get my approval before making any changes.
 
+----
+
+## My 27th Prompt -  Fix anomaly in Wheels Speeds
+### 1st prompt
+I notice that the two wheels do not move at the same speed.
+This makes moving in a stright line impossible.
+Will this be fixed in later classes?  How could this be fixed?
+
+### 2nd prompt
+We must fix this problem and explain why & how in the text.  Add option 2 as a stretch section to the Class 3 script
+and add option 3 to class 4.  Make sure to also update the lesson plan documents.  Do the class 3 updates first and
+let me review your plans for the update (then implement), then move on to class 4 updates (again letting me review
+you plans for the update).
+
 
 
 
