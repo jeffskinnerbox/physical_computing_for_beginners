@@ -805,8 +805,8 @@ Complete Phase 3 first — this phase needs both optocouplers mounted, `SLOTS_PE
 `wheel_odometry.read_speed()` showing both wheels above `0.0`.
 
 > **[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
-> validate: the starting values `KP`, `MAX_TRIM`, `BASE_THROTTLE`, `RUN_SECONDS`, and `RESET_SECONDS`;
-> the suggested fixes (`KP` of `0.01` or `0.003`, `SAMPLE_SECONDS` of `0.5`); the claim that `trim`
+> validate: the starting values `KI`, `MAX_TRIM`, `BASE_THROTTLE`, `RUN_SECONDS`, and `RESET_SECONDS`;
+> the suggested fixes (`KI` of `0.01` or `0.003`, `SAMPLE_SECONDS` of `0.5`); the claim that `trim`
 > settles within about a second; and that feedback drift is clearly smaller than open-loop drift.
 > Replace the placeholders with measured values and delete this note once validated.
 
@@ -868,7 +868,7 @@ is measured, compared to the goal, and fed back to change the next command.
    | 3. NUDGE  |   +----------+    drive (left, right)     +--------+     +--------------+
    |           |   | motor_   |--------------------------->| motors |---->|  wheels turn |
    | trim +=   |   |  driver  |                            +--------+     +--------------+
-   |  KP*error |   +----------+                                 ^                |
+   |  KI*error |   +----------+                                 ^                |
    |           |        ^                                       |                | slots pass
    | slow the  |        | new throttles:                  disturbances           | the sensors
    | FASTER    |        |  left  = BASE - max(trim,0)    (motor mismatch,        |
@@ -910,15 +910,15 @@ Each pass of the loop does three small things:
 
 1. `error = speed_left - speed_right` — a single number: positive if left is faster, negative if
    right is faster, zero if they match.
-2. `trim += KP * error` — **add** a small fraction of the error to `trim`. The `+=` matters: `trim` is
+2. `trim += KI * error` — **add** a small fraction of the error to `trim`. The `+=` matters: `trim` is
    never recomputed from scratch, it *accumulates*, so a steady error keeps pushing `trim` further
-   in the same direction until the error disappears. `KP` is how big a fraction.
+   in the same direction until the error disappears. `KI` is how big a fraction.
 3. `trim = max(-MAX_TRIM, min(MAX_TRIM, trim))` — a safety clamp, so one bad reading can never slow a
    wheel by more than `MAX_TRIM`.
 
 Then the throttles are set from `BASE_THROTTLE` and `trim`, and the loop goes around again.
 
-Here is the same loop with made-up but plausible numbers (`BASE_THROTTLE = 0.5`, `KP = 0.005`).
+Here is the same loop with made-up but plausible numbers (`BASE_THROTTLE = 0.5`, `KI = 0.005`).
 Speeds move in steps of about 4 cm/s because the sensor counts whole slots, as explained below:
 
 ```text
@@ -942,11 +942,11 @@ Three things to notice in that table:
   again and the same loop quietly re-learns a new `trim`. Hand-tuned throttles from Phase 2 can't
   do that.
 
-Why `KP` is small, in one more picture. A big `KP` reacts to every sensor blip; a small one waits
+Why `KI` is small, in one more picture. A big `KI` reacts to every sensor blip; a small one waits
 for a *steady* difference:
 
 ```text
-   KP too big (0.05)                 KP about right (0.005)         KP too small (0.0005)
+   KI too big (0.05)                 KI about right (0.005)         KI too small (0.0005)
    trim                              trim                           trim
     |   /\    /\                      |       ____________           |        ______
     |  /  \  /  \  /\  <- snakes      |     /   settles              |      /  crawls, car
@@ -967,7 +967,7 @@ time is up:
 1. **Measure** — call `wheel_odometry.read_speed()` to get each wheel's real speed in cm/s.
 2. **Compare** — `error = speed_left - speed_right`. Positive means the left wheel is running
    faster; negative means the right is.
-3. **Nudge** — add a small amount, `KP * error`, to a running `trim` value. Then slow down the
+3. **Nudge** — add a small amount, `KI * error`, to a running `trim` value. Then slow down the
    *faster* wheel by that trim (and leave the other wheel alone).
 4. **Repeat** — with the next reading, the error should be a little smaller, so the nudge is a little
    smaller, until the two wheels match and the trim stops changing.
@@ -978,15 +978,24 @@ drives straight and one that snakes:
 * **It slows the faster wheel instead of speeding up the slower one.** `motor_driver` caps
   throttle at `MAX_THROTTLE`. If the code sped up the slow wheel, it could run into that cap and
   stop correcting. Slowing the fast wheel always has room to work.
-* **The nudges are small (`KP` is small).** Look at how `read_speed()` counts: one tick is
+* **The nudges are small (`KI` is small).** Look at how `read_speed()` counts: one tick is
   one slot of a 20-slot disc, which works out to about 4 cm/s in a quarter-second window. So even
   a perfectly matched pair of wheels will sometimes read one tick apart — a fake "error" of 4 cm/s.
   A big correction would chase that noise and make the car wobble. Many small nudges average the
   noise out and respond only to a *steady* difference, which is the real motor mismatch.
 
-Since this loop adds up its nudges over time, engineers call the pattern an **integral controller**;
-it's one of the simple building blocks behind the feedback control in nearly every robot and drone.
-`KP` is the "gain" — how hard each nudge is — and choosing it is the tuning part of the exercise.
+Since this loop adds up its nudges over time (`trim += KI * error`), engineers call the pattern an
+**integral controller** — that's why the gain is named `KI`, not `KP`. It's one of the simple building
+blocks behind the feedback control in nearly every robot and drone. `KI` is the "gain" — how hard
+each nudge is — and choosing it is the tuning part of the exercise.
+
+**What's next: PID.** Real controllers often mix three terms: **P**roportional (react to the error
+*right now*), **I**ntegral (react to the error *added up over time* — what you built), and
+**D**erivative (react to how *fast* the error is changing). Together that's a "PID" controller. We
+stop at I because a D term needs a clean, fast signal, and ours is neither: the sensor reads in
+4 cm/s steps and the loop runs only about four times a second. D would amplify that jitter instead of
+smoothing it. Keep the idea in your back pocket — it shows up again once you have a smoother
+measurement.
 
 One important limit: `read_speed()` is also what the rover status website calls, and both use the
 same tick counters. Two callers would keep resetting each other's counts, so this Phase 5 runs *by
@@ -1007,7 +1016,7 @@ import motor_driver
 import wheel_odometry
 
 BASE_THROTTLE = 0.5   # throttle both wheels start at
-KP = 0.005            # [VERIFY] nudge per cm/s of speed difference -- tune on your own car
+KI = 0.005            # [VERIFY] nudge per cm/s of speed difference -- tune on your own car
 MAX_TRIM = 0.2        # [VERIFY] never slow a wheel by more than this, so a bad reading can't stall it
 
 
@@ -1022,7 +1031,7 @@ def drive_straight_feedback(seconds):
         speed_left, _, speed_right, _ = wheel_odometry.read_speed()
 
         error = speed_left - speed_right   # positive: left wheel is faster
-        trim += KP * error                 # small nudge, remembered from cycle to cycle
+        trim += KI * error                 # small nudge, remembered from cycle to cycle
         trim = max(-MAX_TRIM, min(MAX_TRIM, trim))
 
         # slow only the faster wheel: max(trim, 0) is the trim when left is fast, min(trim, 0) when right is
@@ -1084,9 +1093,9 @@ your car's motor mismatch, discovered by the car itself.
 **If it doesn't work the way you expect:**
 
 * **The car curves as much as before, and `trim` stays near `0.0`.** The correction is too weak or
-  not happening. Raise `KP` (try `0.01`), and check that both wheels' speeds print above `0.0` —
+  not happening. Raise `KI` (try `0.01`), and check that both wheels' speeds print above `0.0` —
   a `0.0` means that optocoupler isn't reading (see Troubleshooting).
-* **The car snakes left and right, and `trim` jumps around.** The nudges are too big. Lower `KP`
+* **The car snakes left and right, and `trim` jumps around.** The nudges are too big. Lower `KI`
   (try `0.003`), or increase `SAMPLE_SECONDS` in `wheel_odometry.py` from `0.25` to `0.5` so each
   reading counts more ticks and is less jumpy.
 * **The car curves *more* than before, and `trim` runs to `MAX_TRIM`.** The correction is going the
@@ -1165,7 +1174,7 @@ seconds; it's the reason a long run would need something more.
 | Works fine over USB, but fails and the optocoupler LED flickers when running off the 9V battery alone | Voltage sag/brownout on the shared battery: motor startup current spikes drag down the 9V battery's own voltage, which drags down the buck converter's output feeding the Pico's `VSYS`/`3V3` rail (the optocoupler LED runs off `3V3`, so its flicker is really the Pico's logic power dipping) | Try a fresh 9V battery first; if flicker persists, measure the buck converter's output with a multimeter while the motors run, and add a bulk capacitor (470-1000uF electrolytic) across `VM`/`GND` at the DRV8833 to buffer motor current spikes |
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use wheel feedback to fix it properly (see Section 8, Phase 5) |
-| Phase 5: car snakes left and right, and `trim` jumps around | `KP` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KP` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
+| Phase 5: car snakes left and right, and `trim` jumps around | `KI` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KI` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
 | Phase 5: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — Motor A/B optocouplers or motors are swapped relative to left/right | Confirm the Motor A optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
@@ -1421,7 +1430,7 @@ import motor_driver
 import wheel_odometry
 
 BASE_THROTTLE = 0.5   # tune per robot
-KP = 0.005            # [VERIFY] tune per robot
+KI = 0.005            # [VERIFY] tune per robot
 MAX_TRIM = 0.2        # [VERIFY]
 
 
@@ -1433,7 +1442,7 @@ def drive_straight_feedback(seconds):
     while time.monotonic() < end_time:
         speed_left, _, speed_right, _ = wheel_odometry.read_speed()
         error = speed_left - speed_right
-        trim += KP * error
+        trim += KI * error
         trim = max(-MAX_TRIM, min(MAX_TRIM, trim))
         left = BASE_THROTTLE - max(trim, 0)
         right = BASE_THROTTLE + min(trim, 0)

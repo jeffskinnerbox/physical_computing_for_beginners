@@ -400,8 +400,8 @@ Tips for Students:
   * [`class-3-code-5.py`](./class-3-code-5.py) &mdash; (stretch) wheel-feedback straight driving (save as
     `straight_drive.py`). Imports `motor_driver` and `wheel_odometry`. `drive_straight_feedback(seconds)`
     starts both wheels at `BASE_THROTTLE`, then each cycle reads `wheel_odometry.read_speed()`, computes
-    `error = speed_left - speed_right`, adds `KP * error` to a clamped running `trim` (`MAX_TRIM`), and slows
-    only the faster wheel by that trim. `KP` must be tuned per robot ([VERIFY] — bench test pending): too large chases one-tick measurement
+    `error = speed_left - speed_right`, adds `KI * error` (an integral controller) to a clamped running `trim` (`MAX_TRIM`), and slows
+    only the faster wheel by that trim. `KI` must be tuned per robot ([VERIFY] — bench test pending): too large chases one-tick measurement
     noise (about 4 cm/s at `SLOTS_PER_REV = 20`, `SAMPLE_SECONDS = 0.25`) and makes the car snake. Runs as its
     own `code.py`, mutually exclusive with `rover_server.py` (both call `read_speed()`, which resets the shared
     tick counters). Class 4's IMU heading-hold is the next step beyond this.

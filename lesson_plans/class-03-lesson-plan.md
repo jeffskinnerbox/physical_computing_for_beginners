@@ -106,7 +106,7 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
         visually, not on their own workstation surface. (~15 min)
   * Lay one long (about 6 ft) straight masking-tape line on a smooth floor for the stretch, and run
         your reference car through it open-loop and with feedback (`class-3-code-5.py`) so you know
-        the realistic sideways drift and a workable `KP` for this model of car. (~15 min)
+        the realistic sideways drift and a workable `KI` for this model of car. (~15 min)
   * Pre-build one reference circuit (DRV8833 + both motors + both optocouplers) at the instructor
         bench and test `class-3-code-1.py` (`motor_driver.py`) through `class-3-code-4.py`
         (`rover_server.py`) end-to-end, including a rough calibration pass on `SPEED`,
@@ -662,7 +662,8 @@ readings match each other, or reveal one wheel running slower? Faster pairs can:
   and confirmed (from the website check) that one wheel reads slower, hand them
   `class-3-code-5.py` and the comparison script below. They run the same tape line open-loop and
   then with wheel feedback, measuring the sideways drift each time and averaging three runs each.
-  Then have them tune `KP`: too large and the car snakes (it's chasing one-tick measurement noise,
+  (The nudge accumulates over time, so this is an *integral* controller — hence `KI`; PID is only mentioned, not built.)
+  Then have them tune `KI`: too large and the car snakes (it's chasing one-tick measurement noise,
   about 4 cm/s in a quarter-second window); too small and it barely corrects.
 * Begin sketching (on paper, no code yet) what information — beyond wheel speed — would let the car
   correct its own path instead of just guessing. (Heading/orientation is still missing; that's
@@ -676,7 +677,7 @@ import motor_driver
 import wheel_odometry
 
 BASE_THROTTLE = 0.5   # throttle both wheels start at
-KP = 0.005            # [VERIFY] -- nudge per cm/s of speed difference; tune on your own car
+KI = 0.005            # [VERIFY] -- nudge per cm/s of speed difference; tune on your own car
 MAX_TRIM = 0.2        # [VERIFY] -- never slow a wheel by more than this
 
 
@@ -688,7 +689,7 @@ def drive_straight_feedback(seconds):
     while time.monotonic() < end_time:
         speed_left, _, speed_right, _ = wheel_odometry.read_speed()   # ~0.25 s per call
         error = speed_left - speed_right   # positive: left wheel is faster
-        trim += KP * error                 # small nudge, remembered cycle to cycle
+        trim += KI * error                 # small nudge, remembered cycle to cycle
         trim = max(-MAX_TRIM, min(MAX_TRIM, trim))
         left = BASE_THROTTLE - max(trim, 0)    # slow only the faster wheel
         right = BASE_THROTTLE + min(trim, 0)
@@ -698,8 +699,8 @@ def drive_straight_feedback(seconds):
     motor_driver.stop()
 ```
 
-**[VERIFY — bench test pending]** `KP`, `MAX_TRIM`, the 4-second run, and the 15-second reset below
-are untested starting values, as are the tuning suggestions (`KP` of `0.003`/`0.01`, `SAMPLE_SECONDS`
+**[VERIFY — bench test pending]** `KI`, `MAX_TRIM`, the 4-second run, and the 15-second reset below
+are untested starting values, as are the tuning suggestions (`KI` of `0.003`/`0.01`, `SAMPLE_SECONDS`
 of `0.5`); validate on the reference car and replace with measured values.
 
 The comparison `code.py` runs the same line open-loop, gives 15 seconds to carry the car back, then
@@ -776,7 +777,7 @@ Class 4 references in the syllabus if they want to read ahead.
 | Works over USB, but fails and the optocoupler LED flickers on battery alone | Battery sag: motor current spikes drag down the shared 9V battery and the buck converter feeding the Pico | Try a fresh 9V battery; if it persists, add a 470-1000uF capacitor across `VM`/`GND` |
 | Square/circle attempt drifts wildly between runs on the same settings | Battery voltage sagging as it depletes during the session | Swap in a fresh 9V battery and re-calibrate `SPEED`/timing constants |
 | Car pulls consistently to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use the wheel-feedback stretch (`class-3-code-5.py`) to fix it properly |
-| Stretch: car snakes left and right, and `trim` jumps around | `KP` too large — the code chases one-tick measurement noise (about 4 cm/s) | Lower `KP` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
+| Stretch: car snakes left and right, and `trim` jumps around | `KI` too large — the code chases one-tick measurement noise (about 4 cm/s) | Lower `KI` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
 | Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — optocouplers/motors swapped relative to left/right | Confirm Motor A's optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-code-1.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-code-1.py` |
 | `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` loads | `countio.Counter` only works on PWM Channel B (odd-numbered) pins; `GP16` is Channel A | Use `GP19` (odd) for the Motor A optocoupler, in both wiring and code |
@@ -799,7 +800,7 @@ calibration constants (`SPEED`, `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, `SLO
 trial and error rather than writing the functions from scratch. For the website, it's enough for
 them to type the pre-filled WiFi credentials into `settings.toml` and confirm the page loads —
 treat `rover_server.py`'s internals as "trust the library" material this Class. The stretch is
-optional: if they try it, load `straight_drive.py` for them and have them only tune `KP` and
+optional: if they try it, load `straight_drive.py` for them and have them only tune `KI` and
 measure the drift.
 
 **Older students (15-18) and adults:** Have them type `motor_driver.py`'s `drive()`/`stop()`
@@ -812,7 +813,7 @@ quadrature encoder's second, out-of-phase sensor would remove the need to borrow
 `motor_driver.py`, and have them add a `/` route to `rover_server.py` that also prints the last
 raw tick counts (not just derived speed), as a small extension beyond the provided code. For the
 stretch, have them explain why the code slows the faster wheel rather than speeding up the slower
-one (it can hit `MAX_THROTTLE`), and predict what a larger `KP` will do before testing it.
+one (it can hit `MAX_THROTTLE`), and predict what a larger `KI` will do before testing it.
 
 ## 8. Assessment
 
@@ -859,8 +860,8 @@ start of Class 4 and note it in their build journal.
   broadcasting the same name in one room will collide, and nobody can tell which is theirs.
 * Warn students that their laptop loses normal internet while joined to the Pico's network — it's
   expected, not a fault — and that they must join that network *before* opening the browser.
-* Run the stretch on your reference car first and note a workable `KP`: the optocoupler reading
-  moves in steps of about 4 cm/s per tick, so too large a `KP` chases noise and makes the car snake.
+* Run the stretch on your reference car first and note a workable `KI`: the optocoupler reading
+  moves in steps of about 4 cm/s per tick, so too large a `KI` chases noise and makes the car snake.
 * When demonstrating the "does wheel speed fix everything?" discussion at Closing, deliberately pick
   the car up and spin one wheel by hand while the website is open on the projector — students will
   see that wheel's speed jump on the page while the car obviously isn't moving forward, a concrete
