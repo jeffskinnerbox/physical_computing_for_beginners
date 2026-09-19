@@ -558,7 +558,7 @@ up the same student's rover status website on the projector and show wheel speed
 orientation updating together on one page. Then run the "does this solve Class 3's problem?"
 discussion: ask the group directly whether orientation data alone — or orientation plus wheel speed,
 now sitting side by side on the same website — would have gotten their square and circle attempts
-closer to 12 inches, and why or why not.
+closer to 35 cm, and why or why not.
 
 **What to say:** "You now have a car that can move, a sensor that knows which way it's pointed, and
 one website that shows both at once. That's real progress — but notice neither one, alone or

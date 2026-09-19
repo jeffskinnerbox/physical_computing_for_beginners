@@ -21,7 +21,7 @@ where students make the car actually move. Students wire a DRV8833 dual H-bridge
 their Pico 2 W and the two DC gearbox motors in the Emo Smart Robot Car Chassis Kit, running the
 motors from their own 9V battery rather than the Pico's logic power — that same 9V battery, stepped
 down through a 5V buck converter, also now supplies the Pico's own `VSYS` power input. After a
-simple forward/reverse/stop test, students try to drive the car in a 12-inch square and a 12-inch-diameter circle using
+simple forward/reverse/stop test, students try to drive the car in a 35 cm square and a 35 cm-diameter circle using
 timed, uncorrected ("open-loop") moves — and discover that hitting an exact size is much harder than
 just making the car move in *some* square or circle shape. That gap is the pedagogical point: by the
 end of the first half of the Class, students will have directly experienced why "dead reckoning"
@@ -52,7 +52,7 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
   why the DRV8833 needs two logic pins per motor
 * Write and use `motor_driver.py`, a small drive()/stop() library that throttles PWM duty cycle to
   keep motor current in a safe range
-* Attempt a 12-inch square and a 12-inch-diameter circle using timed, open-loop moves, and observe
+* Attempt a 35 cm square and a 35 cm-diameter circle using timed, open-loop moves, and observe
   the resulting drift from the target dimensions
 * Name, specifically, the separate causes of that drift — missing wheel/heading feedback, battery
   voltage sag, and wheel slip/friction — rather than one generic explanation
@@ -101,7 +101,7 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
         (`CIRCUITPY_WIFI_AP_SSID`, `CIRCUITPY_WIFI_AP_PASSWORD`, password at least 8 characters)
         ahead of time, or write them on the board — don't spend Class time on credential typos.
         (~10 min)
-  * Measure and mark a 12-inch square and a 12-inch-diameter circle on the floor or a large sheet
+  * Measure and mark a 35 cm square and a 35 cm-diameter circle on the floor or a large sheet
         of paper/tape at 2-3 shared "test tracks" around the room — students calibrate against these
         visually, not on their own workstation surface. (~15 min)
   * Lay one long (about 6 ft) straight masking-tape line on a smooth floor for the stretch, and run
@@ -110,7 +110,7 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
   * Pre-build one reference circuit (DRV8833 + both motors + both optocouplers) at the instructor
         bench and test `class-3-code-1.py` (`motor_driver.py`) through `class-3-code-4.py`
         (`rover_server.py`) end-to-end, including a rough calibration pass on `SPEED`,
-        `SECONDS_PER_INCH`, `SECONDS_PER_90_DEGREES`, and `SLOTS_PER_REV` so you know what a
+        `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, and `SLOTS_PER_REV` so you know what a
         realistic first attempt — and a realistic wheel-speed reading — look like. Join a laptop to
         the reference Pico's own network and load `http://192.168.4.1/data.json` in a browser to
         confirm the website actually works before Class. (~30 min)
@@ -139,7 +139,7 @@ quantities, and sourcing.
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code, and browse to each Pico's rover status website (after joining the Pico's own WiFi network) |
 | Masking tape and a tape measure (shared) | Stretch only: a straight start line, and measuring the car's sideways drift |
 | (no classroom WiFi needed) | The Pico 2 W broadcasts its own network (access point mode) to host the rover status website |
-| Shared: tape/marked 12-inch square and circle test tracks | Reference targets for the square/circle milestone |
+| Shared: tape/marked 35 cm square and circle test tracks | Reference targets for the square/circle milestone |
 
 ## 5. Class Timeline
 
@@ -168,14 +168,14 @@ of holding up the whole class now.
 ### 5b. Introduction — ~5 min
 
 **What to do:** Introduce the DRV8833 and the two DC gearbox motors, and preview the square/circle
-challenge — including the twist that "any size" will be easy but "exactly 12 inches" will not.
+challenge — including the twist that "any size" will be easy but "exactly 35 cm" will not.
 
 **What to say:**
 
 * "This board's whole job is letting your Pico's tiny, safe logic signals control motors that draw
   way more current and run on a completely separate 9V battery."
 * "First goal: get both wheels spinning forward, reverse, and stopped on command. Second goal — and
-  this is the interesting one — drive a 12-inch square and a 12-inch circle *exactly*. The first
+  this is the interesting one — drive a 35 cm square and a 35 cm circle *exactly*. The first
   part of that will feel easy. The second part won't, and that's on purpose."
 * "By the end of today you'll be able to say precisely *why* it's hard — not just that it is."
 
@@ -430,19 +430,19 @@ since there's no wheel-speed feedback yet.
 
 ```python
 # class-3-code-2.py
-# Attempts a 12" square and a 12"-diameter circle -- open-loop, timed moves only.
+# Attempts a 35 cm square and a 35 cm-diameter circle -- open-loop, timed moves only.
 import time
 import motor_driver
 
 SPEED = 0.5                  # [VERIFY] -- calibrate per robot
-SECONDS_PER_INCH = 0.09      # [VERIFY] -- calibrate: time a measured straight run, divide by inches
+SECONDS_PER_CM = 0.035     # [VERIFY] -- calibrate: time a measured straight run, divide by cm
 SECONDS_PER_90_DEGREES = 0.4  # [VERIFY] -- calibrate: time a measured 90-degree turn
 
 
-def drive_straight(inches):
-    print("move: straight", inches, "in")
+def drive_straight(cm):
+    print("move: straight", cm, "cm")
     motor_driver.drive(SPEED, SPEED)
-    time.sleep(inches * SECONDS_PER_INCH)
+    time.sleep(cm * SECONDS_PER_CM)
     motor_driver.stop()
 
 
@@ -453,21 +453,21 @@ def turn_90():
     motor_driver.stop()
 
 
-def drive_square(side_inches=12):
-    print("attempt: square, side", side_inches, "in")
+def drive_square(side_cm=35):
+    print("attempt: square, side", side_cm, "cm")
     for _ in range(4):
-        drive_straight(side_inches)
+        drive_straight(side_cm)
         time.sleep(0.2)
         turn_90()
         time.sleep(0.2)
     print("attempt: square complete")
 
 
-def drive_circle(diameter_inches=12):
+def drive_circle(diameter_cm=35):
     # Approximate a circle as a many-sided polygon of short straight segments + small turns.
-    print("attempt: circle, diameter", diameter_inches, "in")
+    print("attempt: circle, diameter", diameter_cm, "cm")
     import math
-    circumference = math.pi * diameter_inches
+    circumference = math.pi * diameter_cm
     segments = 24
     seg_length = circumference / segments
     seg_turn = SECONDS_PER_90_DEGREES / 9  # roughly 10 degrees per segment
@@ -480,14 +480,14 @@ def drive_circle(diameter_inches=12):
 
 
 print("Class 3 -- square/circle attempts starting...")
-drive_square(12)
+drive_square(35)
 time.sleep(1)
-drive_circle(12)
+drive_circle(35)
 ```
 
 **What to watch for:** This is the moment students should see the car finish a "square-ish" or
-"circle-ish" shape that is visibly *not* 12 inches, or not a clean right angle — let it be messy.
-Ask: "You told it to go exactly 12 inches. What did it actually do?"
+"circle-ish" shape that is visibly *not* 35 cm, or not a clean right angle — let it be messy.
+Ask: "You told it to go exactly 35 cm. What did it actually do?"
 
 **What "done" looks like for this segment:** The car completes a full attempted square and a full
 attempted circle without instructor intervention (even if the dimensions are off), with status
@@ -640,8 +640,8 @@ direction fields.
 
 **What to do:** Students (in pairs where possible) take their car to a shared test track and run
 `drive_square()` and `drive_circle()` repeatedly (`code.py` set to the driving code, same as Guided
-Practice Step 2), adjusting `SPEED`, `SECONDS_PER_INCH`, and `SECONDS_PER_90_DEGREES` between
-attempts to get closer to the marked 12-inch targets, watching the serial console for each move's
+Practice Step 2), adjusting `SPEED`, `SECONDS_PER_CM`, and `SECONDS_PER_90_DEGREES` between
+attempts to get closer to the marked 35 cm targets, watching the serial console for each move's
 status messages the same way as Steps 1-2. After a few attempts, have each pair swap `code.py` to
 the rover status website code (Step 4) and, with the car sitting still, spin each wheel by hand to
 check the left and right wheel's live speed readings on the website — a quick telemetry check
@@ -795,7 +795,7 @@ and laminated at the workstation so it's a lookup, not a memorization task. Pair
 student's fine-wiring work (especially the DRV8833's output-to-motor-lead connections and the
 optocoupler mounting) with the parent/guardian's help holding the chassis steady. Start from all
 five `class-3-code-*.py` files already loaded as starting points, and have them focus on tuning the
-calibration constants (`SPEED`, `SECONDS_PER_INCH`, `SECONDS_PER_90_DEGREES`, `SLOTS_PER_REV`) by
+calibration constants (`SPEED`, `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, `SLOTS_PER_REV`) by
 trial and error rather than writing the functions from scratch. For the website, it's enough for
 them to type the pre-filled WiFi credentials into `settings.toml` and confirm the page loads —
 treat `rover_server.py`'s internals as "trust the library" material this Class. The stretch is
@@ -816,12 +816,12 @@ one (it can hit `MAX_THROTTLE`), and predict what a larger `KP` will do before t
 
 ## 8. Assessment
 
-**Milestone Assignment (per syllabus, Phase 2 / Class 3):** Car reliably drives a 12-inch square and
-a 12-inch-diameter circle, with live wheel-speed telemetry visible on the terminal and on the Pico's
+**Milestone Assignment (per syllabus, Phase 2 / Class 3):** Car reliably drives a 35 cm square and
+a 35 cm-diameter circle, with live wheel-speed telemetry visible on the terminal and on the Pico's
 own status webpage.
 
-**What "complete" looks like:** The student can run `drive_square(12)` and `drive_circle(12)` on a
-shared test track and produce a shape recognizably close to the 12-inch target — this is a
+**What "complete" looks like:** The student can run `drive_square(35)` and `drive_circle(35)` on a
+shared test track and produce a shape recognizably close to the 35 cm target — this is a
 completion-based, "does it work in the real world" check, not a precision measurement. Minor drift
 is expected and is itself part of the lesson. In addition, with `code.py` swapped to the website
 code, the student can open a browser to their Pico's status website and point to live-updating

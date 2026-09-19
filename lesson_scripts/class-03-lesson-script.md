@@ -19,7 +19,7 @@ chassis kit, running them off their own 9V battery instead of your Pico's power 
 battery, stepped down through a 5V buck converter, now also powers your Pico's own `VSYS` input.
 
 First you'll get both wheels spinning forward, reverse, and stopped on command — that part will
-feel easy. Then you'll try to drive your car in an exact 12-inch square and a 12-inch-diameter
+feel easy. Then you'll try to drive your car in an exact 35 cm square and a 35 cm-diameter
 circle, using nothing but timed moves. That part won't feel easy, and that's on purpose: you're
 about to discover, firsthand, why "driving blind" — no way to check your actual position against
 where you meant to be — drifts. By the end, you'll be able to name the specific reasons why, not
@@ -34,7 +34,7 @@ status website, `rover_server.py`, so live wheel speed and direction show up on 
 with no serial cable at all. This website is built small on purpose — later classes will each add
 more to this same site rather than you building a new one.
 
-If you finish early, there's a Stretch section too: your car will curve on a "straight" run, because
+If you finish early, there's a Phase 5 section too: your car will curve on a "straight" run, because
 no two motors are identical — and you'll use the wheel-speed readings you built to fix it.
 
 ## 2. What You'll Need
@@ -52,8 +52,8 @@ no two motors are identical — and you'll use the wheel-speed readings you buil
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Pico hosts the rover status website on a network it creates itself (AP mode) |
-| Marked 12" square / 12"-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
-| Masking tape and a tape measure | 1 each | Stretch only: a straight start line, and measuring how far the car drifts sideways |
+| Marked 35 cm square / 35 cm-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
+| Masking tape and a tape measure | 1 each | Phase 5 only: a straight start line, and measuring how far the car drifts sideways |
 
 **Additional components for the Homework Assignments** (Section 12) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
@@ -354,13 +354,55 @@ No wiring changes — same circuit as Phase 1.
 
 ### What this code does
 
-This program builds two higher-level moves — `drive_straight(inches)` and `turn_90()` — purely
+This program builds two higher-level moves — `drive_straight(cm)` and `turn_90()` — purely
 out of *timing*: drive at a fixed speed for a calculated number of seconds, then stop. It chains
-those into `drive_square(12)` (four straight-and-turn segments) and `drive_circle(12)` (many short
+those into `drive_square(35)` (four straight-and-turn segments) and `drive_circle(35)` (many short
 straight segments with small turns between them, approximating a circle). There's no way for the
-car to check whether it actually went 12 inches or turned exactly 90 degrees — it's just trusting
+car to check whether it actually went 35 cm or turned exactly 90 degrees — it's just trusting
 the clock. This approach is called **open-loop control**, or "dead reckoning," and the gap between
 what it *should* do and what it *actually* does is the whole point of today's Independent Work.
+
+**Open loop, in a picture.** Here's what `drive_straight(35)` really does. The only thing the
+code "knows" is the clock; everything to the right of `time.sleep()` is out of its sight:
+
+```text
+   OPEN LOOP -- drive_straight(35) with timed moves
+
+   your code                          the real world (code can't see this)
+   ---------                          ------------------------------------
+   drive(0.5, 0.5)  ---- PWM ------>  motors spin, wheels roll, car moves
+        |                                  |   |   |
+   time.sleep(35 * 0.035)                  |   |   +-- battery sags -> slower
+        |   (= 1.23 s, and that's          |   +------ left/right motors differ
+        |    ALL the code knows)           +---------- floor grip, wheel slip
+        v
+   stop()  ----------------------->  car coasts to a halt somewhere...
+
+   What the code ASSUMES:   went 35.0 cm, straight ahead
+   What actually happened:  went 30.5 cm (say), drifted 4 cm left
+
+   Nothing flows back from the car to the code -- no arrow points left.
+```
+
+Errors don't cancel between moves — they *stack*. Here's a square where each side and each turn is
+just a little off (exaggerated so you can see it):
+
+```text
+   COMMANDED square                 ACTUAL path (errors accumulate)
+
+   start/end                        start                 end (never closes)
+   +-----------+                    +----------.           .
+   |           |                    |            `.         |  <- gap between
+   |           |                    |              \        |     start and end
+   |  35 cm    |                    |               `--+    |     = accumulated
+   |           |                    |                   |   |       error
+   +-----------+                    +-------------------+   '
+                                    side 1 long, turn 1 short, side 2 curves...
+                                    each move starts from where the LAST one ended up
+```
+
+That gap is the price of never checking. Phase 3 gives the car a way to *sense* wheel motion, and
+Phase 5 uses it to close a loop.
 
 ### The code
 
@@ -369,7 +411,7 @@ drive unchanged — this new file imports it.
 
 ```python
 # class-3-phase-2-code.py -- save as code.py
-# Phase 2: attempt a 12" square and a 12"-diameter circle -- open-loop, timed moves only.
+# Phase 2: attempt a 35 cm square and a 35 cm-diameter circle -- open-loop, timed moves only.
 
 import time
 import math
@@ -380,15 +422,15 @@ import motor_driver
 # 90-degree turn on your own car, then adjust these until your car's actual
 # movement matches what you told it to do.
 SPEED = 0.5                    # throttle used for all moves
-SECONDS_PER_INCH = 0.09        # calibrate: time a measured straight run, divide by inches
+SECONDS_PER_CM = 0.035        # calibrate: time a measured straight run, divide by cm
 SECONDS_PER_90_DEGREES = 0.4   # calibrate: time a measured 90-degree turn
 
 
 # drive straight forward
-def drive_straight(inches):
-    print("move: straight", inches, "in")
+def drive_straight(cm):
+    print("move: straight", cm, "cm")
     motor_driver.drive(SPEED, SPEED)
-    time.sleep(inches * SECONDS_PER_INCH)
+    time.sleep(cm * SECONDS_PER_CM)
     motor_driver.stop()
 
 
@@ -401,10 +443,10 @@ def turn_90():
 
 
 # drive in a square
-def drive_square(side_inches=12):
-    print("attempt: square, side", side_inches, "in")
+def drive_square(side_cm=35):
+    print("attempt: square, side", side_cm, "cm")
     for _ in range(4):
-        drive_straight(side_inches)
+        drive_straight(side_cm)
         time.sleep(0.2)  # brief pause so moves don't blur together
         turn_90()
         time.sleep(0.2)
@@ -412,12 +454,12 @@ def drive_square(side_inches=12):
 
 
 # drive in a circle
-def drive_circle(diameter_inches=12):
+def drive_circle(diameter_cm=35):
     # Approximate a circle as many short straight segments, each followed
     # by a small turn -- like walking a circle by taking short steps and
     # pivoting slightly after each one.
-    print("attempt: circle, diameter", diameter_inches, "in")
-    circumference = math.pi * diameter_inches
+    print("attempt: circle, diameter", diameter_cm, "cm")
+    circumference = math.pi * diameter_cm
     segments = 24
     seg_length = circumference / segments
     seg_turn = SECONDS_PER_90_DEGREES / 9  # roughly 10 degrees per segment
@@ -430,27 +472,27 @@ def drive_circle(diameter_inches=12):
 
 
 print("Class 3, Phase 2 -- square/circle attempts starting...")
-drive_square(12)
+drive_square(35)
 time.sleep(1)
-drive_circle(12)
+drive_circle(35)
 ```
 
 ### Try it / what you should see
 
 Your car should complete a full attempted square and a full attempted circle without you touching
 anything, printing a status line for each individual move as it happens. The shape it traces will
-almost certainly *not* be a clean 12-inch square or circle — corners may not be square, sides may
+almost certainly *not* be a clean 35 cm square or circle — corners may not be square, sides may
 be different lengths, the circle may be lopsided. That's expected.
 
-Ask yourself: you told it to go exactly 12 inches.
+Ask yourself: you told it to go exactly 35 cm.
 What did it actually do, and why might that be?
 
 Notice too whether your "straight" sides actually went straight. If the car curves even with equal
-throttle, that's real hardware, not a bug — and there's a way to fix it in the Stretch (Section 8).
+throttle, that's real hardware, not a bug — and there's a way to fix it in the Phase 5 (Section 8).
 
 ### Checkpoint
 
-Run `drive_square(12)` and `drive_circle(12)` on your test track and confirm the car completes
+Run `drive_square(35)` and `drive_circle(35)` on your test track and confirm the car completes
 both attempts start to finish without help, tracing a recognizable (even if imperfect) square and
 circle shape.
 
@@ -583,7 +625,7 @@ Confirm both `speed_left_cms` and `speed_right_cms` rise above zero while drivin
 `dir_left`/`dir_right` flip from `1` to `-1` when you tell the car to reverse — this is the moment
 measured speed and commanded direction combine into one reading.
 
-## 7. Build It: Phase 4 — Rover Status Website
+## 7. Build It: Phase 4 — Rover Status Website - DONE
 
 ### Wiring for this phase
 
@@ -697,31 +739,57 @@ import rover_server
 
 ### Try it / what you should see
 
-Watch the serial console for a line like `rover server -- broadcasting WiFi network: RoverCar`
+Watch the serial console for a line like `rover server -- broadcasting WiFi network: <your-name>`
 followed by `rover server -- listening at 192.168.4.1`. On your laptop, open its WiFi settings and
 connect to that same network name (`CIRCUITPY_WIFI_AP_SSID` from `settings.toml`) using the password you set —
 this is a normal WiFi join, just to the Pico's network instead of the classroom's. Once connected,
 open a browser and go to the printed IP address (typically `192.168.4.1`) — you should see
 `Rover Status` and a block of JSON that updates itself twice a second.
 
-**Step 1 — verify the plumbing (manual check).** Spin a wheel by hand and watch that wheel's
+#### Step 1 — verify the plumbing (manual check)
+Spin a wheel by hand and watch that wheel's
 `speed_left_cms` or `speed_right_cms` jump on the page, even though nothing told the motor to move
 — a concrete reminder that this reading is measured, independent of whatever the motor was last
 commanded to do, while direction is not. This step only confirms the sensor, the route, and the
 page are correctly wired together — it is not the mission.
 
-**Step 2 — the actual mission.** With the website still open, drive the car with code instead of
-your hand — reconnect over serial and run `motor_driver.drive(0.5, 0.5)` from the REPL, or run one
-of Phase 2's `drive_straight`/`turn_90` moves. Watch the page update *while the car moves under its
-own power*, with no one touching a wheel. That's the behavior this phase is actually building
-toward: a website that reports what the rover is doing autonomously, not what a person did to it by
-hand.
+#### Step 2 — the actual mission
+Now drive the car with code instead of your hand. You can't
+do this from the REPL: `code.py` imports `rover_server`, which ends in `while True: server.poll()`
+and never returns, so there's no prompt while the server runs (and Ctrl+C to get one kills the
+server). Instead, start the motors *before* the server starts. Put the car on blocks with the wheels
+off the ground, make sure the battery pack is on (USB alone won't power the motors), and temporarily
+replace `code.py` with:
 
-Note that while your laptop is connected to the Pico's network, it will likely lose its regular
-internet connection — the Pico's AP doesn't route traffic anywhere else, it just serves this one
-page. If the server never starts, double-check `settings.toml`'s `CIRCUITPY_WIFI_AP_PASSWORD` is at
-least 8 characters. If the page loads but never updates, try a hard refresh — your browser may be caching
-an old copy of the page.
+```python
+# code.py -- TEMPORARY Phase 4 mission test: motors run while the website serves
+
+import motor_driver
+
+# sets the PWM and returns; the motors keep spinning on their own
+motor_driver.drive(0.5, 0.5)
+
+# blocks in server.poll() forever -- the motors keep running
+import rover_server
+```
+
+Save, reconnect to the Pico's WiFi network, and reload the page. Watch it show steady, nonzero wheel
+speeds *while the car moves under its own power*, with no one touching a wheel. That's the behavior
+this phase is actually building toward: a website that reports what the rover is doing
+autonomously, not what a person did to it by hand.
+
+To stop the motors, press Ctrl+C in the serial console or unplug the battery pack. Then put `code.py`
+back to the one-line `import rover_server` version above.
+
+This test only shows *constant* speed — `drive()` is called once and never again. Speeds rising and
+falling and direction flipping need drive code that runs alongside `server.poll()`, which is the
+design problem Classes 5-6 tackle.
+
+>***NOTE:** While your laptop is connected to the Pico's network, it will likely lose its regular
+>internet connection — the Pico's AP doesn't route traffic anywhere else, it just serves this one page.
+>If the server never starts, double-check `settings.toml`'s `CIRCUITPY_WIFI_AP_PASSWORD` is at least 8 characters.
+>If the page loads but never updates,
+>try a hard refresh — your browser may be caching an old copy of the page.
 
 ### Checkpoint
 
@@ -731,9 +799,9 @@ plumbing check) — then confirm the same fields update live while the car is dr
 hand (the actual mission of this phase). Be able to say in one sentence why the direction shown on
 the page is "what we last told the car to do," not something the optocoupler itself measured.
 
-## 8. Stretch: Drive Straight with Wheel Feedback
+## 8. Build It: Phase 5 — Drive Straight with Wheel Feedback
 
-Complete Phase 3 first — this stretch needs both optocouplers mounted, `SLOTS_PER_REV` set, and
+Complete Phase 3 first — this phase needs both optocouplers mounted, `SLOTS_PER_REV` set, and
 `wheel_odometry.read_speed()` showing both wheels above `0.0`.
 
 > **[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
@@ -759,6 +827,132 @@ each wheel's actual speed (Phase 3), so let it compare the two and correct itsel
 result, comparing it to what you wanted, and adjusting is called **closed-loop control** (or
 **feedback control**) — the opposite of the open-loop control you used in Phase 2. It's how a car's
 cruise control holds 65 mph up a hill, and how a thermostat holds a room at 70 degrees.
+
+### Open Loop vs. Closed loop, in Pictures
+
+**Open loop** is what Phases 1-2 did: decide on a command, send it, and never look at the result.
+Information flows one way only.
+
+```text
+   OPEN LOOP  (Phase 2 -- "fire and forget")
+     GOAL: nothing measured, nothing corrected
+     Result: car curves.  The code has no way to know, so it can't fix it.
+
+
+   +-----------+   throttle    +---------+   PWM    +--------+   wheels
+   |  your     |  0.5 , 0.5    | motor_  |--------->|        |-----------> car
+   |  code     |-------------->| driver  |          | motors |   turn at
+   |           |               |         |          |        |   DIFFERENT
+   +-----------+               +---------+          +--------+   speeds
+                                                        ^
+                                                        |
+                              worn brushes, gearbox friction, weak battery,
+                              carpet ... (disturbances the code never sees)
+
+```
+
+**Closed loop** adds one thing: a feedback path.
+The car's *actual* result (the optocoupler speeds)
+is measured, compared to the goal, and fed back to change the next command.
+
+```text
+   CLOSED LOOP  (Phase 5 -- "measure, compare, correct")
+     GOAL: both wheels the SAME speed  (error = 0)
+     Result: car curving is suppressed.  The code makes corrections.
+
+
+                       +-------------------------<-------------------------------+
+                       |             the loop repeats ~4x / second               ^
+                       |                                                         |
+   +-----------+       v                                                         |
+   | 3. NUDGE  |   +----------+    drive (left, right)     +--------+     +--------------+
+   |           |   | motor_   |--------------------------->| motors |---->|  wheels turn |
+   | trim +=   |   |  driver  |                            +--------+     +--------------+
+   |  KP*error |   +----------+                                 ^                |
+   |           |        ^                                       |                | slots pass
+   | slow the  |        | new throttles:                  disturbances           | the sensors
+   | FASTER    |        |  left  = BASE - max(trim,0)    (motor mismatch,        |
+   | wheel     |--------+  right = BASE + min(trim,0)     battery sag)           |
+   |           |                                                                 v
+   +-----------+                                                          +--------------+
+        ^                                                                 | 1. MEASURE   |
+        |                                                                 | read_speed() |
+        |  error = speed_left - speed_right                               | -> L cm/s    |
+        |                                                                 |    R cm/s    |
+        |                                                                 +------+-------+
+        |                                                                        |
+   +----+-------+                                                                v
+   | 2. COMPARE |<---------------------------<-----------------------------------+
+   |  L - R     |            speed_left, speed_right
+   +------------+
+
+```
+
+Read the closed-loop picture as a circle, starting at **1. MEASURE** and going around: measure
+each wheel's speed, **2. COMPARE** them, **3. NUDGE** the throttles, drive the motors with the new
+numbers, and the wheels' new speeds come back around to be measured again. The disturbances still
+happen — the loop doesn't prevent them, it *notices their effect and cancels it*.
+
+### How the correction works, step by step
+
+Everything hangs on one number, `trim`. It's the car's running memory of "how much slower the faster
+wheel needs to go." Its sign says which wheel:
+
+```text
+   trim > 0   left wheel is the fast one   -> slow the LEFT  wheel:  left  = BASE - trim
+   trim = 0   wheels match                 -> both wheels at BASE
+   trim < 0   right wheel is the fast one  -> slow the RIGHT wheel:  right = BASE + trim
+                                                                     (trim is negative,
+                                                                      so this subtracts)
+```
+
+Each pass of the loop does three small things:
+
+1. `error = speed_left - speed_right` — a single number: positive if left is faster, negative if
+   right is faster, zero if they match.
+2. `trim += KP * error` — **add** a small fraction of the error to `trim`. The `+=` matters: `trim` is
+   never recomputed from scratch, it *accumulates*, so a steady error keeps pushing `trim` further
+   in the same direction until the error disappears. `KP` is how big a fraction.
+3. `trim = max(-MAX_TRIM, min(MAX_TRIM, trim))` — a safety clamp, so one bad reading can never slow a
+   wheel by more than `MAX_TRIM`.
+
+Then the throttles are set from `BASE_THROTTLE` and `trim`, and the loop goes around again.
+
+Here is the same loop with made-up but plausible numbers (`BASE_THROTTLE = 0.5`, `KP = 0.005`).
+Speeds move in steps of about 4 cm/s because the sensor counts whole slots, as explained below:
+
+```text
+ cycle | speed L | speed R | error (L-R) | trim change | trim  | left thr | right thr
+-------+---------+---------+-------------+-------------+-------+----------+----------
+   0   |    -    |    -    |      -      |      -      | 0.000 |   0.50   |   0.50    <- start equal
+   1   |   24    |   16    |     +8      |   +0.040    | 0.040 |   0.46   |   0.50    <- left faster
+   2   |   20    |   16    |     +4      |   +0.020    | 0.060 |   0.44   |   0.50    <- still a bit
+   3   |   16    |   16    |      0      |    0.000    | 0.060 |   0.44   |   0.50    <- matched!
+   4   |   16    |   16    |      0      |    0.000    | 0.060 |   0.44   |   0.50    <- holds steady
+```
+
+Three things to notice in that table:
+
+* **The error shrinks each cycle** because the previous nudge already slowed the fast wheel.
+  That shrinking is the feedback working.
+* **When the error hits zero, `trim` stops changing but does not go back to zero.** It stays at
+  `0.060` — the amount of slowdown the left motor needs to keep pace. That leftover number *is* the
+  motor mismatch, learned by the car. (It's why the Try-it section says to watch `trim` settle.)
+* **If something changes** — the battery sags, one wheel hits carpet — the error becomes non-zero
+  again and the same loop quietly re-learns a new `trim`. Hand-tuned throttles from Phase 2 can't
+  do that.
+
+Why `KP` is small, in one more picture. A big `KP` reacts to every sensor blip; a small one waits
+for a *steady* difference:
+
+```text
+   KP too big (0.05)                 KP about right (0.005)         KP too small (0.0005)
+   trim                              trim                           trim
+    |   /\    /\                      |       ____________           |        ______
+    |  /  \  /  \  /\  <- snakes      |     /   settles              |      /  crawls, car
+    | /    \/    \/                   |    /                         |     /   still curves
+    +-----------------> time          +-----------------> time       +--------------------> time
+```
 
 ### Wiring for this phase
 
@@ -795,7 +989,7 @@ it's one of the simple building blocks behind the feedback control in nearly eve
 `KP` is the "gain" — how hard each nudge is — and choosing it is the tuning part of the exercise.
 
 One important limit: `read_speed()` is also what the rover status website calls, and both use the
-same tick counters. Two callers would keep resetting each other's counts, so this stretch runs *by
+same tick counters. Two callers would keep resetting each other's counts, so this Phase 5 runs *by
 itself* as `code.py`, not alongside the website — the same "run one or the other" pattern as Options
 A and B in Section 10.
 
@@ -805,7 +999,7 @@ Save this as `straight_drive.py` on your `CIRCUITPY` drive, next to `motor_drive
 `wheel_odometry.py`, which stay unchanged.
 
 ```python
-# class-3-stretch-straight_drive.py -- save as straight_drive.py
+# class-3-phase-5-straight_drive.py -- save as straight_drive.py
 # Drive straight by nudging the faster wheel down until both wheels turn at the same speed.
 
 import time
@@ -836,7 +1030,7 @@ def drive_straight_feedback(seconds):
         right = BASE_THROTTLE + min(trim, 0)
         motor_driver.drive(left, right)
 
-        print("L:", round(speed_left, 1), "R:", round(speed_right, 1), "trim:", round(trim, 3))
+        print(" L:", round(speed_left, 1), " R:", round(speed_right, 1), " E:", round(error, 1), " trim:", round(trim, 3))
 
     motor_driver.stop()
 ```
@@ -845,25 +1039,25 @@ Now save this as `code.py`, replacing whatever was there before. It runs the sam
 ways — once with no feedback and once with — so you can compare them on the floor:
 
 ```python
-# class-3-stretch-code.py -- save as code.py
+# class-3-phase-5-code.py -- save as code.py
 # Compare driving straight with no feedback (open loop) vs. with wheel feedback (closed loop).
 
 import time
 import motor_driver
 import straight_drive
 
-RUN_SECONDS = 4       # [VERIFY] long enough to show a clear curve without leaving the tape
-RESET_SECONDS = 15    # [VERIFY] time to carry the car back to the start line
+RUN_SECONDS = 10      # [VERIFY] long enough to show a clear curve without leaving the tape
+RESET_SECONDS = 5     # [VERIFY] time to carry the car back to the start line
 
-print("Run 1 -- open loop: equal throttle, no feedback")
+print("\nRun 1 -- open loop: equal throttle, no feedback")
 motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
 time.sleep(RUN_SECONDS)
 motor_driver.stop()
 
-print("Put the car back on the start line, pointed down the line...")
+print("\nPut the car back on the start line, pointed down the line...")
 time.sleep(RESET_SECONDS)
 
-print("Run 2 -- closed loop: wheel feedback")
+print("\nRun 2 -- closed loop: wheel feedback")
 straight_drive.drive_straight_feedback(RUN_SECONDS)
 
 print("done")
@@ -913,6 +1107,48 @@ same speed while the car veers. Nothing here measures which way the car is actua
 gap is the same one the last section of this script points at, and it's what next class's IMU is
 built to close.
 
+**How the IMU fits in (a preview of Class 4).** Phase 5 has one loop, and it watches the *wheels*.
+The missing piece is a second measurement that watches the *car's heading* — which way it's actually
+pointing. The IMU's gyroscope provides exactly that: it reports how fast the car is rotating, and
+adding that up over time gives the heading angle (yaw). Picture the two loops nested, the fast one
+inside the slow one:
+
+```text
+   TODAY (Class 3, Phase 5): one loop, watches the WHEELS
+
+      goal: wheels match --> [ nudge throttles ] --> motors --> wheels --+
+                                    ^                                    |
+                                    +------ optocouplers: L speed, R speed
+
+   CLASS 4 TIE-IN (preview): add an outer loop, watches the HEADING
+
+      goal: heading = 0 deg (straight ahead)
+        |
+        v
+      +----------------+  "wheels should differ by X"  +--------------------+
+      | OUTER loop     |------------------------------>| INNER loop         |
+      | compare heading|                               | (today's Phase 5)  |
+      | to goal, ask   |                               | make the wheels    |
+      | for a correction                               | match that request |
+      +-------^--------+                               +----------+---------+
+              |                                                   |
+              |  yaw angle                                  motors, wheels
+              |                                                   |
+      +-------+--------+                                          v
+      | IMU (LSM9DS1)  |<--------------- car rotates (or slips!) --+
+      | gyro -> yaw    |
+      +----------------+
+
+   Wheel slips on dust?  Wheel speeds still match (inner loop is happy),
+   but the car veers -> yaw changes -> the OUTER loop sees it and corrects.
+```
+
+Two honest caveats. First, in Class 4 the IMU is only *measured and displayed* — building the outer
+loop into the rover's driving is a stretch beyond what that class covers. Second, Class 4's filter
+uses the accelerometer and gyroscope but not the magnetometer, and gravity can't tell the filter
+which way is "north," so its yaw slowly drifts over time. That's fine for a straight run of a few
+seconds; it's the reason a long run would need something more.
+
 ## 9. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
@@ -928,9 +1164,9 @@ built to close.
 | Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Works fine over USB, but fails and the optocoupler LED flickers when running off the 9V battery alone | Voltage sag/brownout on the shared battery: motor startup current spikes drag down the 9V battery's own voltage, which drags down the buck converter's output feeding the Pico's `VSYS`/`3V3` rail (the optocoupler LED runs off `3V3`, so its flicker is really the Pico's logic power dipping) | Try a fresh 9V battery first; if flicker persists, measure the buck converter's output with a multimeter while the motors run, and add a bulk capacitor (470-1000uF electrolytic) across `VM`/`GND` at the DRV8833 to buffer motor current spikes |
 | Square/circle drifts wildly between runs on the same settings | Battery voltage sagging as it depletes | Swap in a fresh 9V battery and re-calibrate the timing constants |
-| Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use wheel feedback to fix it properly (see Section 8, Stretch) |
-| Stretch: car snakes left and right, and `trim` jumps around | `KP` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KP` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
-| Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — Motor A/B optocouplers or motors are swapped relative to left/right | Confirm the Motor A optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
+| Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use wheel feedback to fix it properly (see Section 8, Phase 5) |
+| Phase 5: car snakes left and right, and `trim` jumps around | `KP` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KP` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
+| Phase 5: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — Motor A/B optocouplers or motors are swapped relative to left/right | Confirm the Motor A optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
 | `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` runs | `countio.Counter` is implemented using the RP2040/RP2350's PWM edge-counting hardware, which only works on a PWM Channel B (odd-numbered) GPIO — `GP16` is Channel A and will always raise this | Use `GP19` (or another unused odd-numbered GPIO) instead of `GP16` for the Motor A optocoupler, both in wiring and in `wheel_odometry.py`'s `counter_a = countio.Counter(board.GP19)` |
@@ -975,7 +1211,7 @@ odometry, and your own rover status website, without going through the individua
 
 You need `motor_driver.py` and `wheel_odometry.py` on your `CIRCUITPY` drive either way (both
 libraries, unchanged from Phases 1 and 3), plus either Option A's `code.py`, Option B's
-`rover_server.py` and a thin `code.py` wrapper, or the Stretch's Option C (`straight_drive.py` plus
+`rover_server.py` and a thin `code.py` wrapper, or the Phase 5's Option C (`straight_drive.py` plus
 its `code.py`). Unlike Phase 2, where `code.py` was the square/circle
 attempt outright, this Class actually finishes with *two different things* your car could be
 running — the square/circle attempt (Phase 2) or the rover status website (Phase 4) — since
@@ -1065,20 +1301,20 @@ def read_speed():
 **Option A — `code.py` as the square/circle attempt** (same as Phase 2, unchanged):
 
 ```python
-# code.py -- complete project, option A: attempt a 12" square and 12"-diameter circle.
+# code.py -- complete project, option A: attempt a 35 cm square and 35 cm-diameter circle.
 
 import time
 import math
 import motor_driver
 
 SPEED = 0.5                    # calibrate per robot
-SECONDS_PER_INCH = 0.09        # calibrate per robot
+SECONDS_PER_CM = 0.035        # calibrate per robot
 SECONDS_PER_90_DEGREES = 0.4   # calibrate per robot
 
 
-def drive_straight(inches):
+def drive_straight(cm):
     motor_driver.drive(SPEED, SPEED)
-    time.sleep(inches * SECONDS_PER_INCH)
+    time.sleep(cm * SECONDS_PER_CM)
     motor_driver.stop()
 
 
@@ -1088,18 +1324,18 @@ def turn_90():
     motor_driver.stop()
 
 
-def drive_square(side_inches=12):
-    print("square, side", side_inches, "in")
+def drive_square(side_cm=35):
+    print("square, side", side_cm, "cm")
     for _ in range(4):
-        drive_straight(side_inches)
+        drive_straight(side_cm)
         time.sleep(0.2)
         turn_90()
         time.sleep(0.2)
 
 
-def drive_circle(diameter_inches=12):
-    print("circle, diameter", diameter_inches, "in")
-    circumference = math.pi * diameter_inches
+def drive_circle(diameter_cm=35):
+    print("circle, diameter", diameter_cm, "cm")
+    circumference = math.pi * diameter_cm
     segments = 24
     seg_length = circumference / segments
     seg_turn = SECONDS_PER_90_DEGREES / 9
@@ -1111,9 +1347,9 @@ def drive_circle(diameter_inches=12):
 
 
 print("Class 3 project running -- square/circle attempt.")
-drive_square(12)
+drive_square(35)
 time.sleep(1)
-drive_circle(12)
+drive_circle(35)
 ```
 
 **Option B — `rover_server.py` plus a thin `code.py` wrapper** (same as Phase 4, unchanged):
@@ -1176,7 +1412,7 @@ while True:
 import rover_server
 ```
 
-**Option C — the Stretch: `straight_drive.py` plus its `code.py`** (same as Section 8, unchanged):
+**Option C — the Phase 5: `straight_drive.py` plus its `code.py`** (same as Section 8, unchanged):
 
 ```python
 # straight_drive.py -- complete project, option C: drive straight with wheel feedback.
@@ -1259,12 +1495,12 @@ know:
     point mode), running `adafruit_httpserver`, and serving both a machine-readable `/data.json`
     route and a simple page that polls it, viewable from any laptop that joins the Pico's network
     with no serial cable
-* (Stretch) Why a car curves at equal throttle — no two motors are identical — and how closed-loop
+* (Phase 5) Why a car curves at equal throttle — no two motors are identical — and how closed-loop
     control fixes it: measure both wheels, compare, and nudge the faster one down until they match,
     using small corrections so measurement noise doesn't make the car wobble
 
 Knowing each wheel's real speed catches slip or stall — a wheel spinning slower than commanded, or
-not at all — and, as the Stretch showed, lets the car even out its own wheels. But it still says
+not at all — and, as the Phase 5 showed, lets the car even out its own wheels. But it still says
 nothing about which way the *car* is pointed: two wheels can match speed while the car veers. That
 gap — no way to check your heading against where you meant to be pointed — is exactly what an IMU
 (inertial measurement unit) starts to address. That's next class, and it'll show up on this same

@@ -296,7 +296,7 @@ Tips for Students:
 
   Again, print discrete status messages as each move happens (forward, reverse, stop, calibration attempt)
   so the class can see what the wheels are being told to do, even though there's no live wheel-speed telemetry yet.
-  Once the driver is tested, attempt the 12 inch square and circle by timing calibrated straight/turn moves
+  Once the driver is tested, attempt the 35 cm square and circle by timing calibrated straight/turn moves
   &mdash; open-loop "dead reckoning," since there's no feedback (yet) to correct for drift.
   Have the student discuss what useful things they can do with this information? What information is absent?
 
@@ -340,13 +340,13 @@ Tips for Students:
   only counts on Channel B, so `GP16` cannot be used) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
   server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
-  and make the car drive in a 12 inch square and a 12 inch diameter circle.
+  and make the car drive in a 35 cm square and a 35 cm diameter circle.
   Then add wheel odometry so real, measured wheel speed and direction &mdash; not just what was commanded &mdash;
   can be watched live in the serial terminal and on a webpage served by the Pico itself.
   (Stretch: make the car drive straight using that wheel-speed feedback.)
 * **Talking Points**:
   * First, make it move in a square & circle of any random size. Is this easy?
-    Now make it move in a 12 inch square and a 12 inch diameter circle. This is harder? Why ... What is missing? How can the fix this?
+    Now make it move in a 35 cm square and a 35 cm diameter circle. This is harder? Why ... What is missing? How can the fix this?
   * Push the "what is missing?" question further: have students name the specific causes separately &mdash; no wheel/heading feedback, battery voltage sag, and wheel slip/friction &mdash; instead of one vague "it's not accurate."
   * Now that wheel odometry exists, revisit that list: does knowing each wheel's actual speed fix *all* of it?
     It catches slip/stall (a wheel spinning slower than commanded, or not at all) but says nothing about
@@ -376,9 +376,9 @@ Tips for Students:
     Motor A: `AIN1`/`AIN2` on `GP9`/`GP10`; Motor B: `BIN1`/`BIN2` on `GP11`/`GP12`. Uses
     `adafruit_motor.motor.DCMotor` with a `MAX_THROTTLE` cap to limit current. Exposes `drive(left, right)`
     and `stop()` for forward/reverse/stop/PWM speed per channel.
-  * [`class-3-code-2.py`](./class-3-code-2.py) &mdash; imports `motor_driver`, attempts the 12 inch square and
-    12 inch diameter circle by timing straight/turn moves (open-loop dead reckoning, no encoder/IMU feedback
-    yet). `SPEED`, `SECONDS_PER_INCH`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
+  * [`class-3-code-2.py`](./class-3-code-2.py) &mdash; imports `motor_driver`, attempts the 35 cm square and
+    35 cm diameter circle by timing straight/turn moves (open-loop dead reckoning, no encoder/IMU feedback
+    yet). `SPEED`, `SECONDS_PER_CM`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
     the resulting drift is the built-in prompt for the "what is missing?" discussion.
   * [`class-3-code-3.py`](./class-3-code-3.py) &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
     unchanged through Class 6. Optocoupler A on `GP19`, optocoupler B on `GP17`, both digital inputs counted
@@ -679,7 +679,7 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Dupont Wires - 120pcs 20cm Jumper Wire | 1 | $9.99 | [Amazon][18] | shared jumper wire stock for all classes |
 | Invisible Hold Mounting Tape | 1 | $11.99 | [Amazon][19] | mounts the Class 2 HC-SR04 onto the SG90 servo horn and helps with chassis assembly |
-| Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 12" square/circle test tracks, Class 3 onward |
+| Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
 
 Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per student
 

@@ -92,7 +92,7 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Dupont Wires - 120pcs 20cm Jumper Wire | 1 | $9.99 | [Amazon][18] | shared jumper wire stock for all classes |
 | Invisible Hold Mounting Tape | 1 | $11.99 | [Amazon][19] | mounts the Class 2 HC-SR04 onto the SG90 servo horn and helps with chassis assembly |
-| Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 12" square/circle test tracks, Class 3 onward |
+| Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
 
 Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per student
 
