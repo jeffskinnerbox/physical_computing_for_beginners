@@ -734,7 +734,7 @@ recommend the changes to apply, and get my approval before making any changes.
 
 ----
 
-## My 27th Prompt -  Fix anomaly in Wheels Speeds
+## My 28th Prompt -  Fix anomaly in Wheels Speeds
 ### 1st prompt
 I notice that the two wheels do not move at the same speed.
 This makes moving in a stright line impossible.
@@ -756,8 +756,26 @@ When you find inconsistencies or incompleteness, describe to me what you found,
 list the options for changes to correct it,
 recommend the changes to apply, and get my approval before making any changes.
 
+----
 
+## My 29th Prompt - Recommand a Code Block
+I'm testing the code in @lesson_scripts/class-03-lesson-script.md section
+"## 7. Build It: Phase 4 — Rover Status Website"
+and it recommend a code block to perform the test in section "#### Step 2 — the actual mission".
+Not clear where this code block would go.  Is it with `code.py`?
+Give me a recommendation.
 
+----
+
+## My 30th Prompt - Close-Loop Feedback Digram
+I'm testing the code in @lesson_scripts/class-03-lesson-script.md section
+"## 8. Build It: Phase 5 — Drive Straight with Wheel Feedback".
+The text references an open-loop and closed-loop feedback processes.
+The details about the specific of the feedback is not well covered.
+Can you give me more detailed text, but most important of all would be a diagram
+written in a ASCII character "text block".
+
+----
 
 
 
