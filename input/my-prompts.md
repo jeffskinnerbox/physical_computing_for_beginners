@@ -777,6 +777,15 @@ written in a ASCII character "text block".
 
 ----
 
+## My 31st Prompt - Optimizing the Feedback Loop
+I have been testing the code in @lesson_scripts/class-03-lesson-script.md section
+"## 8. Build It: Phase 5 — Drive Straight with Wheel Feedback".
+I want a procedure I can use to optimize the feedback loop.
+Over test iterations, how do I very the values of KI and MAX_TRIM so I get the best possible results?
+Give this to me in a step wise procedure.
+
+----
+
 
 
 
