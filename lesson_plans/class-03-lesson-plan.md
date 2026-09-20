@@ -70,6 +70,8 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
 * (Stretch, optional) Make the car drive straight using wheel-speed feedback — compare the two
   wheels' speeds and nudge the faster one down — measure the sideways drift with and without it, and
   explain what wheel feedback fixes (mismatched motors) and what only a heading sensor can (Class 4)
+* (Stretch, optional, likely take-home) Tune that feedback loop by experiment — vary `KI` and `MAX_TRIM` one at a
+  time, score each setting on drift, settling time, and `trim` jitter, and stop when the gain falls below the noise floor
 
 ## 3. Preparation Checklist
 
@@ -105,10 +107,10 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
         of paper/tape at 2-3 shared "test tracks" around the room — students calibrate against these
         visually, not on their own workstation surface. (~15 min)
   * Lay one long (about 6 ft) straight masking-tape line on a smooth floor for the stretch, and run
-        your reference car through it open-loop and with feedback (`class-3-code-5.py`) so you know
+        your reference car through it open-loop and with feedback (`class-3-phase-5-straight_drive.py`) so you know
         the realistic sideways drift and a workable `KI` for this model of car. (~15 min)
   * Pre-build one reference circuit (DRV8833 + both motors + both optocouplers) at the instructor
-        bench and test `class-3-code-1.py` (`motor_driver.py`) through `class-3-code-4.py`
+        bench and test `class-3-phase-1-motor-driver.py` (`motor_driver.py`) through `class-3-phase-4-rover_server.py`
         (`rover_server.py`) end-to-end, including a rough calibration pass on `SPEED`,
         `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, and `SLOTS_PER_REV` so you know what a
         realistic first attempt — and a realistic wheel-speed reading — look like. Join a laptop to
@@ -210,7 +212,7 @@ small logic-level signals to control both motors' direction and speed.
    code runs and prints normally, motors never move.) Tying it high permanently also means a
    latched overcurrent/thermal fault — shared by both H-bridges — can only be cleared by
    power-cycling the DRV8833, not from code.
-6. `class-3-code-1.py` (`motor_driver.py`) wraps this pattern behind a simple `drive(left, right)`
+6. `class-3-phase-1-motor-driver.py` (`motor_driver.py`) wraps this pattern behind a simple `drive(left, right)`
    / `stop()` API using `adafruit_motor.motor.DCMotor`, so the rest of the course's code never has
    to think about raw PWM phases again.
 
@@ -333,11 +335,11 @@ while the motors never move). Wiring mistakes found now save debugging time late
 leave them unmounted at each wheel until Step 3, once each disc's slots have been counted.
 
 **Step 1 — motor driver library and basic test.**
-Load `class-3-code-1.py` (save as `motor_driver.py` — this is a library file, imported by other
+Load `class-3-phase-1-motor-driver.py` (save as `motor_driver.py` — this is a library file, imported by other
 code, not run directly).
 
 ```python
-# class-3-code-1.py  (save as motor_driver.py)
+# class-3-phase-1-motor-driver.py  (save as motor_driver.py)
 # DRV8833 motor driver library -- forward/reverse/stop/speed per channel.
 import board
 import pwmio
@@ -425,11 +427,11 @@ direction at the same rate, print "reverse" and see both reverse, and print a tu
 the wheels spin opposite directions.
 
 **Step 2 — attempt the square and circle (open-loop dead reckoning).**
-Load `class-3-code-2.py`. Prints a discrete status message for each move — not a continuous stream,
+Load `class-3-phase-2-code.py`. Prints a discrete status message for each move — not a continuous stream,
 since there's no wheel-speed feedback yet.
 
 ```python
-# class-3-code-2.py
+# class-3-phase-2-code.py
 # Attempts a 35 cm square and a 35 cm-diameter circle -- open-loop, timed moves only.
 import time
 import motor_driver
@@ -496,10 +498,10 @@ messages printing to the console for each move.
 **Step 3 — wheel odometry: mount the optocouplers and read wheel speed.**
 Mount each optocoupler so its slotted fork straddles the wheel's encoder disc without rubbing, and
 count the disc's slots by hand (turn the wheel slowly and count) to set `SLOTS_PER_REV`. Load
-`class-3-code-3.py` (save as `wheel_odometry.py`).
+`class-3-phase-3-wheel_odometry.py` (save as `wheel_odometry.py`).
 
 ```python
-# class-3-code-3.py  (save as wheel_odometry.py)
+# class-3-phase-3-wheel_odometry.py  (save as wheel_odometry.py)
 # Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP19/GP17,
 # direction borrowed from motor_driver's last-commanded state (see Concept 6).
 import time
@@ -561,13 +563,13 @@ while driving forward, and the `dir_left`/`dir_right` values flip from `1` to `-
 told to reverse — this is the moment students see measured speed and commanded direction combine.
 
 **Step 4 — first version of the rover status website.**
-Load `class-3-code-4.py` (save as `rover_server.py`) and add `CIRCUITPY_WIFI_AP_SSID`/
+Load `class-3-phase-4-rover_server.py` (save as `rover_server.py`) and add `CIRCUITPY_WIFI_AP_SSID`/
 `CIRCUITPY_WIFI_AP_PASSWORD` to `settings.toml` if not already pre-filled — these are the name and
 password the student *chooses for the Pico's own network* (unique per student, password at least 8
 characters), not the venue's WiFi credentials.
 
 ```python
-# class-3-code-4.py  (save as rover_server.py)
+# class-3-phase-4-rover_server.py  (save as rover_server.py)
 # Pico-hosted rover status website -- broadcasts its own WiFi network (AP mode),
 # serves /data.json plus a minimal page that polls it. First version; Classes 4-6
 # extend this file.
@@ -660,17 +662,20 @@ readings match each other, or reveal one wheel running slower? Faster pairs can:
   other, consistent with the slip they just observed.
 * **Stretch — make the car drive straight.** Once a pair has seen the car curve at equal throttle
   and confirmed (from the website check) that one wheel reads slower, hand them
-  `class-3-code-5.py` and the comparison script below. They run the same tape line open-loop and
+  `class-3-phase-5-straight_drive.py` and the comparison script below. They run the same tape line open-loop and
   then with wheel feedback, measuring the sideways drift each time and averaging three runs each.
   (The nudge accumulates over time, so this is an *integral* controller — hence `KI`; PID is only mentioned, not built.)
   Then have them tune `KI`: too large and the car snakes (it's chasing one-tick measurement noise,
   about 4 cm/s in a quarter-second window); too small and it barely corrects.
+  A pair that finishes early can start the optional Phase 6 procedure in `class-03-lesson-script.md`
+  (`class-3-phase-6-measure-k.py`, then `class-3-phase-6-code.py`), but a full tuning pass (baseline, `KI` sweep,
+  `MAX_TRIM`, re-check) takes well over the 25 minutes here — assign it as take-home or a next-Class warm-up.
 * Begin sketching (on paper, no code yet) what information — beyond wheel speed — would let the car
   correct its own path instead of just guessing. (Heading/orientation is still missing; that's
   Class 4.)
 
 ```python
-# class-3-code-5.py  (save as straight_drive.py)
+# class-3-phase-5-straight_drive.py  (save as straight_drive.py)
 # Drive straight by nudging the faster wheel down until both wheels turn at the same speed.
 import time
 import motor_driver
@@ -776,14 +781,14 @@ Class 4 references in the syllabus if they want to read ahead.
 | Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Works over USB, but fails and the optocoupler LED flickers on battery alone | Battery sag: motor current spikes drag down the shared 9V battery and the buck converter feeding the Pico | Try a fresh 9V battery; if it persists, add a 470-1000uF capacitor across `VM`/`GND` |
 | Square/circle attempt drifts wildly between runs on the same settings | Battery voltage sagging as it depletes during the session | Swap in a fresh 9V battery and re-calibrate `SPEED`/timing constants |
-| Car pulls consistently to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use the wheel-feedback stretch (`class-3-code-5.py`) to fix it properly |
+| Car pulls consistently to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use the wheel-feedback stretch (`class-3-phase-5-straight_drive.py`) to fix it properly |
 | Stretch: car snakes left and right, and `trim` jumps around | `KI` too large — the code chases one-tick measurement noise (about 4 cm/s) | Lower `KI` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
 | Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — optocouplers/motors swapped relative to left/right | Confirm Motor A's optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
-| `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-code-1.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-code-1.py` |
+| `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-phase-1-motor-driver.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-phase-1-motor-driver.py` |
 | `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` loads | `countio.Counter` only works on PWM Channel B (odd-numbered) pins; `GP16` is Channel A | Use `GP19` (odd) for the Motor A optocoupler, in both wiring and code |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
-| Direction shown never changes even when the car reverses | Code is reading a stale `motor_driver.last_direction_a`/`_b` value, or `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on the CIRCUITPY drive includes the `last_direction_a`/`_b` tracking shown in `class-3-code-1.py` |
+| Direction shown never changes even when the car reverses | Code is reading a stale `motor_driver.last_direction_a`/`_b` value, or `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on the CIRCUITPY drive includes the `last_direction_a`/`_b` tracking shown in `class-3-phase-1-motor-driver.py` |
 | `ImportError: no module named 'wifi'` | Board is running the plain "Raspberry Pi Pico 2" CircuitPython build, which has no `wifi` module | Flash the "Raspberry Pi Pico 2 W" `.uf2` (hold `BOOTSEL` while plugging in), then re-copy the code, `settings.toml`, and `lib/` |
 | `wifi.radio.start_ap()` raises an error or the network never appears | `CIRCUITPY_WIFI_AP_PASSWORD` is shorter than 8 characters | Use a password of at least 8 characters |
 | Website never loads, but the Pico prints an IP address | Laptop hasn't joined the Pico's own network, or the server is on the wrong port | Join the `CIRCUITPY_WIFI_AP_SSID` network; if `ping` works but the browser fails, use `server.start(..., port=80)` (default is 5000) |
@@ -795,7 +800,7 @@ Class 4 references in the syllabus if they want to read ahead.
 and laminated at the workstation so it's a lookup, not a memorization task. Pair a younger
 student's fine-wiring work (especially the DRV8833's output-to-motor-lead connections and the
 optocoupler mounting) with the parent/guardian's help holding the chassis steady. Start from all
-five `class-3-code-*.py` files already loaded as starting points, and have them focus on tuning the
+the five core code files (`class-3-phase-1-…` through `class-3-phase-5-…`) already loaded as starting points, and have them focus on tuning the
 calibration constants (`SPEED`, `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, `SLOTS_PER_REV`) by
 trial and error rather than writing the functions from scratch. For the website, it's enough for
 them to type the pre-filled WiFi credentials into `settings.toml` and confirm the page loads —
@@ -851,8 +856,8 @@ start of Class 4 and note it in their build journal.
 * The "what is missing?" discussion (Closing) is the conceptual payoff of this whole Class — resist
   the urge to answer it for the students; let them arrive at "no feedback" themselves after wrestling
   with the calibration constants during Independent Work.
-* Keep all five code files (`class-3-code-1.py`/`motor_driver.py` through
-  `class-3-code-5.py`/`straight_drive.py`) on a shared drive/USB stick so a student who breaks their
+* Keep all five code files (`class-3-phase-1-motor-driver.py`/`motor_driver.py` through
+  `class-3-phase-5-straight_drive.py`/`straight_drive.py`) on a shared drive/USB stick so a student who breaks their
   working file can recover instantly instead of losing class time.
 * Pre-fill each student's Pico network name and password in `settings.toml` (or write them on the
   board) — credential typos are a much bigger time sink than any wiring mistake in this Class, and
@@ -873,11 +878,11 @@ start of Class 4 and note it in their build journal.
   motor control from a Pico
 * [Driving A DC Motor With CircuitPython][02] — background on PWM-based DC motor speed control
 * [Adafruit CircuitPython Motor Library — API Reference][03] — the `adafruit_motor.motor.DCMotor`
-  API used in `class-3-code-1.py`
+  API used in `class-3-phase-1-motor-driver.py`
 * [Adafruit DRV8833 DC/Stepper Motor Driver Breakout Board][04] — the motor driver used this Class,
   including its locked-antiphase and phase/enable control modes
 * [Slot Type IR Optocoupler for Motor Speed Detection - Product Page][05] — the wheel-odometry
-  sensor used in `class-3-code-3.py`
+  sensor used in `class-3-phase-3-wheel_odometry.py`
 * [Using an IR Slotted Optical Switch (Adafruit Learn)][06] — background on how a slotted
   optocoupler/comparator pair encodes motion as a digital pulse train
 * [Wheel Encoders and Odometry (ROS/robotics primer)][07] — background on tick-to-speed conversion
@@ -885,7 +890,7 @@ start of Class 4 and note it in their build journal.
 * [Raspberry Pi Pico W Asynchronous Web Server – MicroPython Code][08] — background on hosting a
   small web server directly from a Pico's WiFi radio
 * [`adafruit_httpserver` — API Reference][09] — the `Server`/`Request`/`Response`/`JSONResponse` API
-  used in `class-3-code-4.py`
+  used in `class-3-phase-4-rover_server.py`
 
 ---
 

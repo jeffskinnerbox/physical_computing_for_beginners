@@ -202,7 +202,7 @@ has been running since Class 3 and is already on your board.
 ### What this code does
 
 This does **not** join WiFi or start a server — it `import`s the already-running `rover_server`
-module (the same file since `class-3-code-4.py`, extended in Classes 4-5) and edits it in place: a
+module (the same file since `class-3-phase-4-rover_server.py`, extended in Classes 4-5) and edits it in place: a
 rolling ~150-sample history buffer, plus a hand-drawn HTML5 canvas chart added to the existing
 status page, polling the existing `/data.json` route every 200ms and plotting `roll`/`pitch`
 (already in the response since Class 4) and wheel speed (already in the response since Class 3)
@@ -452,7 +452,7 @@ working piece at a time, over six classes: a debounced switch, a servo-swept sen
 driver, an IMU, and finally a robot that senses, decides, and acts on its own. That's the whole
 discipline of physical computing, and you've now done it for real, with your own hands.
 
-----
+---
 ## 11. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with

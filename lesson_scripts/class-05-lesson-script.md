@@ -799,7 +799,7 @@ goals that bring back your Class 1 encoder and Class 4 IMU if you want to go fur
 `scan_heading`/`drive_state`/`stop_reason` website fields, and the library shape of
 `rover_server.py`, carry forward into Class 6 unchanged.
 
-----
+---
 ## 9. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with

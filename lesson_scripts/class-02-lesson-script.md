@@ -134,7 +134,7 @@ and prints the resulting distance in centimeters, over and over, forever.
 Save this as `code.py` on your `CIRCUITPY` drive.
 
 ```python
-# class-2-phase-1--code.py
+# class-2-phase-1-code.py
 # Phase 1: HC-SR04 alone -- prints live distance readings.
 
 import time
@@ -195,7 +195,7 @@ steps, printing the current angle at each step.
 Save this as `code.py`, replacing Phase 1's version for now (you'll combine both in Phase 3).
 
 ```python
-# class-2-phase-2--code.py
+# class-2-phase-2-code.py
 # Phase 2: SG90 alone -- continuous sweep, no sensor yet.
 
 import time

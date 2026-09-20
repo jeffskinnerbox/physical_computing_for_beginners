@@ -50,7 +50,7 @@ which way is safe to drive.
         resistor values (e.g. 1k/2k) and the mounting hardware/tape are itemized and stocked; both
         are new to Class 2 and not part of the Class 1 kit.
   * Pre-build one reference circuit (HC-SR04 + SG90, separately and combined) at the instructor
-        bench and test `class-2-code-1.py`, `class-2-code-2.py`, and `class-2-code-3.py` end-to-end.
+        bench and test `class-2-phase-1-code.py`, `class-2-phase-2-code.py`, and `class-2-phase-3-code.py` end-to-end.
         (~25 min)
   * Project the instructor's serial console output so the whole class can see live distance
         readings and, later, the angle/distance sweep pairs. (~5 min)
@@ -182,10 +182,10 @@ table above out loud to a neighbor, and double-check the voltage-divider resisto
 `ECHO` line (not `TRIG`). Wiring mistakes found now save debugging time later.
 
 **Step 1 — HC-SR04 alone.**
-Load `class-2-code-1.py` (save as `code.py`). Reads and prints live distance in centimeters.
+Load `class-2-phase-1-code.py` (save as `code.py`). Reads and prints live distance in centimeters.
 
 ```python
-# class-2-code-1.py
+# class-2-phase-1-code.py
 # HC-SR04 alone -- prints live distance readings.
 import time
 import board
@@ -211,10 +211,10 @@ loop usually mean a wiring problem, not a fluke.
 move a hand toward and away from the sensor.
 
 **Step 2 — SG90 alone.**
-Load `class-2-code-2.py`. Sweeps the servo continuously from 0 to 180 degrees and back.
+Load `class-2-phase-2-code.py`. Sweeps the servo continuously from 0 to 180 degrees and back.
 
 ```python
-# class-2-code-2.py
+# class-2-phase-2-code.py
 # SG90 alone -- continuous sweep, no sensor yet.
 import time
 import board
@@ -246,10 +246,10 @@ extreme.
 
 **Step 3 — combined: sensor mounted on servo, sweep-and-report.**
 Mount the HC-SR04 to the servo horn/shaft with double-sided tape, keeping wires loose enough to
-follow the sweep without snagging. Load `class-2-code-3.py`.
+follow the sweep without snagging. Load `class-2-phase-3-code.py`.
 
 ```python
-# class-2-code-3.py
+# class-2-phase-3-code.py
 # HC-SR04 mounted on SG90 -- sweeps and prints angle + distance pairs.
 import time
 import board
@@ -344,12 +344,12 @@ references in the syllabus if they want to read ahead.
 **Younger students (12-14) and their parent/guardian:** Provide the pin table above pre-printed
 and laminated at the workstation so it's a lookup, not a memorization task. Pair a younger
 student's fine-wiring and taping work with the parent/guardian's help holding components steady
-while mounting the sensor on the servo horn. Start from `class-2-code-1.py` and `class-2-code-2.py`
+while mounting the sensor on the servo horn. Start from `class-2-phase-1-code.py` and `class-2-phase-2-code.py`
 already loaded as starting points rather than typed from scratch, and have them focus on reading
 and tuning values (e.g., changing `SETTLE_TIME`) rather than writing the combined script from a
 blank file.
 
-**Older students (15-18) and adults:** Have them type `class-2-code-1.py` and `class-2-code-2.py`
+**Older students (15-18) and adults:** Have them type `class-2-phase-1-code.py` and `class-2-phase-2-code.py`
 themselves from the wiring table and a description of the goal, rather than starting from the
 provided files. Once the combined-sweep milestone is met, challenge them to have the servo pause
 and print a distinct "object detected!" line whenever a reading drops below a threshold distance —
@@ -360,7 +360,7 @@ a direct preview of the collision logic coming in Class 5.
 **Milestone Assignment (per syllabus, Phase 1 / Class 2):** Live streamed distance-vs-angle data as
 the servo sweeps.
 
-**What "complete" looks like:** The student can run `class-2-code-3.py` and show the servo sweeping
+**What "complete" looks like:** The student can run `class-2-phase-3-code.py` and show the servo sweeping
 0-180 degrees and back while the serial console prints a clean `angle:`/`distance_cm:` pair at every
 stop, with the distance visibly dipping when an object is placed in the sensor's path at a
 particular angle.
@@ -382,7 +382,7 @@ of Class 3 and note it in their build journal.
 * The voltage-divider wiring on `ECHO` is the easiest step to get wrong and the least forgiving to
   get wrong (risking the Pico's GPIO pin) — walk the room and spot-check this specific connection
   before anyone powers on for the first time.
-* Keep all three code files (`class-2-code-1.py`, `class-2-code-2.py`, `class-2-code-3.py`) on a
+* Keep all three code files (`class-2-phase-1-code.py`, `class-2-phase-2-code.py`, `class-2-phase-3-code.py`) on a
   shared drive/USB stick so a student who breaks their working file can recover instantly instead of
   losing class time.
 * The "how would you turn this data into a steering decision?" discussion (Closing) is worth letting
@@ -395,10 +395,10 @@ of Class 3 and note it in their build journal.
 * [Python & CircuitPython | Ultrasonic Sonar Distance Sensors][02] — Adafruit's official guide to
   wiring and reading the HC-SR04, including the voltage-divider caveat
 * [adafruit/Adafruit_CircuitPython_HCSR04][03] — the `adafruit_hcsr04` library source used in
-  `class-2-code-1.py` and `class-2-code-3.py`
+  `class-2-phase-1-code.py` and `class-2-phase-3-code.py`
 * [SG90 9g Micro Servo Motor — Product Page][04] — the servo used this Class
 * [CircuitPython Servo | CircuitPython Essentials][05] — PWM and `adafruit_motor.servo` basics used
-  in `class-2-code-2.py` and `class-2-code-3.py`
+  in `class-2-phase-2-code.py` and `class-2-phase-3-code.py`
 * [DC, Servo, Stepper Motors and Solenoids with the Pico][06] — broader background on motor/servo
   control from the Pico, useful for students who want to read ahead into Class 3
 

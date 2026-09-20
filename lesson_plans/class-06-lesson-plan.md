@@ -262,7 +262,7 @@ this stretch needs (the Pico's own WiFi network, `adafruit_httpserver`, the Clas
 `GP0`/`SCL` `GP1`) has been running since Class 3 and is already on every student's board.
 
 Load `class-6-code-2.py`. This file does **not** join WiFi or start a server — it imports the
-already-running `rover_server` module (same file since `class-3-code-4.py`, extended in Classes 4-5)
+already-running `rover_server` module (same file since `class-3-phase-4-rover_server.py`, extended in Classes 4-5)
 and edits it in place: a rolling ~150-sample history buffer, plus a hand-drawn HTML5 canvas chart
 added to the existing status page, polling the existing `/data.json` route every 200ms and plotting
 roll/pitch (already in the response since Class 4) and wheel speed (already in the response since

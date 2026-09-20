@@ -230,7 +230,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 
 * How the DRV8833 dual H-bridge motor driver controls a DC gearbox motor's speed and direction
 * Throttle PWM duty cycle to keep current in a safe range for the TT gearbox motors
-* Drive the car in a square and a circle of any size, then try to hit exact 12-inch dimensions
+* Drive the car in a square and a circle of any size, then try to hit exact 35 cm dimensions
 * Discuss: why is precise geometry harder than "just moving"? Separate the causes — no
   wheel/heading feedback, battery voltage sag, wheel slip/friction — instead of one vague answer
 * Add wheel odometry: mount an IR optocoupler at each driven wheel to count its built-in encoder
@@ -245,7 +245,10 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * (Stretch) Make the car drive straight: no two motors are identical, so equal throttle makes it
   curve — use the wheel-speed readings to compare the two wheels and nudge the faster one down
   (closed-loop feedback), and measure the sideways drift with and without it
-* **Milestone:** Car reliably drives a 12-inch square and a 12-inch-diameter circle, with live
+* (Stretch) Tune the feedback loop: change the correction gain (`KI`) and the safety clamp (`MAX_TRIM`) one at
+  a time, score each setting by sideways drift, settling time and jitter, and stop when improvements fall below
+  the run-to-run noise
+* **Milestone:** Car reliably drives a 35 cm square and a 35 cm-diameter circle, with live
   wheel-speed telemetry visible on the terminal and on the Pico's own status webpage
 
 **Class 4 — Inertial Measurement Unit (IMU)**
@@ -390,7 +393,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 **Milestone Assignments**
 
 Each Class (see Lessons Breakdown above) ends with a hands-on milestone — a specific, observable
-result (e.g., "clean debounced switch readings on the terminal," "car drives a 12-inch square").
+result (e.g., "clean debounced switch readings on the terminal," "car drives a 35 cm square").
 There's no written report due; the milestone is demonstrated live during the Closing / Wrap-up
 portion of the Class, or brought back working at the start of the following Class if it wasn't
 finished in time.

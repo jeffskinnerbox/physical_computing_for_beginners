@@ -19,12 +19,11 @@ prices.
 
 ## Build Process
 
-No build process — this directory holds static markdown source files. `syllabus-physical-
-computing-for-beginners-Aug-16.docx` is a dated pandoc export of the syllabus
-(`pandoc -f gfm input.md -o output.docx`) kept for sharing/printing, not an authored source in its
-own right. Per this user's file-change convention, editing a `.md` file here also writes/updates a
-matching `.md.bak` mechanical backup alongside it; none currently exist because these files haven't
-been hand-edited since being generated.
+No build process — this directory holds static markdown source files. To share or print the
+syllabus, export it with pandoc (`pandoc -f gfm input.md -o output.docx`); no exported copy is kept
+in the repo, since it goes stale as the `.md` changes. Per this user's file-change convention,
+editing a `.md` file here also writes/updates a matching `.md.bak` mechanical backup alongside it;
+the `.bak` files are throwaway and gitignored.
 
 
 ## Contents

@@ -22,7 +22,7 @@ prices could not be confirmed the same way (Amazon does not expose price in a no
 fetch) — reconfirm those before ordering, and treat the two shipping line items as estimates that
 should be replaced with real numbers once an order is built in each vendor's cart.
 
-----
+---
 
 ## Hardware
 
@@ -73,8 +73,9 @@ it — the same reuse pattern the HC-SR04 and SG90 already follow from Class 2 o
 ### Per-Student Optional
 
 All three Class 6 stretch-goal items (rotary encoder speed control, rover-website history chart, TFT status
-display) are treated as in-scope/required for this course rather than optional add-ons; their
-hardware (KY-040, LSM9DS1, TFT) already appears in Per-Student Required above.
+display) are *optional to attempt* in class — the lesson script treats doing none of them as a valid outcome — but
+their hardware (KY-040, LSM9DS1, TFT) is bought for every person so no one is blocked from trying, and so it already
+appears in Per-Student Required above.
 
 The one genuinely optional item is a bulk capacitor for the motor supply. It is **not** included in
 the Cost Summary or Grand Total below — buy it only if the instructor wants it on hand. One 15-pack
@@ -125,7 +126,7 @@ Shipping = $10.00 total (~$1.11 per person)
 Grand Total = $722.69 + $21.98 + $10.00 = $754.67 for the course (~$83.85 per person, 9 people)
 ```
 
-----
+---
 
 ## Software
 
@@ -139,10 +140,10 @@ All free — no paid software is required anywhere in this course.
 | Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
-| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
+| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-phase-4-rover_server.py`) that carries forward and grows through Class 6 |
 | (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
-----
+---
 
 ## Code Blocks
 
@@ -153,15 +154,16 @@ lesson plan — no separate cost, but listed here for completeness.
 | :-----: | :-----: | :-----: | :--------: |
 | `class-0-code.py` | 1 | Instructor | blink onboard LED + serial heartbeat, Pre-Class |
 | `class-1-code-1.py` / `class-1-code-2.py` | 2 | Instructor | undebounced vs. debounced button + rotary encoder, Class 1 |
-| `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
-| `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
-| `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
-| `class-3-code-5.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
+| `class-2-phase-1-code.py` / `class-2-phase-2-code.py` / `class-2-phase-3-code.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
+| `class-3-phase-1-motor-driver.py` / `class-3-phase-2-code.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
+| `class-3-phase-3-wheel_odometry.py` / `class-3-phase-4-rover_server.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
+| `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
 | `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
 | `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
 
-----
+---
 
 ## Tools
 
@@ -172,7 +174,7 @@ Equipment needed during the course that is not part of the take-home hardware ki
 | Windows 11 Laptop | 1 | Student | one per student, no sharing; all install guides and the Pre-Class assume Windows 11 specifically |
 | USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Shared Supplies) for a cable that fails, not as the primary source |
 
-----
+---
 
 ## Appendix: Considered but Not Selected
 
@@ -191,7 +193,7 @@ part of the course budget above.
 | I2C Stemma QT Rotary Encoder Breakout with Encoder | [Adafruit](https://www.adafruit.com/product/5880) | single | 1 | 3 | 1 | $7.95 | $23.85 |
 | Monochrome 1.12" 128x128 OLED Graphic Display - STEMMA QT / Qwiic | [Adafriuit](https://www.adafruit.com/product/5297) | single | 1 | 1 | 1 | $17.50 | $17.50 |
 
-----
+---
 
 [01]:https://www.adafruit.com/product/6315
 [02]:https://www.amazon.com/dp/B01LXY7CM3

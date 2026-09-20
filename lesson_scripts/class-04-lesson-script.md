@@ -839,7 +839,7 @@ by side on the same webpage. That's exactly why Class 5 doesn't use the IMU at a
 navigation problem — it takes a completely different approach, using the sensor and servo you built
 back in Class 2.
 
-----
+---
 ## 10. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with

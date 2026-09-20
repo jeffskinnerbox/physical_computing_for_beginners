@@ -35,7 +35,8 @@ with no serial cable at all. This website is built small on purpose — later cl
 more to this same site rather than you building a new one.
 
 If you finish early, there's a Phase 5 section too: your car will curve on a "straight" run, because
-no two motors are identical — and you'll use the wheel-speed readings you built to fix it.
+no two motors are identical — and you'll use the wheel-speed readings you built to fix it. Phase 6 then shows
+you how to tune that fix, step by step, until it performs as well as your car can manage.
 
 ## 2. What You'll Need
 
@@ -53,9 +54,9 @@ no two motors are identical — and you'll use the wheel-speed readings you buil
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Pico hosts the rover status website on a network it creates itself (AP mode) |
 | Marked 35 cm square / 35 cm-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
-| Masking tape and a tape measure | 1 each | Phase 5 only: a straight start line, and measuring how far the car drifts sideways |
+| Masking tape and a tape measure | 1 each | Phases 5-6: a straight start line, and measuring how far the car drifts sideways |
 
-**Additional components for the Homework Assignments** (Section 12) — no homework has been written
+**Additional components for the Homework Assignments** (Section 13) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
@@ -238,7 +239,7 @@ Save this first file as `motor_driver.py` on your `CIRCUITPY` drive (not `code.p
 imports this one).
 
 ```python
-# class-3-phase-1-motor-driver -- save as motor_driver.py
+# class-3-phase-1-motor-driver.py -- save as motor_driver.py
 # DRV8833 motor driver library -- forward/reverse/stop/speed, per channel.
 
 import board
@@ -543,8 +544,8 @@ WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
 SLOTS_PER_REV = 20        # count your own wheel's encoder disc slots by hand and set this
 SAMPLE_SECONDS = 0.25     # sampling window for one speed reading
 WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05
-WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # fraction of circumference per slot = 1.05 centimeters
-TICKS_PER_CM = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # ticks per centimeter = 4.21
+WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05
+CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted tick = 4.21
 
 counter_a = countio.Counter(board.GP19)  # slot counter for Motor A wheel -- must be a PWM Channel B pin
 counter_b = countio.Counter(board.GP17)  # slot counter for Motor B wheel
@@ -558,7 +559,7 @@ def _ticks_to_cms(ticks):
     """Convert a wheel's tick count, taken over SAMPLE_SECONDS, to a speed in cm/s."""
     revolutions = ticks / SLOTS_PER_REV
     return (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
-    # return ticks / TICKS_PER_CM
+    # return ticks * CMS_PER_TICK
 
 
 def read_speed():
@@ -669,7 +670,7 @@ stay on the drive unchanged — this file imports `wheel_odometry` (which in tur
 `motor_driver`).
 
 ```python
-# class-3-phase-4-rover_server -- save as rover_server.py
+# class-3-phase-4-rover_server.py -- save as rover_server.py
 # Pico-hosted rover status website -- broadcasts its own WiFi network (AP
 # mode), serves /data.json plus a minimal page that polls it.
 
@@ -1000,7 +1001,7 @@ measurement.
 One important limit: `read_speed()` is also what the rover status website calls, and both use the
 same tick counters. Two callers would keep resetting each other's counts, so this Phase 5 runs *by
 itself* as `code.py`, not alongside the website — the same "run one or the other" pattern as Options
-A and B in Section 10.
+A and B in Section 11.
 
 ### The code
 
@@ -1055,8 +1056,8 @@ import time
 import motor_driver
 import straight_drive
 
-RUN_SECONDS = 10      # [VERIFY] long enough to show a clear curve without leaving the tape
-RESET_SECONDS = 5     # [VERIFY] time to carry the car back to the start line
+RUN_SECONDS = 4       # [VERIFY] about 16 correction cycles: long enough to show a clear curve without leaving the tape
+RESET_SECONDS = 15    # [VERIFY] time to measure the drift and carry the car back to the start line
 
 print("\nRun 1 -- open loop: equal throttle, no feedback")
 motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
@@ -1158,7 +1159,236 @@ uses the accelerometer and gyroscope but not the magnetometer, and gravity can't
 which way is "north," so its yaw slowly drifts over time. That's fine for a straight run of a few
 seconds; it's the reason a long run would need something more.
 
-## 9. Troubleshooting Guide
+## 9. Build It: Phase 6 — Tuning KI and MAX_TRIM for Optimal Performance
+
+Complete Phase 5 first — this phase needs `straight_drive.py` and the open-loop vs. closed-loop
+`code.py` already working, and a car that visibly drives straighter with feedback than without.
+
+> **[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
+> validate: the `KI ≈ 0.3 / k` starting rule; the sweep values; the "keep `KI × 4` under `0.02`"
+> noise limit; the `MAX_TRIM ≈ 1.5-2 × trim` rule; and the run and reset times in the sweep script.
+> Replace the placeholders with measured values and delete this note once validated.
+
+### Why tune, and what each knob does
+
+Phase 5 gave you two numbers to guess at: `KI` and `MAX_TRIM`. Your car works with the defaults,
+but "works" is not "best". Tuning means running the same test over and over, changing *one* number
+at a time, and keeping whatever measurably wins. Here is what each knob controls:
+
+* **`KI` — how hard each nudge is.** Every cycle the code adds `KI * error` to `trim`. A small `KI`
+  is calm but slow: the car keeps curving while `trim` creeps toward the right value. A large `KI`
+  is quick but jumpy: it chases the one-tick sensor noise (about 4 cm/s) and the car snakes. You
+  want the biggest `KI` that is still calm.
+* **`MAX_TRIM` — the safety clamp.** It caps how much slower the faster wheel can ever be made. Too
+  small, and it caps the correction before the wheels match, so the car still curves. Too large,
+  and one bad reading can slow a wheel by so much that the car lurches or stalls. You want it a
+  little above what your car actually needs, so it is a guard rail, not part of normal driving.
+
+Tune them in that order: `KI` first (with `MAX_TRIM` left loose), then `MAX_TRIM` from what the
+correction really needed, then a quick re-check of `KI`. The two interact only weakly, so one pass
+of each is enough.
+
+**The scorecard.** Score every run with the same three numbers, and average three runs per setting:
+
+| Measurement | How to get it | Lower is better? |
+| :------------ | :--------------- | :----------------- |
+| **Drift** | Sideways distance from the tape at the end of the run, in cm, with a tape measure | Yes |
+| **Settle cycles** | The first printed line where `E` is `4` or less and `trim` stops changing (one cycle is 0.25 s) | Yes |
+| **Trim jitter** | Highest minus lowest `trim` over the last 8 printed lines | Yes |
+
+Keep a log as you go, one row per setting:
+
+| `KI` | `MAX_TRIM` | Drift, runs 1-3 (cm) | Mean drift | Settle cycles | Trim jitter | Notes |
+| :----- | :----------- | :--------------------- | :----------- | :--------------- | :------------ | :------ |
+| | | | | | | |
+
+### Wiring for this phase
+
+No new wiring — same circuit as Phase 5. You are only changing two constants and reading the same
+serial output.
+
+### What this code does
+
+You need two small scratch programs. Both `import straight_drive` and `wheel_odometry` unchanged, so
+**`straight_drive.py` is not edited while tuning** — the sweep script overrides `straight_drive.KI`
+and `straight_drive.MAX_TRIM` from outside, which works because `drive_straight_feedback()` looks
+those two names up each time it runs.
+
+1. **`class-3-phase-6-measure-k.py`** measures `k`, how many cm/s of wheel speed you gain per
+   `1.0` of throttle. `k` tells you where to start `KI`: each cycle, the correction removes about
+   `KI * k` of the current error, and `0.2` to `0.5` is a good fraction.
+2. **`class-3-phase-6-code.py`** runs the feedback drive several times in a row for each
+   `(KI, MAX_TRIM)` pair in a list, printing a banner before each run so your serial log shows which
+   setting produced which numbers. It stops the car and waits between runs, so you can measure the
+   drift and carry the car back to the start line.
+
+### The code
+
+Save this first one as `code.py`, and run it on a clear stretch of floor. It drives the car for
+about ten seconds in total, so keep a hand near the power switch.
+
+```python
+# class-3-phase-6-measure-k.py -- save as code.py
+# Measure k: how many cm/s of wheel speed you gain per 1.0 of throttle.
+
+import time
+import motor_driver
+import wheel_odometry
+
+LOW_THROTTLE = 0.4
+HIGH_THROTTLE = 0.5
+SETTLE_SECONDS = 1.0   # let the wheels reach steady speed before measuring
+READINGS = 4           # readings averaged per throttle (each takes SAMPLE_SECONDS)
+
+
+def average_speed(throttle):
+    """Drive both wheels at `throttle`; return the average of both wheels' speeds in cm/s."""
+    motor_driver.drive(throttle, throttle)
+    time.sleep(SETTLE_SECONDS)
+    total = 0.0
+    for _ in range(READINGS):
+        speed_left, _, speed_right, _ = wheel_odometry.read_speed()
+        total += (speed_left + speed_right) / 2
+    motor_driver.stop()
+    return total / READINGS
+
+
+slow_speed = average_speed(LOW_THROTTLE)
+time.sleep(1)          # coast to a stop between the two runs
+fast_speed = average_speed(HIGH_THROTTLE)
+
+# speed gained per 1.0 of throttle
+k = (fast_speed - slow_speed) / (HIGH_THROTTLE - LOW_THROTTLE)
+
+print("speed at", LOW_THROTTLE, ":", round(slow_speed, 1), "cm/s")
+print("speed at", HIGH_THROTTLE, ":", round(fast_speed, 1), "cm/s")
+print("k:", round(k, 1), "cm/s per 1.0 throttle")
+print("suggested starting KI:", round(0.3 / k, 4))
+```
+
+Save this second one as `code.py` (replacing the first), with `straight_drive.py` from Phase 5
+already on the board:
+
+```python
+# class-3-phase-6-code.py -- save as code.py
+# Run the feedback drive several times for each (KI, MAX_TRIM) setting, so you can score each one.
+
+import time
+import straight_drive
+
+# Each pair is (KI, MAX_TRIM). Edit this list between sweeps -- change one column at a time.
+SETTINGS = (
+    (0.0025, 0.2),
+    (0.005, 0.2),
+    (0.01, 0.2),
+    (0.02, 0.2),
+)
+RUNS_PER_SETTING = 3
+RUN_SECONDS = 4        # about 16 correction cycles -- long enough to see trim settle
+RESET_SECONDS = 15     # time to measure the drift and carry the car back to the start line
+
+for ki, max_trim in SETTINGS:
+    # override the constants in straight_drive.py without editing that file
+    straight_drive.KI = ki
+    straight_drive.MAX_TRIM = max_trim
+
+    for run in range(1, RUNS_PER_SETTING + 1):
+        print("\n=== KI", ki, " MAX_TRIM", max_trim, " run", run, "of", RUNS_PER_SETTING, "===")
+        straight_drive.drive_straight_feedback(RUN_SECONDS)
+        print("STOPPED -- measure the drift now, then put the car back on the start line")
+        time.sleep(RESET_SECONDS)
+
+print("sweep complete")
+```
+
+### Try it / what you should see
+
+Work through these steps in order. Do not skip ahead — each step uses a number from the one before.
+
+**Step 0 — Control the test.** Use a fresh 9V battery. Use one floor, one tape line, and one start
+mark, with the car pointed the same way each time. Keep `BASE_THROTTLE` fixed for the whole phase.
+
+**Step 1 — Get a baseline.**
+
+1. Run the Phase 5 `code.py` and score its **Run 1** (open loop) three times.
+2. Write down the mean drift *and* how much the three runs differ from each other. That spread is
+   your **noise floor**: any change smaller than it is not real, just luck.
+3. Repeat this baseline every 5 or 6 tests. If it has crept away from the earlier baselines, the
+   battery is sagging — swap it before going on.
+
+**Step 2 — Pick a starting `KI`.**
+
+1. Run `class-3-phase-6-measure-k.py` and note the printed `k` and the suggested `KI`. For example,
+   `k` of about `60` suggests `KI` of about `0.005`, the value Phase 5 already uses.
+2. Use that `KI` as the middle of your sweep in the next step.
+
+**Step 3 — Sweep `KI`.**
+
+1. In `class-3-phase-6-code.py`, set `SETTINGS` to your starting `KI` times `0.5`, `1`, `2` and `4`,
+   all with `MAX_TRIM = 0.2` (loose, so it can't interfere yet).
+2. Run it. For each setting, score all three runs: drift, settle cycles, trim jitter.
+3. Read the printed `trim` values:
+    * **`KI` too low:** `trim` creeps slowly, the car still curves at the end, and settle cycles
+        are high.
+    * **`KI` about right:** `trim` moves away from `0.0` within about a second, then stays flat.
+    * **`KI` too high:** `trim` flips sign or jumps each cycle, and the car snakes.
+4. Pick the **highest** `KI` that still shows flat `trim` with no sign flips, then back it off by
+   about 30%. Faster settling always costs some jitter, so you are choosing a trade-off.
+5. Check the noise ceiling: one tick moves `trim` by about `KI * 4` per cycle. Keep that at `0.02`
+   or less, or the car will wobble no matter how the rest looks.
+
+**Step 4 — Set `MAX_TRIM` from data.**
+
+1. From your good `KI` runs, average the printed `trim` over the last 8 lines. Call that `T*`. It
+   is the car's real motor mismatch, discovered by the car itself.
+2. Set `MAX_TRIM` to about `1.5` to `2` times `|T*|`, with a floor of `0.05`.
+3. Check that `BASE_THROTTLE - MAX_TRIM` stays above the throttle where a wheel stalls — you found
+   that in Phase 1. If it doesn't, lower `BASE_THROTTLE` or accept a smaller `MAX_TRIM`.
+
+**Step 5 — Verify the clamp.**
+
+1. Edit `SETTINGS` to one line with your chosen `KI` and `MAX_TRIM`, and run it. `trim` should
+   never sit on `+MAX_TRIM` or `-MAX_TRIM` during normal driving.
+    * If it sits on the limit, raise `MAX_TRIM`.
+    * If it grows steadily in one direction until it hits the limit, `KI` is too low or the wheels
+        are swapped (see Troubleshooting).
+2. Try tightening `MAX_TRIM` to `1.2 * |T*|`. If drift and jitter don't change, keep the tighter
+   value: it limits how far one bad reading can slow a wheel.
+
+**Step 6 — Re-check `KI` with the final `MAX_TRIM`.**
+
+1. Set `SETTINGS` to three values: your chosen `KI` minus 30%, the chosen `KI`, and plus 30%, all
+   with the final `MAX_TRIM`.
+2. If the middle one is still the best, you are done tuning. If a neighbour wins by more than the
+   noise floor, move to it and repeat this step once.
+
+**Step 7 — Test robustness.** Repeat your best setting with a different `BASE_THROTTLE` (try `0.4`
+and `0.6`), a half-drained battery, and a second floor surface. `T*` changes with throttle, so if
+drift gets much worse away from your tuning point, choose a `MAX_TRIM` that covers the whole range.
+
+**Step 8 — Know when to stop.** Stop when two changes in a row improve drift by less than your
+noise floor. An optional third knob is `SAMPLE_SECONDS` in `wheel_odometry.py`: raising it from
+`0.25` to `0.5` roughly halves the sensor noise and lets you use a higher `KI`. Try it only after
+Step 6, and if you change it, redo Steps 3 and 6.
+
+When you finish, type your final `KI` and `MAX_TRIM` into `straight_drive.py` itself, so every
+later program that imports it uses the tuned values.
+
+### Checkpoint
+
+Confirm the tuned `KI` and `MAX_TRIM` are saved in `straight_drive.py`, and that the three-run
+average drift with them beats the Phase 5 defaults by more than your noise floor. Be able to say,
+in one sentence each, why you picked that `KI` and why you set `MAX_TRIM` where you did.
+
+### What this doesn't fix
+
+Tuning finds the *best* wheel-speed correction, not a perfect one. Whatever drift is left after
+Step 8 — the car veering when a wheel slips on dust, or a slow heading error that both wheels
+agree on — is invisible to wheel feedback, and no value of `KI` or `MAX_TRIM` can fix it. That
+gap needs a sensor that knows which way the car is *pointing*, which is what next class's IMU is
+for.
+
+## 10. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
@@ -1176,7 +1406,9 @@ seconds; it's the reason a long run would need something more.
 | Car pulls to one side even at equal throttle | Real mechanical difference between the two gearbox motors — equal throttle isn't equal speed | Hand-tune left/right throttle as a quick fix, or use wheel feedback to fix it properly (see Section 8, Phase 5) |
 | Phase 5: car snakes left and right, and `trim` jumps around | `KI` too large, so the code chases one-tick measurement noise (about 4 cm/s) | Lower `KI` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
 | Phase 5: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — Motor A/B optocouplers or motors are swapped relative to left/right | Confirm the Motor A optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
-| `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-code-1.py` |
+| Phase 6: run-to-run drift varies as much as the differences between settings | Noise floor too high — battery sagging, floor or start mark changing, car not pointed the same way each run | Use a fresh battery, one start mark, more runs per setting; rerun the open-loop baseline every 5-6 tests |
+| Phase 6: `trim` sits on `MAX_TRIM` during normal runs | `MAX_TRIM` too tight for this car's motor mismatch, `KI` too low, or Motor A/B swapped | Raise `MAX_TRIM` to 1.5-2 times the settled `trim`, or raise `KI`; confirm the A/B wiring as in Phase 5 |
+| `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-phase-1-motor-driver.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
 | `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` runs | `countio.Counter` is implemented using the RP2040/RP2350's PWM edge-counting hardware, which only works on a PWM Channel B (odd-numbered) GPIO — `GP16` is Channel A and will always raise this | Use `GP19` (or another unused odd-numbered GPIO) instead of `GP16` for the Motor A optocoupler, both in wiring and in `wheel_odometry.py`'s `counter_a = countio.Counter(board.GP19)` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
@@ -1189,7 +1421,7 @@ seconds; it's the reason a long run would need something more.
 | Website never loads in the browser, but the Pico prints an IP address | Your laptop hasn't joined the Pico's own broadcast WiFi network yet | In your laptop's WiFi settings, connect to the network named by `CIRCUITPY_WIFI_AP_SSID` (not your classroom's network) before opening the browser |
 | Website loads once but never updates | `server.poll()` not being called every loop, or the browser is caching the page | Confirm the `while True: server.poll()` loop is running; try a hard refresh |
 
-## 10. Put It All Together
+## 11. Put It All Together
 
 This is the finished project in one place — a calibrated square/circle attempt, wheel-speed
 odometry, and your own rover status website, without going through the individual phases above.
@@ -1285,8 +1517,10 @@ import motor_driver
 
 WHEEL_DIAMETER_MM = 67
 SLOTS_PER_REV = 20  # count your own wheel's encoder disc slots by hand and set this
-WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
 SAMPLE_SECONDS = 0.25
+WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
+WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV
+CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS   # cm/s of speed per counted tick
 
 counter_a = countio.Counter(board.GP19)  # must be a PWM Channel B pin
 counter_b = countio.Counter(board.GP17)
@@ -1447,7 +1681,7 @@ def drive_straight_feedback(seconds):
         left = BASE_THROTTLE - max(trim, 0)
         right = BASE_THROTTLE + min(trim, 0)
         motor_driver.drive(left, right)
-        print("L:", round(speed_left, 1), "R:", round(speed_right, 1), "trim:", round(trim, 3))
+        print(" L:", round(speed_left, 1), " R:", round(speed_right, 1), " E:", round(error, 1), " trim:", round(trim, 3))
 
     motor_driver.stop()
 ```
@@ -1461,15 +1695,15 @@ import straight_drive
 RUN_SECONDS = 4
 RESET_SECONDS = 15
 
-print("Run 1 -- open loop: equal throttle, no feedback")
+print("\nRun 1 -- open loop: equal throttle, no feedback")
 motor_driver.drive(straight_drive.BASE_THROTTLE, straight_drive.BASE_THROTTLE)
 time.sleep(RUN_SECONDS)
 motor_driver.stop()
 
-print("Put the car back on the start line, pointed down the line...")
+print("\nPut the car back on the start line, pointed down the line...")
 time.sleep(RESET_SECONDS)
 
-print("Run 2 -- closed loop: wheel feedback")
+print("\nRun 2 -- closed loop: wheel feedback")
 straight_drive.drive_straight_feedback(RUN_SECONDS)
 print("done")
 ```
@@ -1479,7 +1713,7 @@ visible somewhere), run Option A first to demonstrate the drive, then swap in Op
 `rover_server.py` and its `code.py` wrapper) and spin a wheel by hand to show the website
 updating — the two don't need to run at the same instant to prove both work.
 
-## 11. What You Learned
+## 12. What You Learned
 
 You made your car move with real force for the first time, discovered exactly why moving it
 *precisely* is harder than it sounds, then closed part of that gap yourself by giving your car a
@@ -1507,6 +1741,8 @@ know:
 * (Phase 5) Why a car curves at equal throttle — no two motors are identical — and how closed-loop
     control fixes it: measure both wheels, compare, and nudge the faster one down until they match,
     using small corrections so measurement noise doesn't make the car wobble
+* (Phase 6) How to tune a feedback loop by experiment: score each setting with the same measurements,
+    change one number at a time, and stop when improvements fall below your noise floor
 
 Knowing each wheel's real speed catches slip or stall — a wheel spinning slower than commanded, or
 not at all — and, as the Phase 5 showed, lets the car even out its own wheels. But it still says
@@ -1516,7 +1752,7 @@ gap — no way to check your heading against where you meant to be pointed — i
 website.
 
 ---
-## 12. Homework Assignment
+## 13. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in

@@ -78,7 +78,8 @@ first tells you which direction the knob turned. This pattern is called **quadra
 and like the pushbutton, both `CLK` and `DT` are just digital signals you read with `digitalio`,
 wired active-low with internal pull-ups. The KY-040 module also has a `+`/VCC pin (power) and a
 `GND` pin, separate from its `SW` pin (a built-in pushbutton you get by pressing the knob itself —
-we aren't using `SW` in this project).
+used only in Phase 1's bounce demo, and again in Homework 5). Note: the KY-040's pull-up resistors tie its `CLK`/`DT`/`SW` signal pins to whatever supply `+` is on, so at `VSYS 5V` they idle at 5V. This is the wiring this course was tested with; if you'd rather keep those pins at 3.3V, power the encoder's `+` from `3V3` instead.
+
 
 **LEDs.** An LED (light-emitting diode) only lets current flow one direction, and it needs a
 current-limiting resistor in series or it will burn out almost instantly. The button's LED is

@@ -162,7 +162,7 @@ Tips for Students:
   * Why does the CIRCUITPY drive show up on the laptop like an ordinary USB flash drive? What actually happens when you drag/save a `.py` file onto it?
 * **Features/Capabilities**: Blink the onboard LED and print a heartbeat count to the serial console,
   proving the board, CircuitPython firmware, and editor (Mu/Thonny) are all talking to each other.
-* **Course Pseudocode**: [`class-0-code.py`](./class-0-code.py) &mdash; save as `code.py` on the CIRCUITPY drive. No external parts required.
+* **Course Pseudocode**: `class-0-code.py` &mdash; save as `code.py` on the CIRCUITPY drive. No external parts required.
 * **Potential Source Materials**:
   * [What is CircuitPython?](https://learn.adafruit.com/welcome-to-circuitpython/what-is-circuitpython),
   * [Recommended Editors](https://learn.adafruit.com/welcome-to-circuitpython/recommended-editors),
@@ -199,7 +199,7 @@ Tips for Students:
   Debouncing is added to both the switch & encoder, problem solved.
 
   If you have time, start the assembly of the Car Chassis Kit.
-* **Wiring Continuity**: First circuit of the course (button on `GP2`, encoder on `GP3`/`GP4`, LEDs on `GP14`/`GP15`).
+* **Wiring Continuity**: First circuit of the course (button on `GP2`, encoder on `GP3`/`GP4` powered from `VSYS 5V`, encoder `SW` on `GP18` for the Phase 1 demo only, LEDs on `GP14`/`GP15`).
   Leave it on the breadboard after this class &mdash; the rotary encoder is reused, unchanged, as a live
   speed control in the Class 6 stretch goal (`class-6-code-1.py`).
 * **Objective**: Show how to use CircuitPython modules to [debounce a switch](https://www.picotech.com/library/articles/blog/what-is-switch-bounce-how-to-implement-debounce)
@@ -214,10 +214,10 @@ Tips for Students:
   the rotary encoder & switch bounces give erroneous results without debouncing.
   Repeat with debouncing applied.
 * **Course Pseudocode**:
-  * [`class-1-code-1.py`](./class-1-code-1.py) &mdash; no debouncing. Button on `GP2`, encoder CLK/DT on `GP3`/`GP4`,
+  * `class-1-code-1.py` &mdash; no debouncing. Button on `GP2`, encoder CLK/DT on `GP3`/`GP4`,
     button LED on `GP15`, encoder brightness LED (PWM) on `GP14`. Prints raw press count / encoder position
     to the serial console so the class can see the erratic, non-deterministic counts.
-  * [`class-1-code-2.py`](./class-1-code-2.py) &mdash; same wiring, now debounced with `adafruit_debouncer.Debouncer`
+  * `class-1-code-2.py` &mdash; same wiring, now debounced with `adafruit_debouncer.Debouncer`
     on the button and a minimum-step-interval software debounce on the encoder. Requires
     `adafruit_debouncer` from the Adafruit CircuitPython Library Bundle in `/lib`.
 * **Potential Source Materials**:
@@ -243,7 +243,7 @@ Tips for Students:
   builds up working code in small steps: import `pwmio`, create a `PWMOut` on one GPIO pin, wrap it with
   `adafruit_motor.servo.Servo`, set `.angle` to sweep the servo across its range, and calibrate the
   `min_pulse`/`max_pulse` widths for a real motor (since cheap micro servos vary). The full source is
-  `class-2-code-2.py`, included with the course material.
+  `class-2-phase-2-code.py`, included with the course material.
   Students end the class session with a servo that continuously sweeps 0-180 degrees and back, and
   an understanding of PWM as a concept they will reuse for motors later in the course.
   Again, a simple, complete "set a position, print a value" loop.
@@ -264,16 +264,16 @@ Tips for Students:
   Can the students propose an algorithm that enables them to navigate the car and not bump into objects?
   * The HC-SR04 encodes distance as a timed sound echo; the servo encodes angle as a PWM pulse-width &mdash; compare how each device physically encodes information.
   * Why does the sensor have both a minimum *and* a maximum usable range? Tie the near-field blind spot and far-range limit back to the speed of sound and the sensor's beam angle.
-  * When the sensor is sweeping with the servo, how do you know a given distance reading really corresponds to the angle you think the servo is pointed at? (This is why class-2-code-3.py sleeps briefly after each move before reading.)
+  * When the sensor is sweeping with the servo, how do you know a given distance reading really corresponds to the angle you think the servo is pointed at? (This is why class-2-phase-3-code.py sleeps briefly after each move before reading.)
   * Why did the servo protocol pick 500-2500us pulse widths instead of something simpler like a 0-100% analog voltage? Tie back to the protocol-design discussion from Class 1.
 * **Features/Capabilities**: Stream live data to the terminal
   so the student can "see" what the sensor and servo is seeing/doing.
 * **Course Pseudocode**:
-  * [`class-2-code-1.py`](./class-2-code-1.py) &mdash; HC-SR04 alone. TRIG on `GP6`, ECHO on `GP7` through a
+  * `class-2-phase-1-code.py` &mdash; HC-SR04 alone. TRIG on `GP6`, ECHO on `GP7` through a
     resistor voltage divider (5V ECHO -> 3.3V logic). Prints distance in cm using `adafruit_hcsr04`.
-  * [`class-2-code-2.py`](./class-2-code-2.py) &mdash; SG90 alone. Signal on `GP8`. Sweeps 0-180 degrees using
+  * `class-2-phase-2-code.py` &mdash; SG90 alone. Signal on `GP8`. Sweeps 0-180 degrees using
     `adafruit_motor.servo`, with calibration notes for `min_pulse`/`max_pulse` since cheap servos vary.
-  * [`class-2-code-3.py`](./class-2-code-3.py) &mdash; combined: HC-SR04 mounted on the SG90 shaft, sweeps and
+  * `class-2-phase-3-code.py` &mdash; combined: HC-SR04 mounted on the SG90 shaft, sweeps and
     prints angle + distance pairs at each stop, the direct precursor to the collision-avoidance logic in Class 5.
 * **Potential Source Materials**:
   * [HC-SR04 Ultrasonic Module Distance Sensor - Product Page](https://www.amazon.com/AEDIKO-HC-SR04-Ultrasonic-Distance-Arduino/dp/B09BYWHSMJ)
@@ -343,7 +343,8 @@ Tips for Students:
   and make the car drive in a 35 cm square and a 35 cm diameter circle.
   Then add wheel odometry so real, measured wheel speed and direction &mdash; not just what was commanded &mdash;
   can be watched live in the serial terminal and on a webpage served by the Pico itself.
-  (Stretch: make the car drive straight using that wheel-speed feedback.)
+  (Stretch: make the car drive straight using that wheel-speed feedback, then optionally tune that feedback
+  loop's `KI` and `MAX_TRIM` by experiment.)
 * **Talking Points**:
   * First, make it move in a square & circle of any random size. Is this easy?
     Now make it move in a 35 cm square and a 35 cm diameter circle. This is harder? Why ... What is missing? How can the fix this?
@@ -372,21 +373,21 @@ Tips for Students:
   wheel-feedback straight-drive routine that evens out the two wheels' speeds, printing each wheel's speed
   and the applied trim as it runs.
 * **Course Pseudocode**:
-  * [`class-3-code-1.py`](./class-3-code-1.py) &mdash; motor driver test library (save as `motor_driver.py`).
+  * `class-3-phase-1-motor-driver.py` &mdash; motor driver test library (save as `motor_driver.py`).
     Motor A: `AIN1`/`AIN2` on `GP9`/`GP10`; Motor B: `BIN1`/`BIN2` on `GP11`/`GP12`. Uses
     `adafruit_motor.motor.DCMotor` with a `MAX_THROTTLE` cap to limit current. Exposes `drive(left, right)`
     and `stop()` for forward/reverse/stop/PWM speed per channel.
-  * [`class-3-code-2.py`](./class-3-code-2.py) &mdash; imports `motor_driver`, attempts the 35 cm square and
+  * `class-3-phase-2-code.py` &mdash; imports `motor_driver`, attempts the 35 cm square and
     35 cm diameter circle by timing straight/turn moves (open-loop dead reckoning, no encoder/IMU feedback
     yet). `SPEED`, `SECONDS_PER_CM`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
     the resulting drift is the built-in prompt for the "what is missing?" discussion.
-  * [`class-3-code-3.py`](./class-3-code-3.py) &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
+  * `class-3-phase-3-wheel_odometry.py` &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
     unchanged through Class 6. Optocoupler A on `GP19`, optocoupler B on `GP17`, both digital inputs counted
     via interrupt/counter. `WHEEL_DIAMETER_MM = 67`, `SLOTS_PER_REV` must be measured/calibrated per robot
     (count the encoder disc's slots). Exposes `read_speed()` returning `(speed_left_cms, dir_left,
     speed_right_cms, dir_right)`; direction for each wheel comes from the last direction argument passed to
     `motor_driver.drive()` for that channel, not from the optocoupler alone (see Talking Points).
-  * [`class-3-code-4.py`](./class-3-code-4.py) &mdash; Pico-hosted rover status website (save as `rover_server.py`).
+  * `class-3-phase-4-rover_server.py` &mdash; Pico-hosted rover status website (save as `rover_server.py`).
     Pico 2 W broadcasts its own WiFi network in access-point mode (`wifi.radio.start_ap()`; network name/password
     in `settings.toml` as `CIRCUITPY_WIFI_AP_SSID`/`CIRCUITPY_WIFI_AP_PASSWORD`, password at least 8 characters)
     and runs an `adafruit_httpserver` server (started explicitly on port 80) serving
@@ -397,7 +398,7 @@ Tips for Students:
     `class-4-code-1.py`, since both end in their own blocking loop); Class 5 refactors it into an
     importable library (`server`/`scan_status`, no owned loop) so `class-5-code.py` can drive and
     serve at once; Class 6's `class-6-code-2.py` then genuinely imports and extends that library.
-  * [`class-3-code-5.py`](./class-3-code-5.py) &mdash; (stretch) wheel-feedback straight driving (save as
+  * `class-3-phase-5-straight_drive.py` &mdash; (stretch) wheel-feedback straight driving (save as
     `straight_drive.py`). Imports `motor_driver` and `wheel_odometry`. `drive_straight_feedback(seconds)`
     starts both wheels at `BASE_THROTTLE`, then each cycle reads `wheel_odometry.read_speed()`, computes
     `error = speed_left - speed_right`, adds `KI * error` (an integral controller) to a clamped running `trim` (`MAX_TRIM`), and slows
@@ -405,6 +406,11 @@ Tips for Students:
     noise (about 4 cm/s at `SLOTS_PER_REV = 20`, `SAMPLE_SECONDS = 0.25`) and makes the car snake. Runs as its
     own `code.py`, mutually exclusive with `rover_server.py` (both call `read_speed()`, which resets the shared
     tick counters). Class 4's IMU heading-hold is the next step beyond this.
+  * `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` &mdash; (optional stretch) tuning procedure for
+    `straight_drive.py`'s `KI` and `MAX_TRIM`. `measure-k` drives at two throttles and prints `k` (cm/s gained per
+    1.0 of throttle) and a suggested starting `KI` (about `0.3 / k`). `code` sweeps a list of `(KI, MAX_TRIM)` pairs,
+    running the feedback drive 3 times per pair so drift, settle cycles, and `trim` jitter can be scored. Both are
+    [VERIFY] &mdash; bench test pending. Overrides `straight_drive.KI`/`.MAX_TRIM` from outside; no edit to `straight_drive.py`.
 * **Potential Source Materials**:
   * [DC Motor Examples - Raspberry Pi Pico (CMU Creative Soft Robotics)](https://courses.ideate.cmu.edu/16-480/s2026/text/code/pico-motor.html)
   * [Driving A DC Motor With CircuitPython](https://www.woolseyworkshop.com/2022/07/25/driving-a-dc-motor-with-circuitpython/)
@@ -464,14 +470,14 @@ Tips for Students:
   also publishing it as a new field on the Class 3 rover status website alongside wheel speed/direction.
   The purpose is to show how the physical orientation of the IMU is accurately (or not) reflected in the display.
 * **Course Pseudocode**:
-  * [`class-4-code-1.py`](./class-4-code-1.py) &mdash; runs on the Pico. LSM9DS1 over I2C, `SCL`->`GP1`, `SDA`->`GP0`.
+  * `class-4-code-1.py` &mdash; runs on the Pico. LSM9DS1 over I2C, `SCL`->`GP1`, `SDA`->`GP0`.
     Reads accel + gyro, fuses them with a Mahony filter (tunable `MAHONY_KP`/`MAHONY_KI`) into roll/pitch/yaw,
     and prints `roll,pitch,yaw` CSV lines over USB serial. This is the "why do we need a filter" payoff:
     raw accelerometer alone is noisy, raw gyro alone drifts.
-  * [`class-4-code-2.py`](./class-4-code-2.py) &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`).
+  * `class-4-code-2.py` &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`).
     Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students see whether
     tilting the physical board is faithfully reflected on screen. Usage: `python class-4-code-2.py <port>`.
-  * [`class-4-code-3.py`](./class-4-code-3.py) &mdash; runs on the Pico as a standalone script, saved over
+  * `class-4-code-3.py` &mdash; runs on the Pico as a standalone script, saved over
     the existing `rover_server.py` from Class 3. Adds the Mahony-filtered roll/pitch/yaw as three new keys
     on the shared `/data.json` route and webpage, alongside the `speed_left_cms`/`dir_left`/`speed_right_cms`/
     `dir_right` fields already there, unchanged. Mutually exclusive with `class-4-code-1.py`: a student runs
@@ -526,7 +532,7 @@ Tips for Students:
   on one page). Reads the IR sensor and limit switch every loop; either one true forces an immediate stop
   independent of the ultrasonic scan/timer logic.
 * **Course Pseudocode**:
-  * [`class-5-code.py`](./class-5-code.py) &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
+  * `class-5-code.py` &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
     `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`) and `wheel_odometry` (`GP19`/`GP17`).
     Drives forward at `DRIVE_SPEED`; sweeps the sensor across `SCAN_ANGLES` on a timer or immediately if
     anything comes within `STOP_DISTANCE_CM`, turns toward the clearest heading (reusing Class 3's turn-time
@@ -577,15 +583,15 @@ Tips for Students:
   speed as the Pico streams it over WiFi. Stretch #3 shows the rover's distance/heading/speed directly on its
   own on-board TFT screen, readable with no laptop or cable attached at all.
 * **Course Pseudocode**:
-  * [`class-6-code-1.py`](./class-6-code-1.py) &mdash; stretch #1. Reuses the Class 1 rotary encoder (`GP3`/`GP4`)
+  * `class-6-code-1.py` &mdash; stretch #1. Reuses the Class 1 rotary encoder (`GP3`/`GP4`)
     to raise/lower `current_speed` live and feeds it to `motor_driver.drive()`; the Class 3 `wheel_odometry`
     readout lets students see the actual measured wheel speed change alongside the commanded one.
-  * [`class-6-code-2.py`](./class-6-code-2.py) &mdash; stretch #2. Imports the already-running `rover_server`
-    (from `class-3-code-4.py`, extended in Classes 4-5) and adds a rolling ~150-sample history buffer plus a
+  * `class-6-code-2.py` &mdash; stretch #2. Imports the already-running `rover_server`
+    (from `class-3-phase-4-rover_server.py`, extended in Classes 4-5) and adds a rolling ~150-sample history buffer plus a
     hand-drawn HTML5 canvas chart to the existing page, polling `/data.json` every 200ms and plotting roll/pitch
     (from `class-4-code-1.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
     join or web server is created here &mdash; both already exist from Class 3.
-  * [`class-6-code-3.py`](./class-6-code-3.py) &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
+  * `class-6-code-3.py` &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
     (`SCK`/`MOSI` on `GP26`/`GP27`, `CS`/`DC`/`RST` on `GP20`-`GP22`) shows distance/heading/speed as large on-board text via
     `displayio` + `adafruit_display_text`, so rover status is visible without a USB cable. Ships with demo
     values; swap in the real variables from class-5-code.py / class-6-code-1.py.
@@ -724,7 +730,7 @@ All free — no paid software is required anywhere in this course.
 | Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
 | Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
-| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-code-4.py`) that carries forward and grows through Class 6 |
+| Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-phase-4-rover_server.py`) that carries forward and grows through Class 6 |
 | (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
 #### Code Blocks
@@ -736,10 +742,11 @@ lesson plan — no separate cost, but listed here for completeness.
 | :-----: | :-----: | :-----: | :--------: |
 | `class-0-code.py` | 1 | Instructor | blink onboard LED + serial heartbeat, Pre-Class |
 | `class-1-code-1.py` / `class-1-code-2.py` | 2 | Instructor | undebounced vs. debounced button + rotary encoder, Class 1 |
-| `class-2-code-1.py` / `class-2-code-2.py` / `class-2-code-3.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
-| `class-3-code-1.py` / `class-3-code-2.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
-| `class-3-code-3.py` / `class-3-code-4.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
-| `class-3-code-5.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
+| `class-2-phase-1-code.py` / `class-2-phase-2-code.py` / `class-2-phase-3-code.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
+| `class-3-phase-1-motor-driver.py` / `class-3-phase-2-code.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
+| `class-3-phase-3-wheel_odometry.py` / `class-3-phase-4-rover_server.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
+| `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
 | `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
 | `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
