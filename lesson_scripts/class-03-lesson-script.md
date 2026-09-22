@@ -119,18 +119,16 @@ battery, or briefly disconnect and reconnect the `nSLEEP` jumper).
 phototransistor facing each other across a slot, plus an onboard LM393 comparator chip. Your
 chassis kit's wheel already has an encoder disc with alternating slots and teeth molded around its
 rim; as the wheel spins, each tooth interrupts the LED-to-phototransistor beam once per slot. The
-LM393 comparator turns that raw interruption into a clean digital HIGH/LOW pulse — no debouncing
-needed the way your Class 1 switch/encoder needed it, since this is a much faster, cleaner signal
-straight off a comparator chip, not a noisy mechanical contact.
+LM393 comparator turns that raw interruption into a clean digital HIGH/LOW pulse — but "clean" is
+relative. At the slow wheel speeds this project runs, the comparator's own transition still bounces
+enough at each edge to register as several ticks for one real slot passage, the same underlying
+problem as your Class 1 switch/encoder, so this sensor needs the same `adafruit_debouncer.Debouncer`
+fix Class 1 used, not a raw pulse count.
 
-**Why the optocouplers land on `GP17`/`GP19`, not `GP16`.** The RP2040/RP2350 chip has no dedicated
-pulse-counter peripheral, so CircuitPython's `countio.Counter` is implemented using the chip's PWM
-hardware in an edge-counting mode — and that mode only works on a PWM **Channel B** pin. Pico GPIO
-pins alternate PWM channel in pairs: even-numbered GPIOs (`GP16`, `GP18`, ...) are Channel A, and
-odd-numbered GPIOs (`GP17`, `GP19`, ...) are Channel B. Trying `countio.Counter` on an even/Channel-A
-pin like `GP16` raises `RuntimeError: Pin must be on PWM Channel B` — that's why this project uses
-`GP17` and `GP19` (both odd/Channel B) for the two optocouplers instead of the more obvious
-consecutive pair `GP16`/`GP17`.
+**Why the optocouplers land on `GP17`/`GP19`.** These two GPIOs simply aren't used by anything else
+in this project or Classes 1-2 — any two free Pico pins would work here, since `wheel_odometry.py`
+polls each sensor as an ordinary digital input through `Debouncer`, the same technique Class 1 used,
+rather than relying on any special pulse-counting hardware.
 
 Turning a pulse train into a speed is a short chain of math: count pulses ("ticks") from one
 optocoupler over a fixed time window, divide by `SLOTS_PER_REV` (how many slots you counted on the
@@ -171,7 +169,7 @@ watch live wheel telemetry with no serial cable at all.
 | `GP11` | DRV8833 `BIN1` (Motor B) |
 | `GP12` | DRV8833 `BIN2` (Motor B) |
 | Pico `3V3` | DRV8833 `nSLEEP` (must be tied HIGH — no onboard pull-up) |
-| `GP19` | Optocoupler A signal out (Motor A wheel) — must be a PWM Channel B (odd) pin, see note below |
+| `GP19` | Optocoupler A signal out (Motor A wheel) |
 | `GP17` | Optocoupler B signal out (Motor B wheel) |
 | 9V battery `+` | DRV8833 `VM` (motor power) |
 | 9V battery `-` and Pico `GND` | DRV8833 `GND` (common ground) |
@@ -211,7 +209,7 @@ but leave them unmounted at each wheel until Phase 3, once you've counted each d
 | DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` | make sure this is a common `GND` |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads | |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads | |
-| Optocoupler Motor A wheel `DO` | `GP19` | must be a PWM Channel B (odd-numbered) pin, see Section 3 |
+| Optocoupler Motor A wheel `DO` | `GP19` | |
 | Optocoupler Motor B wheel `DO` | `GP17` | |
 | Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` | |
 | Both Slot Type IR Optocoupler `GND` | Pico `GND` | make sure this is a common `GND` |
@@ -521,11 +519,17 @@ that count in a moment.
 ### What this code does
 
 `wheel_odometry.py` is a second library file, saved alongside `motor_driver.py` — it doesn't run on
-its own either. It uses the built-in `countio` module to count optocoupler pulses on `GP19`/`GP17`
-over a short sampling window (`SAMPLE_SECONDS`), converts that tick count to a wheel speed in cm/s
+its own either. It polls both optocouplers on `GP19`/`GP17` as plain digital inputs over a short
+sampling window (`SAMPLE_SECONDS`), running each one through `adafruit_debouncer.Debouncer` — the
+same library Class 1 used for the button/encoder — so a single slot passing the sensor counts as
+exactly one tick instead of several. It converts that debounced tick count to a wheel speed in cm/s
 using `SLOTS_PER_REV` and the 67mm wheel diameter (see Section 3's math walkthrough), and pairs each
 wheel's speed with `motor_driver`'s last-commanded direction for that same wheel — since, as Section
 3 explained, the optocoupler alone can't tell you which way the wheel is turning.
+
+You'll need `adafruit_debouncer.mpy` **and** `adafruit_ticks.mpy` (its internal dependency) in
+`CIRCUITPY/lib/` for this — the same two files you already copied there for Class 1's button/encoder,
+so nothing new to download if that circuit is still working.
 
 Before this will read correctly, set `SLOTS_PER_REV` below to the number of slots you counted by
 hand on your own wheel's disc — the value shown is a placeholder, not a measurement.
@@ -537,12 +541,13 @@ Save this as `wheel_odometry.py` on your `CIRCUITPY` drive and it will import `m
 
 ```python
 # class-3-phase-3-wheel_odometry.py -- save as wheel_odometry.py
-# Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP19/GP17,
-# direction borrowed from motor_driver's last-commanded state.
+# Wheel-speed odometry via slot IR optocouplers -- debounced tick RATE from
+# GP19/GP17, direction borrowed from motor_driver's last-commanded state.
 
 import time
 import board
-import countio            # library for counting slots in IR optocouplers
+import digitalio
+from adafruit_debouncer import Debouncer  # same debounce library Class 1 used
 import motor_driver       # imports the file you created in phase 1
 
 WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
@@ -552,8 +557,16 @@ WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel c
 WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05
 CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted tick = 4.21
 
-counter_a = countio.Counter(board.GP19)  # slot counter for Motor A wheel -- must be a PWM Channel B pin
-counter_b = countio.Counter(board.GP17)  # slot counter for Motor B wheel
+sensor_a = digitalio.DigitalInOut(board.GP19)  # slot sensor for Motor A wheel
+sensor_a.direction = digitalio.Direction.INPUT
+sensor_b = digitalio.DigitalInOut(board.GP17)  # slot sensor for Motor B wheel
+sensor_b.direction = digitalio.Direction.INPUT
+
+# Debouncer filters each sensor's raw HIGH/LOW the same way Class 1's button
+# and rotary encoder needed it -- the LM393 comparator's edge still bounces
+# enough at slow wheel speeds to register several ticks for one real slot.
+debounced_a = Debouncer(sensor_a)
+debounced_b = Debouncer(sensor_b)
 
 # Derivation of Formula
 # revolutions = ticks / SLOTS_PER_REV
@@ -568,19 +581,25 @@ def _ticks_to_cms(ticks):
 
 
 def read_speed():
-    """Sample both optocouplers over SAMPLE_SECONDS; return
+    """Poll both sensors for SAMPLE_SECONDS, counting debounced ticks; return
     (speed_left_cms, dir_left, speed_right_cms, dir_right)."""
 
-    # initialize slot count
-    counter_a.count = 0
-    counter_b.count = 0
+    ticks_a = 0
+    ticks_b = 0
 
-    # sleep and let slot count accumulate
-    time.sleep(SAMPLE_SECONDS)
+    # poll and debounce for SAMPLE_SECONDS -- one tick per debounced falling edge
+    end_time = time.monotonic() + SAMPLE_SECONDS
+    while time.monotonic() < end_time:
+        debounced_a.update()
+        debounced_b.update()
+        if debounced_a.fell:
+            ticks_a += 1
+        if debounced_b.fell:
+            ticks_b += 1
 
-  # get the counts and convert to centimeters per second (speed)
-    speed_left = _ticks_to_cms(counter_a.count)
-    speed_right = _ticks_to_cms(counter_b.count)
+    # convert the debounced counts to centimeters per second (speed)
+    speed_left = _ticks_to_cms(ticks_a)
+    speed_right = _ticks_to_cms(ticks_b)
     return (speed_left, motor_driver.last_direction_a,
             speed_right, motor_driver.last_direction_b)
 ```
@@ -624,6 +643,14 @@ A speed reading of `0.0` while the wheel is visibly spinning almost always means
 slot isn't actually straddling the disc — remount it before assuming the code is wrong. A reading
 that's wildly too high or low usually means `SLOTS_PER_REV` was miscounted — recount the disc's
 slots by hand.
+
+**Sanity-checking raw ticks.** If readings still look implausible after recounting slots, print raw
+ticks instead of the converted speed: turn one wheel by hand exactly one full revolution while
+`read_speed()` runs, and the printed tick count should land close to `SLOTS_PER_REV`. Two useful
+extra checks — hold the wheel perfectly still (ticks should read `0`; nonzero at rest means noisy
+wiring or a comparator sitting right at its trigger threshold) and turn the wheel slowly by hand
+(ticks climbing much faster than the slots actually passing means bounce is beating the debounce —
+see the Troubleshooting table).
 
 ### Checkpoint
 
@@ -739,7 +766,7 @@ Then save this second, one-line file as `code.py`, replacing Phase 3's scratch t
 real logic under a name Classes 4-6 can `import rover_server` by:
 
 ```python
-# code.py -- runs the rover status website
+# class-3-phase-4-code.py -- save as code.py -- runs the rover status website, manual check
 import rover_server
 ```
 
@@ -768,7 +795,7 @@ off the ground, make sure the battery pack is on (USB alone won't power the moto
 replace `code.py` with:
 
 ```python
-# code.py -- TEMPORARY Phase 4 mission test: motors run while the website serves
+# class-3-phase-4-code.py -- save as code.py -- runs the rover status website, automatic check
 
 import motor_driver
 
@@ -1061,7 +1088,7 @@ import time
 import motor_driver
 import straight_drive
 
-RUN_SECONDS = 4       # [VERIFY] about 16 correction cycles: long enough to show a clear curve without leaving the tape
+RUN_SECONDS = 6       # [VERIFY] about 16 correction cycles: long enough to show a clear curve without leaving the tape
 RESET_SECONDS = 15    # [VERIFY] time to measure the drift and carry the car back to the start line
 
 print("\nRun 1 -- open loop: equal throttle, no feedback")
@@ -1130,14 +1157,13 @@ inside the slow one:
 
 ```text
    TODAY (Class 3, Phase 5): one loop, watches the WHEELS
-
-      goal: wheels match --> [ nudge throttles ] --> motors --> wheels --+
-                                    ^                                    |
-                                    +------ optocouplers: L speed, R speed
+     GOAL: wheels match --> [ nudge throttles ] --> motors --> wheels --------+
+                                    ^                                         |
+                                    |                                         v
+                                    +------ optocouplers: L speed, R speed <--+
 
    CLASS 4 TIE-IN (preview): add an outer loop, watches the HEADING
-
-      goal: heading = 0 deg (straight ahead)
+     GOAL: heading = 0 deg (straight ahead)
         |
         v
       +----------------+  "wheels should differ by X"  +--------------------+
@@ -1150,7 +1176,7 @@ inside the slow one:
               |  yaw angle                                  motors, wheels
               |                                                   |
       +-------+--------+                                          v
-      | IMU (LSM9DS1)  |<-------------- car rotates (or slips!) --+
+      | IMU (LSM9DS1)  |<--------- car rotates (or slips!) -------+
       | gyro -> yaw    |
       +----------------+
 
@@ -1393,6 +1419,8 @@ agree on — is invisible to wheel feedback, and no value of `KI` or `MAX_TRIM` 
 gap needs a sensor that knows which way the car is *pointing*, which is what next class's IMU is
 for.
 
+---
+
 ## 10. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
@@ -1415,9 +1443,12 @@ for.
 | Phase 6: `trim` sits on `MAX_TRIM` during normal runs | `MAX_TRIM` too tight for this car's motor mismatch, `KI` too low, or Motor A/B swapped | Raise `MAX_TRIM` to 1.5-2 times the settled `trim`, or raise `KI`; confirm the A/B wiring as in Phase 5 |
 | `ImportError: no module named 'motor_driver'` | The library file wasn't saved with the right name | Confirm the first file is saved as exactly `motor_driver.py`, not `class-3-phase-1-motor-driver.py` |
 | `ImportError: no module named 'adafruit_motor'` | The `adafruit_motor` library isn't installed in `lib/` on `CIRCUITPY` — it's not built into CircuitPython | Download the Adafruit CircuitPython Bundle matching your CircuitPython version from circuitpython.org/libraries, then copy the `adafruit_motor` folder from the bundle's `lib/` into `CIRCUITPY/lib/` |
-| `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` runs | `countio.Counter` is implemented using the RP2040/RP2350's PWM edge-counting hardware, which only works on a PWM Channel B (odd-numbered) GPIO — `GP16` is Channel A and will always raise this | Use `GP19` (or another unused odd-numbered GPIO) instead of `GP16` for the Motor A optocoupler, both in wiring and in `wheel_odometry.py`'s `counter_a = countio.Counter(board.GP19)` |
+| `ImportError: no module named 'adafruit_debouncer'` when `wheel_odometry.py` runs | The library file isn't on your `CIRCUITPY` drive | Copy `adafruit_debouncer.mpy` from the Library Bundle into `CIRCUITPY/lib/` (the same file used for Class 1's button/encoder) |
+| `ImportError: no module named 'adafruit_ticks'` when `wheel_odometry.py` runs | `adafruit_debouncer.mpy` imports `adafruit_ticks.mpy` internally, missing from `CIRCUITPY/lib/` | Copy `adafruit_ticks.mpy` from the Library Bundle into `CIRCUITPY/lib/`, alongside `adafruit_debouncer.mpy` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
-| Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
+| Raw tick count is nonzero even with the wheel held perfectly still | Comparator output is noisy or sitting right at its trigger threshold — a wiring/electrical issue, not a code issue | Check `VCC`/`GND` wiring and common ground; try repositioning the optocoupler slightly off the disc edge |
+| Raw tick count climbs faster than slots actually passing, turning by hand | Bounce beats `Debouncer`'s default interval | Raise `Debouncer(sensor_a, interval=0.02)`'s `interval` in `wheel_odometry.py` |
+| Wheel speed reading is wildly too high or too low, but raw ticks match a hand-turned revolution correctly | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
 | `ImportError: no module named 'wifi'` | The board is running the non-WiFi build of CircuitPython — `wifi` is only compiled into the build made for "Raspberry Pi Pico 2 W", not the plain "Raspberry Pi Pico 2" build, even on genuine Pico 2 W hardware | Download the correct `.uf2` for "Raspberry Pi Pico 2 W" from circuitpython.org, hold `BOOTSEL` while plugging in USB to mount `RPI-RP2`, drag the `.uf2` on to reflash, then re-copy `motor_driver.py`, `wheel_odometry.py`, `rover_server.py`, `code.py`, `settings.toml`, and `lib/` (including `adafruit_httpserver`) back onto `CIRCUITPY` |
 | Browser shows "This site can't be reached" / `curl` says "failed to connect" to the Pico's IP, even though the laptop is joined to the Pico's WiFi network and can `ping` it | `adafruit_httpserver`'s `Server.start()` defaults to port 5000 (visible if you add `debug=True` to `Server(pool, debug=True)`, which prints `Started development server on http://<ip>:5000`), but a browser typing a bare IP address assumes port 80 | Pass `port=80` explicitly: `server.start(str(wifi.radio.ipv4_address_ap), port=80)` |
@@ -1425,6 +1456,7 @@ for.
 | `wifi.radio.start_ap()` raises an error or the network never appears | `CIRCUITPY_WIFI_AP_PASSWORD` in `settings.toml` is shorter than 8 characters — CircuitPython's `start_ap()` requires it | Set `CIRCUITPY_WIFI_AP_PASSWORD` to at least 8 characters in `settings.toml` |
 | Website never loads in the browser, but the Pico prints an IP address | Your laptop hasn't joined the Pico's own broadcast WiFi network yet | In your laptop's WiFi settings, connect to the network named by `CIRCUITPY_WIFI_AP_SSID` (not your classroom's network) before opening the browser |
 | Website loads once but never updates | `server.poll()` not being called every loop, or the browser is caching the page | Confirm the `while True: server.poll()` loop is running; try a hard refresh |
+
 
 ## 11. Put It All Together
 
@@ -1517,7 +1549,8 @@ def stop():
 # wheel_odometry.py -- wheel-speed odometry via slot IR optocouplers.
 import time
 import board
-import countio
+import digitalio
+from adafruit_debouncer import Debouncer
 import motor_driver
 
 WHEEL_DIAMETER_MM = 67
@@ -1527,8 +1560,13 @@ WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
 WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV
 CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS   # cm/s of speed per counted tick
 
-counter_a = countio.Counter(board.GP19)  # must be a PWM Channel B pin
-counter_b = countio.Counter(board.GP17)
+sensor_a = digitalio.DigitalInOut(board.GP19)
+sensor_a.direction = digitalio.Direction.INPUT
+sensor_b = digitalio.DigitalInOut(board.GP17)
+sensor_b.direction = digitalio.Direction.INPUT
+
+debounced_a = Debouncer(sensor_a)
+debounced_b = Debouncer(sensor_b)
 
 
 def _ticks_to_cms(ticks):
@@ -1537,11 +1575,18 @@ def _ticks_to_cms(ticks):
 
 
 def read_speed():
-    counter_a.count = 0
-    counter_b.count = 0
-    time.sleep(SAMPLE_SECONDS)
-    speed_left = _ticks_to_cms(counter_a.count)
-    speed_right = _ticks_to_cms(counter_b.count)
+    ticks_a = 0
+    ticks_b = 0
+    end_time = time.monotonic() + SAMPLE_SECONDS
+    while time.monotonic() < end_time:
+        debounced_a.update()
+        debounced_b.update()
+        if debounced_a.fell:
+            ticks_a += 1
+        if debounced_b.fell:
+            ticks_b += 1
+    speed_left = _ticks_to_cms(ticks_a)
+    speed_right = _ticks_to_cms(ticks_b)
     return (speed_left, motor_driver.last_direction_a,
             speed_right, motor_driver.last_direction_b)
 ```

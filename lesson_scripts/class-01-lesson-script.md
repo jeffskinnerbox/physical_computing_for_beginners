@@ -363,7 +363,8 @@ This version fixes the bounce two different ways for two different kinds of inpu
     real, deliberate turn.
 
 You'll need the `adafruit_debouncer` library for this. It comes from the Adafruit CircuitPython
-Library Bundle you downloaded in the Pre-Class — copy the `adafruit_debouncer.mpy` file into the
+Library Bundle you downloaded in the Pre-Class — copy both `adafruit_debouncer.mpy` **and**
+`adafruit_ticks.mpy` (a small helper library `adafruit_debouncer` imports internally) into the
 `/lib` folder on your `CIRCUITPY` drive before running this code.
 
 ### The code
@@ -490,6 +491,7 @@ used in the Pre-Class and will keep using for the rest of the course:
 | Encoder counts backward from the direction you turned | `CLK`/`DT` wires swapped | Swap the two wires at the encoder, or swap the `+1`/`-1` lines in the code |
 | Encoder still jittery after adding debouncing | `MIN_STEP_INTERVAL` too small for this particular encoder | Raise it gradually (`0.02` -> `0.03` -> `0.05`) and retest after each change |
 | `ImportError: no module named 'adafruit_debouncer'` | The library file isn't on your `CIRCUITPY` drive | Copy `adafruit_debouncer.mpy` from the Library Bundle into the `/lib` folder on `CIRCUITPY` |
+| `ImportError: no module named 'adafruit_ticks'` | `adafruit_debouncer.mpy` imports `adafruit_ticks.mpy` internally, and that file is missing from `/lib` | Copy `adafruit_ticks.mpy` from the Library Bundle into the `/lib` folder on `CIRCUITPY`, alongside `adafruit_debouncer.mpy` |
 | Serial console shows nothing at all | Wrong COM/serial port selected, or a charge-only USB cable/port | Reselect the correct port in Mu/Thonny; try a different cable or USB port |
 | Button LED stays on permanently | Wiring assumes active-low but the switch's other leg is on `3V3` instead of `GND` | Move that leg to `GND`; confirm `pull = digitalio.Pull.UP` in the code |
 
