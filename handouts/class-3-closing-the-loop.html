@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class 3: Closing the Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #000; overflow: hidden;
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  h1, h2, p, ul, li, table, tr, td, th { margin: 0; padding: 0; font-weight: 400; }
+  ul { padding-left: 1.1em; }
+  table { border-collapse: collapse; }
+  td, th { border: 1px solid #DCD9CF; padding: 10px 12px; }
+
+  #viewport {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; overflow: hidden;
+  }
+  #stage {
+    position: relative; width: 1920px; height: 1080px;
+    flex: none; transform: scale(1); transform-origin: center center;
+  }
+  .slide {
+    position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+    opacity: 0; visibility: hidden; transition: opacity .35s ease;
+  }
+  .slide.active { opacity: 1; visibility: visible; }
+
+  #controls {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+    display: flex; align-items: center; gap: 18px;
+    padding: 10px 24px; background: rgba(18,24,31,0.85); backdrop-filter: blur(6px);
+    font-family: 'IBM Plex Sans', Arial, sans-serif; color: #F1F0EA;
+  }
+  #controls button {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #F1F0EA;
+    width: 36px; height: 36px; border-radius: 8px; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;
+  }
+  #controls button:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+  #controls button:disabled { opacity: .3; cursor: default; }
+  #counter { font-size: 14px; font-variant-numeric: tabular-nums; min-width: 60px; text-align: center; flex: none; }
+  #progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; position: relative; cursor: pointer; }
+  #progress-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5DCAA5; border-radius: 2px; }
+  #dots { display: flex; gap: 6px; flex: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; padding: 0; cursor: pointer; }
+  .dot.active { background: #5DCAA5; }
+  #hint {
+    position: fixed; top: 18px; right: 18px; z-index: 1000;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    background: rgba(18,24,31,0.6); padding: 6px 10px; border-radius: 6px;
+    transition: opacity .4s ease;
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <section id="cover" class="slide" style="background:#12181F; color:#F1F0EA; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; gap:32px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:4px; color:#5DCAA5; text-transform:uppercase">Physical computing for beginners · Class 3</p>
+      <h1 style="font-size:120px; font-weight:600; line-height:1.05; color:#F1F0EA; width:1600px">Closing the loop</h1>
+      <p style="font-size:32px; line-height:1.5; color:#A9B4BE; width:1300px">Dual H-bridge motors, a debounced wheel-speed sensor, and the discipline of tuning a feedback loop instead of guessing</p>
+    </section>
+
+    <section id="agenda" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">What we'll cover</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">From open loop to a tuned closed loop</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; flex:1; justify-content:space-between">
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">01</p>
+          <p style="font-size:28px; color:#1C232B">Open-loop drive: timed moves, and why they drift</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">02</p>
+          <p style="font-size:28px; color:#1C232B">Why equal throttle does not mean equal speed</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">03</p>
+          <p style="font-size:28px; color:#1C232B">Debouncing the wheel-speed sensor: from bouncy ticks to a clean signal</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">04</p>
+          <p style="font-size:28px; color:#1C232B">Closed-loop control: measure, compare, nudge</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">05</p>
+          <p style="font-size:28px; color:#1C232B">KI: an integral controller, and a preview of PID</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">06</p>
+          <p style="font-size:28px; color:#1C232B">Homework: tuning KI and MAX_TRIM by experiment</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; border-bottom:1px solid #DCD9CF; padding:14px 0">
+          <p style="font-size:26px; font-weight:600; color:#8A9199; width:70px">07</p>
+          <p style="font-size:28px; color:#1C232B">What this doesn't fix — a preview of Class 4's heading loop</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="open-loop-timing" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Phase 2 — open loop</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">What drive_straight(35) really does</h2>
+      </div>
+      <div style="position:relative; width:1664px; height:460px">
+        <div style="position:absolute; left:0px; top:0px; width:680px; height:90px; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; font-family:'JetBrains Mono', monospace; color:#1C232B">drive(0.5, 0.5)</p>
+          <p style="font-size:24px; color:#5B6472">starts both motors</p>
+        </div>
+        <div style="position:absolute; left:0px; top:140px; width:680px; height:110px; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; font-family:'JetBrains Mono', monospace; color:#1C232B">sleep(35 × 0.035)</p>
+          <p style="font-size:24px; color:#5B6472">= 1.225 s — all the code knows</p>
+        </div>
+        <div style="position:absolute; left:0px; top:300px; width:680px; height:80px; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:12px; padding:16px 24px; display:flex; align-items:center">
+          <p style="font-size:28px; font-weight:600; font-family:'JetBrains Mono', monospace; color:#1C232B">stop()</p>
+        </div>
+        <div style="position:absolute; left:984px; top:0px; width:680px; height:90px; background:#FAECE7; border:1px solid #F0997B; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#712B13">Car moves</p>
+          <p style="font-size:24px; color:#712B13">motors spin, wheels roll</p>
+        </div>
+        <div style="position:absolute; left:984px; top:140px; width:680px; height:110px; background:#FAECE7; border:1px solid #F0997B; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#712B13">Disturbances</p>
+          <p style="font-size:24px; color:#712B13">battery sag, motor mismatch, floor grip</p>
+        </div>
+        <div style="position:absolute; left:984px; top:300px; width:680px; height:80px; background:#FAECE7; border:1px solid #F0997B; border-radius:12px; padding:16px 24px; display:flex; align-items:center">
+          <p style="font-size:28px; font-weight:600; color:#712B13">Coasts to a halt</p>
+        </div>
+        <div style="position:absolute; left:680px; top:44px; width:296px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:976px; top:39px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <p style="position:absolute; left:792px; top:6px; width:120px; height:30px; font-size:24px; color:#5B6472; text-align:center">PWM</p>
+        <div style="position:absolute; left:1323px; top:98px; width:2px; height:42px; background:#D85A30"></div>
+        <div style="position:absolute; left:1318px; top:90px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:8px solid #D85A30"></div>
+        <div style="position:absolute; left:680px; top:339px; width:296px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:976px; top:334px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <p style="position:absolute; left:792px; top:306px; width:120px; height:30px; font-size:24px; color:#5B6472; text-align:center">brake</p>
+      </div>
+      <p style="font-size:28px; font-style:italic; color:#5B6472">Nothing flows back from the car to the code — no arrow points left.</p>
+    </section>
+
+    <section id="errors-stack" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Phase 2 — open loop</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Errors don't cancel — they stack</h2>
+      </div>
+      <div style="display:flex; gap:64px; flex:1">
+        <div style="flex:1; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:16px; padding:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px">
+          <p style="font-size:32px; font-weight:600; color:#1C232B">Commanded square</p>
+          <div style="position:relative; width:300px; height:300px">
+            <div style="position:absolute; left:0px; top:0px; width:300px; height:300px; border:3px solid #8A9199; border-radius:4px"></div>
+            <div style="position:absolute; left:-6px; top:294px; width:12px; height:12px; border-radius:50%; background:#8A9199"></div>
+          </div>
+          <p style="font-size:26px; color:#5B6472; text-align:center; width:600px">Start and end are the same point</p>
+        </div>
+        <div style="flex:1; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:16px; padding:48px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px">
+          <p style="font-size:32px; font-weight:600; color:#1C232B">Actual path</p>
+          <div style="position:relative; width:300px; height:300px">
+            <div style="position:absolute; left:0px; top:0px; width:300px; height:300px; border:2px dashed #B4B2A9; border-radius:4px"></div>
+            <svg style="position:absolute; left:0px; top:0px" width="300" height="300" viewBox="0 0 300 300" aria-label="The actual path drifts away from the commanded square, leaving a gap between start and end">
+              <path d="M12 288 L8 62 L252 42 L278 228 L198 268" fill="none" stroke="#D85A30" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div style="position:absolute; left:6px; top:282px; width:12px; height:12px; border-radius:50%; background:#8A9199"></div>
+            <div style="position:absolute; left:192px; top:262px; width:12px; height:12px; border-radius:50%; background:#D85A30"></div>
+          </div>
+          <p style="font-size:26px; color:#5B6472; text-align:center; width:620px">Each move starts where the last one ended</p>
+        </div>
+      </div>
+      <p style="font-size:28px; font-style:italic; color:#5B6472">The gap between start and end is the price of never checking.</p>
+    </section>
+
+    <section id="why-curves" class="slide" style="background:#0E3B36; color:#F5F3EC; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:40px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#8FD9C4; text-transform:uppercase">Why your car curves</p>
+      <h2 style="font-size:72px; font-weight:600; line-height:1.1; text-align:center; width:1600px; color:#F5F3EC">Equal throttle is not equal speed</h2>
+      <p style="font-size:32px; line-height:1.5; text-align:center; width:1100px; color:#C8E3DD">No two motors are identical. Brush wear, gearbox friction, and small differences in the windings mean the same duty cycle spins one wheel faster than the other — and equal throttle told both wheels the same thing.</p>
+    </section>
+
+    <section id="debounce-fix" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Phase 3 — wheel odometry</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">One slot passing can look like several ticks</h2>
+      </div>
+      <div style="display:flex; gap:64px">
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:36px; display:flex; flex-direction:column; align-items:center; gap:14px">
+          <p style="font-size:28px; font-weight:600; color:#712B13; text-align:center">Counting every raw edge</p>
+          <svg width="720" height="180" viewBox="0 0 760 220" role="img" aria-label="The raw comparator signal bounces at the falling edge, producing three counted ticks for one slot passing">
+            <path d="M20 40 L160 40 L160 170 L190 170 L190 60 L220 60 L220 170 L250 170 L250 80 L280 80 L280 170 L740 170" fill="none" stroke="#D85A30" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="160" cy="170" r="7" fill="#D85A30"/>
+            <circle cx="220" cy="170" r="7" fill="#D85A30"/>
+            <circle cx="280" cy="170" r="7" fill="#D85A30"/>
+          </svg>
+          <p style="font-size:24px; color:#712B13; text-align:center">one slot passing → 3 ticks counted</p>
+        </div>
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:16px; padding:36px; display:flex; flex-direction:column; align-items:center; gap:14px">
+          <p style="font-size:28px; font-weight:600; color:#085041; text-align:center">Counting debounced falls</p>
+          <svg width="720" height="180" viewBox="0 0 760 220" role="img" aria-label="The debounced signal has one clean falling edge, producing exactly one counted tick for one slot passing">
+            <path d="M20 40 L160 40 L160 170 L740 170" fill="none" stroke="#0F6E56" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="160" cy="170" r="7" fill="#0F6E56"/>
+          </svg>
+          <p style="font-size:24px; color:#085041; text-align:center">one slot passing → exactly 1 tick</p>
+        </div>
+      </div>
+      <div style="background:#FFFFFF; border:1px solid #DCD9CF; border-radius:12px; padding:18px 28px; display:flex; flex-direction:column; gap:6px">
+        <p style="font-size:24px; font-family:'JetBrains Mono', monospace; color:#1C232B">debounced_a = Debouncer(sensor_a)</p>
+        <p style="font-size:24px; font-family:'JetBrains Mono', monospace; color:#1C232B">if debounced_a.fell: ticks_a += 1</p>
+      </div>
+      <p style="font-size:26px; font-style:italic; color:#5B6472">Same LM393 bounce problem as Class 1's switch and rotary encoder — same adafruit_debouncer.Debouncer fix, reused on GP19/GP17.</p>
+    </section>
+
+    <section id="open-loop-block" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Open loop</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Fire and forget</h2>
+      </div>
+      <div style="position:relative; width:1664px; height:400px">
+        <div style="position:absolute; left:0px; top:0px; width:380px; height:100px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#085041">Your code</p>
+          <p style="font-size:24px; color:#085041">0.5, 0.5</p>
+        </div>
+        <div style="position:absolute; left:428px; top:0px; width:380px; height:100px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#085041">motor_driver</p>
+          <p style="font-size:24px; color:#085041">PWM signals</p>
+        </div>
+        <div style="position:absolute; left:856px; top:0px; width:380px; height:100px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#2C2C2A">Motors</p>
+          <p style="font-size:24px; color:#5F5E5A">never identical</p>
+        </div>
+        <div style="position:absolute; left:1284px; top:0px; width:380px; height:100px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; padding:16px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#2C2C2A">Wheels</p>
+          <p style="font-size:24px; color:#5F5E5A">unequal speeds</p>
+        </div>
+        <div style="position:absolute; left:380px; top:49px; width:40px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:420px; top:44px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <div style="position:absolute; left:808px; top:49px; width:40px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:848px; top:44px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <div style="position:absolute; left:1236px; top:49px; width:40px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:1276px; top:44px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <div style="position:absolute; left:856px; top:260px; width:808px; height:110px; background:#FAECE7; border:1px solid #F0997B; border-radius:12px; padding:16px 32px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:28px; font-weight:600; color:#712B13">Disturbances the code never sees</p>
+          <p style="font-size:24px; color:#712B13">worn brushes, gearbox friction, weak battery, carpet</p>
+        </div>
+        <div style="position:absolute; left:1045px; top:108px; width:2px; height:152px; background:#D85A30"></div>
+        <div style="position:absolute; left:1040px; top:100px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:8px solid #D85A30"></div>
+      </div>
+      <p style="font-size:28px; font-style:italic; color:#5B6472">Nothing is measured, so nothing is corrected — the car curves, and the code has no way to know.</p>
+    </section>
+
+    <section id="closed-loop-block" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Closed loop</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Measure, compare, nudge</h2>
+      </div>
+      <div style="position:relative; width:1664px; height:560px">
+        <div style="position:absolute; left:0px; top:0px; width:380px; height:90px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#085041">motor_driver</p>
+          <p style="font-size:22px; color:#085041">sets both throttles</p>
+        </div>
+        <div style="position:absolute; left:642px; top:0px; width:380px; height:90px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#2C2C2A">Motors</p>
+          <p style="font-size:22px; color:#5F5E5A">each spins differently</p>
+        </div>
+        <div style="position:absolute; left:1284px; top:0px; width:380px; height:90px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#2C2C2A">Wheels turn</p>
+          <p style="font-size:22px; color:#5F5E5A">debounced slots pass the sensors</p>
+        </div>
+        <div style="position:absolute; left:642px; top:170px; width:380px; height:130px; background:#FAECE7; border:1px solid #F0997B; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#712B13">Disturbances</p>
+          <p style="font-size:22px; color:#712B13">mismatch, battery sag</p>
+        </div>
+        <div style="position:absolute; left:1284px; top:440px; width:380px; height:90px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#085041">1. Measure</p>
+          <p style="font-size:22px; color:#085041">L and R in cm/s</p>
+        </div>
+        <div style="position:absolute; left:642px; top:440px; width:380px; height:90px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#085041">2. Compare</p>
+          <p style="font-size:22px; color:#085041">error = L − R</p>
+        </div>
+        <div style="position:absolute; left:0px; top:440px; width:380px; height:90px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#085041">3. Nudge</p>
+          <p style="font-size:22px; color:#085041">trim += KI × error</p>
+        </div>
+        <div style="position:absolute; left:380px; top:44px; width:254px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:634px; top:39px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <div style="position:absolute; left:1022px; top:44px; width:254px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:1276px; top:39px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <div style="position:absolute; left:831px; top:98px; width:2px; height:72px; background:#D85A30"></div>
+        <div style="position:absolute; left:826px; top:90px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:8px solid #D85A30"></div>
+        <div style="position:absolute; left:1473px; top:90px; width:2px; height:342px; background:#8A9199"></div>
+        <div style="position:absolute; left:1468px; top:432px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #8A9199"></div>
+        <div style="position:absolute; left:1030px; top:484px; width:254px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:1022px; top:479px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-right:8px solid #8A9199"></div>
+        <div style="position:absolute; left:388px; top:484px; width:254px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:380px; top:479px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-right:8px solid #8A9199"></div>
+        <div style="position:absolute; left:189px; top:98px; width:2px; height:342px; background:#8A9199"></div>
+        <div style="position:absolute; left:184px; top:90px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:8px solid #8A9199"></div>
+        <p style="position:absolute; left:1040px; top:250px; width:280px; font-size:24px; color:#5B6472; text-align:center">↻ repeats about 4 times a second</p>
+      </div>
+    </section>
+
+    <section id="trim-sign" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Closed loop</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">What the sign of trim means</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px">
+        <div style="display:flex; justify-content:space-between">
+          <p style="font-size:24px; color:#5B6472; font-family:'JetBrains Mono', monospace">−MAX_TRIM</p>
+          <p style="font-size:24px; color:#5B6472; font-family:'JetBrains Mono', monospace">trim</p>
+          <p style="font-size:24px; color:#5B6472; font-family:'JetBrains Mono', monospace">+MAX_TRIM</p>
+        </div>
+        <hr style="border:none; border-top:2px solid #B4B2A9">
+      </div>
+      <div style="display:flex; gap:32px">
+        <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:36px; font-weight:600; color:#3C3489">trim &lt; 0</p>
+          <p style="font-size:26px; color:#3C3489">Right wheel is fast</p>
+          <p style="font-size:26px; font-weight:600; color:#3C3489">Slow the RIGHT wheel</p>
+          <p style="font-size:24px; font-family:'JetBrains Mono', monospace; color:#534AB7">right = BASE + trim</p>
+        </div>
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:36px; font-weight:600; color:#085041">trim = 0</p>
+          <p style="font-size:26px; color:#085041">Wheels match</p>
+          <p style="font-size:26px; font-weight:600; color:#085041">Both wheels at BASE</p>
+          <p style="font-size:24px; font-family:'JetBrains Mono', monospace; color:#0F6E56">no correction</p>
+        </div>
+        <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:36px; font-weight:600; color:#3C3489">trim &gt; 0</p>
+          <p style="font-size:26px; color:#3C3489">Left wheel is fast</p>
+          <p style="font-size:26px; font-weight:600; color:#3C3489">Slow the LEFT wheel</p>
+          <p style="font-size:24px; font-family:'JetBrains Mono', monospace; color:#534AB7">left = BASE − trim</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="worked-example" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Closed loop — worked example</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Trim settles — it doesn't reset to zero</h2>
+      </div>
+      <table style="width:100%; font-size:28px; font-family:'JetBrains Mono', monospace; color:#1C232B">
+        <tr>
+          <th style="width:12%; text-align:center; font-weight:600; color:#0F6E56">cycle</th>
+          <th style="width:14%; text-align:center; font-weight:600; color:#0F6E56">L cm/s</th>
+          <th style="width:14%; text-align:center; font-weight:600; color:#0F6E56">R cm/s</th>
+          <th style="width:16%; text-align:center; font-weight:600; color:#0F6E56">error</th>
+          <th style="width:14%; text-align:center; font-weight:600; color:#0F6E56">trim</th>
+          <th style="width:15%; text-align:center; font-weight:600; color:#0F6E56">left thr</th>
+          <th style="width:15%; text-align:center; font-weight:600; color:#0F6E56">right thr</th>
+        </tr>
+        <tr><td style="text-align:center">0</td><td style="text-align:center">—</td><td style="text-align:center">—</td><td style="text-align:center">—</td><td style="text-align:center">0.000</td><td style="text-align:center">0.50</td><td style="text-align:center">0.50</td></tr>
+        <tr><td style="text-align:center">1</td><td style="text-align:center">24</td><td style="text-align:center">16</td><td style="text-align:center">+8</td><td style="text-align:center">0.040</td><td style="text-align:center">0.46</td><td style="text-align:center">0.50</td></tr>
+        <tr><td style="text-align:center">2</td><td style="text-align:center">20</td><td style="text-align:center">16</td><td style="text-align:center">+4</td><td style="text-align:center">0.060</td><td style="text-align:center">0.44</td><td style="text-align:center">0.50</td></tr>
+        <tr><td style="text-align:center">3</td><td style="text-align:center">16</td><td style="text-align:center">16</td><td style="text-align:center">0</td><td style="text-align:center">0.060</td><td style="text-align:center">0.44</td><td style="text-align:center">0.50</td></tr>
+        <tr><td style="text-align:center">4</td><td style="text-align:center">16</td><td style="text-align:center">16</td><td style="text-align:center">0</td><td style="text-align:center">0.060</td><td style="text-align:center">0.44</td><td style="text-align:center">0.50</td></tr>
+      </table>
+      <p style="font-size:28px; line-height:1.4; color:#5B6472; width:1600px">The error shrinks each cycle. When it hits zero, trim stops changing — but holds at 0.060, the motor mismatch the car just learned, not zero.</p>
+    </section>
+
+    <section id="ki-pid-preview" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Closed loop — naming the controller</p>
+        <h2 style="font-size:56px; font-weight:600; line-height:1.1; color:#1C232B">trim += KI × error is the "I" in PID</h2>
+      </div>
+      <div style="display:flex; gap:48px">
+        <div style="flex:1; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#5F5E5A">P — Proportional</p>
+          <p style="font-size:25px; color:#5F5E5A">React to the error right now</p>
+          <p style="font-size:23px; font-style:italic; color:#8A9199">not built</p>
+        </div>
+        <div style="flex:1; background:#E1F5EE; border:2px solid #5DCAA5; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#085041">I — Integral</p>
+          <p style="font-size:25px; color:#085041">React to the error added up over time</p>
+          <p style="font-size:23px; font-family:'JetBrains Mono', monospace; color:#0F6E56">trim += KI * error</p>
+          <p style="font-size:22px; font-weight:600; color:#0F6E56">← today (Phase 5)</p>
+        </div>
+        <div style="flex:1; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#5F5E5A">D — Derivative</p>
+          <p style="font-size:25px; color:#5F5E5A">React to how fast the error is changing</p>
+          <p style="font-size:23px; font-style:italic; color:#8A9199">not built — needs a cleaner, faster signal</p>
+        </div>
+      </div>
+      <p style="font-size:26px; line-height:1.4; font-style:italic; color:#5B6472; width:1664px">We stop at I: the sensor reads in about 4 cm/s steps, and the loop runs only four times a second — a D term would amplify that jitter instead of smoothing it. Keep it in your back pocket for a smoother measurement.</p>
+    </section>
+
+    <section id="tuning-ki" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#854F0B; text-transform:uppercase">Closed loop — tuning</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">How big should each nudge be?</h2>
+      </div>
+      <div style="display:flex; gap:48px">
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:16px">
+          <p style="font-size:28px; font-weight:600; text-align:center; color:#1C232B">KI too big <span style="font-family:'JetBrains Mono', monospace; font-weight:400; color:#5B6472">(0.05)</span></p>
+          <svg width="480" height="220" viewBox="0 0 480 220" role="img" aria-label="Trim oscillates around the target because KI is too big">
+            <path d="M20 80 L420 80" fill="none" stroke="#B4B2A9" stroke-width="2" stroke-dasharray="8 6"/>
+            <path d="M20 200 Q50 20 90 100 Q130 180 170 100 Q210 20 250 100 Q290 180 330 100 Q370 20 410 100" fill="none" stroke="#D85A30" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:24px; color:#5B6472; text-align:center">wobbles: chases noise</p>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:16px">
+          <p style="font-size:28px; font-weight:600; text-align:center; color:#1C232B">KI about right <span style="font-family:'JetBrains Mono', monospace; font-weight:400; color:#5B6472">(0.005)</span></p>
+          <svg width="480" height="220" viewBox="0 0 480 220" role="img" aria-label="Trim rises smoothly and settles at the target">
+            <path d="M20 80 L420 80" fill="none" stroke="#B4B2A9" stroke-width="2" stroke-dasharray="8 6"/>
+            <path d="M20 200 C80 195 110 100 150 85 C200 82 300 80 420 80" fill="none" stroke="#1D9E75" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:24px; color:#5B6472; text-align:center">settles: ignores noise</p>
+        </div>
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:16px">
+          <p style="font-size:28px; font-weight:600; text-align:center; color:#1C232B">KI too small <span style="font-family:'JetBrains Mono', monospace; font-weight:400; color:#5B6472">(0.0005)</span></p>
+          <svg width="480" height="220" viewBox="0 0 480 220" role="img" aria-label="Trim crawls upward and never reaches the target">
+            <path d="M20 80 L420 80" fill="none" stroke="#B4B2A9" stroke-width="2" stroke-dasharray="8 6"/>
+            <path d="M20 200 C160 198 320 190 420 165" fill="none" stroke="#BA7517" stroke-width="4" stroke-linecap="round"/>
+          </svg>
+          <p style="font-size:24px; color:#5B6472; text-align:center">crawls: car still curves</p>
+        </div>
+      </div>
+      <p style="font-size:24px; font-style:italic; color:#5B6472">Dashed line: the trim that would cancel the mismatch. Horizontal axis: time.</p>
+    </section>
+
+    <section id="phase6-workflow" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#854F0B; text-transform:uppercase">Homework — Phase 6</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Measure k, then sweep KI and MAX_TRIM</h2>
+      </div>
+      <div style="display:flex; align-items:stretch; gap:16px">
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:8px">
+          <p style="font-size:26px; font-weight:600; color:#085041">1. measure-k.py</p>
+          <p style="font-size:20px; color:#085041; line-height:1.4">Drive slow, then fast. Compute k = cm/s gained per 1.0 of throttle.</p>
+        </div>
+        <div style="flex:none; width:36px; display:flex; align-items:center; justify-content:center; font-size:32px; color:#8A9199">→</div>
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:8px">
+          <p style="font-size:26px; font-weight:600; color:#085041">2. Starting KI</p>
+          <p style="font-size:20px; color:#085041; line-height:1.4">Suggested KI ≈ 0.3 / k — the middle of the sweep.</p>
+        </div>
+        <div style="flex:none; width:36px; display:flex; align-items:center; justify-content:center; font-size:32px; color:#8A9199">→</div>
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:8px">
+          <p style="font-size:26px; font-weight:600; color:#085041">3. Sweep KI</p>
+          <p style="font-size:20px; color:#085041; line-height:1.4">Try KI × 0.5, 1, 2, 4 with MAX_TRIM loose. Pick the highest calm KI.</p>
+        </div>
+        <div style="flex:none; width:36px; display:flex; align-items:center; justify-content:center; font-size:32px; color:#8A9199">→</div>
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:8px">
+          <p style="font-size:26px; font-weight:600; color:#085041">4. Set MAX_TRIM</p>
+          <p style="font-size:20px; color:#085041; line-height:1.4">≈ 1.5–2× the settled trim, then re-check KI once more.</p>
+        </div>
+      </div>
+      <p style="font-size:26px; font-style:italic; color:#5B6472">Change one number at a time. Repeat until two changes in a row improve drift by less than your noise floor.</p>
+    </section>
+
+    <section id="phase6-scorecard" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#854F0B; text-transform:uppercase">Homework — Phase 6</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Score every run the same way</h2>
+      </div>
+      <table style="width:100%; font-size:26px; color:#1C232B">
+        <tr>
+          <th style="width:20%; text-align:left; font-weight:600; color:#0F6E56">Measurement</th>
+          <th style="width:58%; text-align:left; font-weight:600; color:#0F6E56">How to get it</th>
+          <th style="width:22%; text-align:center; font-weight:600; color:#0F6E56">Lower is better?</th>
+        </tr>
+        <tr><td style="font-weight:600">Drift</td><td>Sideways distance from the tape at the end of the run, with a tape measure (cm)</td><td style="text-align:center">Yes</td></tr>
+        <tr><td style="font-weight:600">Settle cycles</td><td>First printed line where error is 4 or less and trim stops changing (one cycle = 0.25 s)</td><td style="text-align:center">Yes</td></tr>
+        <tr><td style="font-weight:600">Trim jitter</td><td>Highest minus lowest trim over the last 8 printed lines</td><td style="text-align:center">Yes</td></tr>
+      </table>
+      <p style="font-size:26px; line-height:1.4; color:#5B6472; width:1664px">Average three runs per setting. Tune KI first with MAX_TRIM left loose, then set MAX_TRIM from the data, then a quick re-check of KI.</p>
+    </section>
+
+    <section id="class4-preview" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:24px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#3C3489; text-transform:uppercase">What this doesn't fix</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">Matched wheels aren't a straight heading</h2>
+      </div>
+      <div style="position:relative; width:1664px; height:520px">
+        <div style="position:absolute; left:0px; top:0px; width:680px; height:80px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; display:flex; align-items:center; justify-content:center">
+          <p style="font-size:26px; font-weight:600; color:#2C2C2A">Goal: heading = 0°</p>
+        </div>
+        <div style="position:absolute; left:0px; top:160px; width:680px; height:140px; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:6px">
+          <p style="font-size:26px; font-weight:600; color:#3C3489">Outer loop (Class 4 preview)</p>
+          <p style="font-size:22px; color:#3C3489">compares heading to the goal</p>
+          <p style="font-size:22px; color:#3C3489">and asks for a correction</p>
+        </div>
+        <div style="position:absolute; left:984px; top:160px; width:680px; height:140px; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:16px 24px; display:flex; flex-direction:column; justify-content:center; gap:6px">
+          <p style="font-size:26px; font-weight:600; color:#085041">Inner loop (today)</p>
+          <p style="font-size:22px; color:#085041">makes the wheels match</p>
+          <p style="font-size:22px; color:#085041">that request</p>
+        </div>
+        <div style="position:absolute; left:0px; top:380px; width:380px; height:100px; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#3C3489">IMU (LSM9DS1)</p>
+          <p style="font-size:22px; color:#3C3489">gyro → yaw</p>
+        </div>
+        <div style="position:absolute; left:492px; top:380px; width:680px; height:100px; background:#F1EFE8; border:1px solid #B4B2A9; border-radius:12px; padding:14px 20px; display:flex; flex-direction:column; justify-content:center; gap:4px">
+          <p style="font-size:26px; font-weight:600; color:#2C2C2A">Motors, wheels, car</p>
+          <p style="font-size:22px; color:#5F5E5A">rotates — or slips</p>
+        </div>
+        <div style="position:absolute; left:339px; top:80px; width:2px; height:72px; background:#8A9199"></div>
+        <div style="position:absolute; left:334px; top:152px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #8A9199"></div>
+        <div style="position:absolute; left:680px; top:229px; width:296px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:976px; top:224px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:8px solid #8A9199"></div>
+        <p style="position:absolute; left:700px; top:192px; width:264px; font-size:22px; color:#5B6472; text-align:center">wheels should differ by X</p>
+        <div style="position:absolute; left:1323px; top:300px; width:2px; height:40px; background:#8A9199"></div>
+        <div style="position:absolute; left:832px; top:339px; width:492px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:831px; top:340px; width:2px; height:32px; background:#8A9199"></div>
+        <div style="position:absolute; left:826px; top:372px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #8A9199"></div>
+        <div style="position:absolute; left:388px; top:429px; width:104px; height:2px; background:#8A9199"></div>
+        <div style="position:absolute; left:380px; top:424px; width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-right:8px solid #8A9199"></div>
+        <div style="position:absolute; left:189px; top:308px; width:2px; height:72px; background:#8A9199"></div>
+        <div style="position:absolute; left:184px; top:300px; width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-bottom:8px solid #8A9199"></div>
+        <p style="position:absolute; left:210px; top:326px; width:150px; font-size:22px; color:#5B6472; text-align:left">yaw</p>
+      </div>
+      <div style="display:flex; gap:32px">
+        <div style="display:flex; align-items:center; gap:10px"><div style="width:16px; height:16px; border-radius:4px; background:#AFA9EC"></div><p style="font-size:22px; color:#5B6472">Class 4 preview</p></div>
+        <div style="display:flex; align-items:center; gap:10px"><div style="width:16px; height:16px; border-radius:4px; background:#5DCAA5"></div><p style="font-size:22px; color:#5B6472">Today, Phase 5</p></div>
+      </div>
+    </section>
+
+    <section id="closing" class="slide" style="background:#12181F; color:#F1F0EA; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; gap:36px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#5DCAA5; text-transform:uppercase">What you learned</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#F1F0EA">Measuring beats guessing</h2>
+      </div>
+      <ul style="font-size:27px; line-height:1.6; color:#D6D2C4; width:1664px">
+        <li>Open-loop control trusts the clock; errors stack move after move.</li>
+        <li>No two motors are identical, so equal throttle is not equal speed.</li>
+        <li>A slot optocoupler's raw signal still bounces — debouncing it (Class 1's fix, reused) turns ticks into a trustworthy wheel speed.</li>
+        <li>Closed-loop control measures, compares, and nudges the faster wheel down — <span style="font-family:'JetBrains Mono', monospace">trim += KI × error</span> makes KI an integral controller.</li>
+        <li>Tuning by experiment (Phase 6): score each setting the same way, change one number at a time, stop when gains fall below the noise floor.</li>
+        <li>Matched wheels are not a straight heading — Class 4's IMU closes that gap.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+<div id="hint">Space / ← → to navigate · F fullscreen</div>
+
+<div id="controls">
+  <button id="prevBtn" title="Previous (←)" aria-label="Previous slide">‹</button>
+  <span id="counter">1 / 16</span>
+  <button id="nextBtn" title="Next (→ / Space)" aria-label="Next slide">›</button>
+  <div id="progress-track" title="Click to jump to a point in the deck">
+    <div id="progress-fill"></div>
+  </div>
+  <div id="dots"></div>
+  <button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
+</div>
+
+<script>
+(function () {
+  var slideIds = ["cover","agenda","open-loop-timing","errors-stack","why-curves","debounce-fix","open-loop-block","closed-loop-block","trim-sign","worked-example","ki-pid-preview","tuning-ki","phase6-workflow","phase6-scorecard","class4-preview","closing"];
+  var slides = slideIds.map(function (id) { return document.getElementById(id); });
+  var idx = 0;
+
+  var counter = document.getElementById('counter');
+  var fill = document.getElementById('progress-fill');
+  var track = document.getElementById('progress-track');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var fsBtn = document.getElementById('fsBtn');
+  var dotsWrap = document.getElementById('dots');
+  var stage = document.getElementById('stage');
+  var hint = document.getElementById('hint');
+
+  slideIds.forEach(function (id, i) {
+    var d = document.createElement('button');
+    d.className = 'dot';
+    d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    d.addEventListener('click', function () { goTo(i); });
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function render() {
+    slides.forEach(function (s, i) { s.classList.toggle('active', i === idx); });
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    fill.style.width = (slides.length > 1 ? (idx / (slides.length - 1) * 100) : 100) + '%';
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === slides.length - 1;
+  }
+  function goTo(i) { idx = Math.max(0, Math.min(slides.length - 1, i)); render(); }
+  function next() { if (idx < slides.length - 1) { idx++; render(); } }
+  function prev() { if (idx > 0) { idx--; render(); } }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { goTo(0); }
+    else if (e.key === 'End') { goTo(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+    else if (e.key === 'Escape' && document.fullscreenElement) { document.exitFullscreen(); }
+  });
+
+  var touchStartX = null;
+  document.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, { passive: true });
+
+  track.addEventListener('click', function (e) {
+    var rect = track.getBoundingClientRect();
+    var ratio = (e.clientX - rect.left) / rect.width;
+    goTo(Math.round(ratio * (slides.length - 1)));
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen || function () {}).call(document.documentElement);
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  fsBtn.addEventListener('click', toggleFullscreen);
+
+  function scaleStage() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  var hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  document.addEventListener('mousemove', function () {
+    hint.style.opacity = '1';
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 
-# Class-03 Handout
+# The Robotics Challenge
 
 ## Definitions for Physical Computing
 * **General Technical Definition:**
@@ -56,7 +56,7 @@ When we first imagine how our robot will behave, we idealistically think
 motors behave the same,
 nothing slips or bumps,
 we can accurately sense any target or obstacle,
-electrical/physical/mission noise is not present.
+electrical/physical/mission noise is not a concern.
 
 This is so wrong!
 

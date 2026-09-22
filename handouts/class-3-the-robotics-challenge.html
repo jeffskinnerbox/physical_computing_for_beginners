@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Robotics Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #000; overflow: hidden;
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  h1, h2, p, ul, li, table, tr, td, th { margin: 0; padding: 0; font-weight: 400; }
+  ul { padding-left: 1.1em; }
+  table { border-collapse: collapse; }
+
+  #viewport {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; overflow: hidden;
+  }
+  #stage {
+    position: relative; width: 1920px; height: 1080px;
+    flex: none; transform: scale(1); transform-origin: center center;
+  }
+  .slide {
+    position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+    opacity: 0; visibility: hidden; transition: opacity .35s ease;
+  }
+  .slide.active { opacity: 1; visibility: visible; }
+
+  #controls {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+    display: flex; align-items: center; gap: 18px;
+    padding: 10px 24px; background: rgba(18,24,31,0.85); backdrop-filter: blur(6px);
+    font-family: 'IBM Plex Sans', Arial, sans-serif; color: #F1F0EA;
+  }
+  #controls button {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #F1F0EA;
+    width: 36px; height: 36px; border-radius: 8px; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;
+  }
+  #controls button:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+  #controls button:disabled { opacity: .3; cursor: default; }
+  #counter { font-size: 14px; font-variant-numeric: tabular-nums; min-width: 60px; text-align: center; flex: none; }
+  #progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; position: relative; cursor: pointer; }
+  #progress-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5DCAA5; border-radius: 2px; }
+  #dots { display: flex; gap: 6px; flex: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; padding: 0; cursor: pointer; }
+  .dot.active { background: #5DCAA5; }
+  #hint {
+    position: fixed; top: 18px; right: 18px; z-index: 1000;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    background: rgba(18,24,31,0.6); padding: 6px 10px; border-radius: 6px;
+    transition: opacity .4s ease;
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <section id="cover" class="slide" style="background:#12181F; color:#F1F0EA; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; gap:32px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:4px; color:#5DCAA5; text-transform:uppercase">Physical computing for beginners · Class 3 handout</p>
+      <h1 style="font-size:112px; font-weight:600; line-height:1.05; color:#F1F0EA; width:1700px">The Robotics Challenge</h1>
+      <p style="font-size:32px; line-height:1.5; color:#A9B4BE; width:1300px">Why sensing, motors, wheels, and navigation are harder than they look</p>
+    </section>
+
+    <section id="agenda" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">What we'll cover</p>
+        <h2 style="font-size:64px; font-weight:600; line-height:1.1; color:#1C232B">From definitions to the four problems</h2>
+      </div>
+      <div style="display:flex; flex-direction:column; flex:1; justify-content:space-between">
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">01</p>
+          <p style="font-size:30px; color:#1C232B">Physical computing vs. robotics: shared roots, different goals</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">02</p>
+          <p style="font-size:30px; color:#1C232B">What is a robot? Sense, think, act</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">03</p>
+          <p style="font-size:30px; color:#1C232B">Our not-so-secret goal: build a robot</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">04</p>
+          <p style="font-size:30px; color:#1C232B">The sensing problem</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">05</p>
+          <p style="font-size:30px; color:#1C232B">The motor problem</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">06</p>
+          <p style="font-size:30px; color:#1C232B">The wheel problem</p>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:24px; border-top:1px solid #DCD9CF; border-bottom:1px solid #DCD9CF; padding:18px 0">
+          <p style="font-size:28px; font-weight:600; color:#8A9199; width:80px">07</p>
+          <p style="font-size:30px; color:#1C232B">The navigation problem</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="definitions" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Defining physical computing</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Two ways to define Physical Computing</h2>
+      </div>
+      <div style="display:flex; gap:64px">
+        <div style="flex:1; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:16px; padding:44px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:22px; font-weight:600; letter-spacing:2px; color:#0F6E56; text-transform:uppercase">General technical definition</p>
+          <p style="font-size:27px; line-height:1.5; color:#1C232B">The combination of software and hardware to create interactive systems capable of communicating with the physical environment using sensors, microcontrollers, and actuators.</p>
+        </div>
+        <div style="flex:1; background:#FFFFFF; border:1px solid #DCD9CF; border-radius:16px; padding:44px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:22px; font-weight:600; letter-spacing:2px; color:#0F6E56; text-transform:uppercase">Educational definition</p>
+          <p style="font-size:27px; line-height:1.5; color:#1C232B">Taking code off a flat computer screen and bringing it into the real world — making abstract programming concepts tangible through lights, sounds, and motion.</p>
+        </div>
+      </div>
+      <p style="font-size:28px; font-style:italic; line-height:1.5; color:#5B6472; width:1664px">Physical computing is the broader conceptual umbrella; robotics shares its technological foundation but aims at different goals.</p>
+    </section>
+
+    <section id="what-is-a-robot" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:36px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Defining robots</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Sense. Think. Act. All three, or it's not a robot.</h2>
+      </div>
+      <p style="font-size:28px; line-height:1.5; color:#5B6472; width:1664px">A robot senses its environment, processes that information, and executes complex physical actions — autonomously or semi-autonomously.</p>
+      <div style="display:flex; gap:48px">
+        <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#085041">Sense</p>
+          <p style="font-size:25px; line-height:1.4; color:#085041">Cameras, microphones, sonar, or touch sensors gather information about the physical world.</p>
+        </div>
+        <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#3C3489">Think</p>
+          <p style="font-size:25px; line-height:1.4; color:#3C3489">An onboard computer or microcontroller processes the data, applies instructions or AI, and decides.</p>
+        </div>
+        <div style="flex:1; background:#FBF0DE; border:1px solid #E0A94C; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:34px; font-weight:600; color:#854F0B">Act</p>
+          <p style="font-size:25px; line-height:1.4; color:#854F0B">Motors, hydraulic arms, wheels, or speakers move, manipulate, or interact — with no real-time human control.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pc-vs-robotics" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#0F6E56; text-transform:uppercase">Overlapping, not identical</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Same tools, different intent</h2>
+      </div>
+      <div style="display:flex; gap:16px">
+        <div style="width:220px; flex:none"></div>
+        <div style="flex:1; text-align:center; font-size:28px; font-weight:600; color:#3C3489">Physical Computing</div>
+        <div style="flex:1; text-align:center; font-size:28px; font-weight:600; color:#0F6E56">Robotics</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px">
+        <div style="display:flex; align-items:stretch; gap:16px">
+          <div style="width:220px; flex:none; display:flex; align-items:center"><p style="font-size:24px; font-weight:600; color:#5F5E5A">Autonomy</p></div>
+          <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#3C3489">Reactive — waits for a human to touch, walk by, or trigger it</p></div>
+          <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#085041">Senses its environment, decides, and acts on its own</p></div>
+        </div>
+        <div style="display:flex; align-items:stretch; gap:16px">
+          <div style="width:220px; flex:none; display:flex; align-items:center"><p style="font-size:24px; font-weight:600; color:#5F5E5A">Mobility</p></div>
+          <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#3C3489">Embedded in objects or spaces — a smart mirror, responsive art</p></div>
+          <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#085041">Wheels, legs, or arms that alter the physical world</p></div>
+        </div>
+        <div style="display:flex; align-items:stretch; gap:16px">
+          <div style="width:220px; flex:none; display:flex; align-items:center"><p style="font-size:24px; font-weight:600; color:#5F5E5A">Roots</p></div>
+          <div style="flex:1; background:#EEEDFE; border:1px solid #AFA9EC; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#3C3489">Art, design, and human-computer interaction (HCI)</p></div>
+          <div style="flex:1; background:#E1F5EE; border:1px solid #5DCAA5; border-radius:12px; padding:22px 28px; display:flex; align-items:center"><p style="font-size:23px; line-height:1.4; color:#085041">Mechanical/electrical engineering and computer science</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="our-goal" class="slide" style="background:#0E3B36; color:#F5F3EC; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#8FD9C4; text-transform:uppercase">Our not-so-secret goal</p>
+      <h2 style="font-size:88px; font-weight:600; line-height:1.1; text-align:center; color:#F5F3EC">Build a Robot!</h2>
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px; width:1400px">
+        <p style="font-size:24px; color:#0E3B36; background:#C8E3DD; border-radius:999px; padding:12px 28px">motors behave the same</p>
+        <p style="font-size:24px; color:#0E3B36; background:#C8E3DD; border-radius:999px; padding:12px 28px">nothing slips or bumps</p>
+        <p style="font-size:24px; color:#0E3B36; background:#C8E3DD; border-radius:999px; padding:12px 28px">we can sense any target perfectly</p>
+        <p style="font-size:24px; color:#0E3B36; background:#C8E3DD; border-radius:999px; padding:12px 28px">no electrical, physical, or mission noise</p>
+      </div>
+      <p style="font-size:48px; font-weight:600; color:#F0997B; margin-top:8px">This is so wrong.</p>
+    </section>
+
+    <section id="challenge-overview" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Our challenge</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Four problems stand between plan and reality</h2>
+      </div>
+      <div style="display:flex; gap:32px">
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:10px">
+          <p style="font-size:27px; font-weight:600; color:#712B13">Sensing</p>
+          <p style="font-size:21px; line-height:1.4; color:#712B13">Can we measure what we need to decide well?</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:10px">
+          <p style="font-size:27px; font-weight:600; color:#712B13">Motors</p>
+          <p style="font-size:21px; line-height:1.4; color:#712B13">Identical hardware, different behavior</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:10px">
+          <p style="font-size:27px; font-weight:600; color:#712B13">Wheels</p>
+          <p style="font-size:21px; line-height:1.4; color:#712B13">Slip, jam, slide, and deform</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:32px; display:flex; flex-direction:column; gap:10px">
+          <p style="font-size:27px; font-weight:600; color:#712B13">Navigation</p>
+          <p style="font-size:21px; line-height:1.4; color:#712B13">Knowing where you are is half the battle</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sensing-problem" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:36px">
+      <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Our challenge — sensing</p>
+      <h2 style="font-size:68px; font-weight:600; line-height:1.2; text-align:center; width:1500px; color:#1C232B">Can we measure — directly or indirectly — everything we need to make good decisions?</h2>
+      <p style="font-size:30px; line-height:1.5; text-align:center; width:1200px; color:#5B6472">Sensing is the foundation every other decision depends on: think and act can only be as good as what the robot is able to sense.</p>
+    </section>
+
+    <section id="motor-problem" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Our challenge — motors</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Identical motors don't behave identically</h2>
+      </div>
+      <div style="display:flex; gap:48px">
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:30px; font-weight:600; color:#712B13">Not created equal</p>
+          <p style="font-size:25px; line-height:1.45; color:#712B13">Identical brand and model electric motors do not perform the same way.</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:30px; font-weight:600; color:#712B13">Physical wear</p>
+          <p style="font-size:25px; line-height:1.45; color:#712B13">Electric motors are physical objects that have uneven friction.</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:16px">
+          <p style="font-size:30px; font-weight:600; color:#712B13">Power sag</p>
+          <p style="font-size:25px; line-height:1.45; color:#712B13">When used, battery voltages and currents will sag.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="wheel-problem" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Our challenge — wheels</p>
+        <h2 style="font-size:60px; font-weight:600; line-height:1.1; color:#1C232B">Wheels slip, jam, and even slide sideways</h2>
+      </div>
+      <div style="display:flex; gap:64px">
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:48px; display:flex; flex-direction:column; gap:18px">
+          <p style="font-size:32px; font-weight:600; color:#712B13">Slip, jam, slide</p>
+          <p style="font-size:27px; line-height:1.5; color:#712B13">Under real-world conditions, wheels will slip, jam, or even slide sideways.</p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:48px; display:flex; flex-direction:column; gap:18px">
+          <p style="font-size:32px; font-weight:600; color:#712B13">Deformation</p>
+          <p style="font-size:27px; line-height:1.5; color:#712B13">If the wheel deforms, it introduces errors that are hard to measure or predict.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="navigation-problem" class="slide" style="background:#F7F6F2; color:#1C232B; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; gap:32px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#993C1D; text-transform:uppercase">Our challenge — navigation</p>
+        <h2 style="font-size:52px; font-weight:600; line-height:1.15; color:#1C232B">Knowing where you are is as hard as getting there</h2>
+      </div>
+      <div style="display:flex; gap:48px">
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:18px">
+          <p style="font-size:28px; font-weight:600; color:#712B13">The mission: leave the room</p>
+          <p style="font-size:23px; line-height:1.6; color:#712B13">1. Identify the door — <i>how?</i></p>
+          <p style="font-size:23px; line-height:1.6; color:#712B13">2. Maneuver to the door — <i>what path?</i></p>
+          <p style="font-size:23px; line-height:1.6; color:#712B13">3. Identify an obstacle — <i>what counts as one?</i></p>
+          <p style="font-size:23px; line-height:1.6; color:#712B13">4. Avoid the obstacle — <i>what path?</i></p>
+        </div>
+        <div style="flex:1; background:#FAECE7; border:1px solid #F0997B; border-radius:16px; padding:40px; display:flex; flex-direction:column; gap:18px">
+          <p style="font-size:28px; font-weight:600; color:#712B13">Which way is forward?</p>
+          <p style="font-size:24px; line-height:1.6; color:#712B13">A sudden slip, motor sag, or wheel jam can silently redirect the robot's heading.</p>
+          <p style="font-size:24px; line-height:1.6; color:#712B13">Without a way to check orientation against the world, "forward" can quietly become a new direction — and the robot won't know it happened.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="closing" class="slide" style="background:#12181F; color:#F1F0EA; font-family:'IBM Plex Sans', Arial, sans-serif; padding:128px; display:flex; flex-direction:column; justify-content:center; gap:40px">
+      <div style="display:flex; flex-direction:column; gap:12px">
+        <p style="font-size:24px; font-weight:600; letter-spacing:3px; color:#5DCAA5; text-transform:uppercase">The throughline</p>
+        <h2 style="font-size:58px; font-weight:600; line-height:1.15; color:#F1F0EA; width:1664px">Robotics requires engineering reliable behavior from unreliable parts and processes</h2>
+      </div>
+      <ul style="font-size:28px; line-height:1.7; color:#D6D2C4; width:1664px">
+        <li><b style="color:#F1F0EA">Sense</b> — measurement is never perfect or complete.</li>
+        <li><b style="color:#F1F0EA">Motors</b> — identical hardware still behaves differently.</li>
+        <li><b style="color:#F1F0EA">Wheels</b> — slip, jam, and deform in ways hard to predict.</li>
+        <li><b style="color:#F1F0EA">Navigation</b> — orientation can change without warning.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+<div id="hint">Space / ← → to navigate · F fullscreen</div>
+
+<div id="controls">
+  <button id="prevBtn" title="Previous (←)" aria-label="Previous slide">‹</button>
+  <span id="counter">1 / 12</span>
+  <button id="nextBtn" title="Next (→ / Space)" aria-label="Next slide">›</button>
+  <div id="progress-track" title="Click to jump to a point in the deck">
+    <div id="progress-fill"></div>
+  </div>
+  <div id="dots"></div>
+  <button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
+</div>
+
+<script>
+(function () {
+  var slideIds = ["cover","agenda","definitions","what-is-a-robot","pc-vs-robotics","our-goal","challenge-overview","sensing-problem","motor-problem","wheel-problem","navigation-problem","closing"];
+  var slides = slideIds.map(function (id) { return document.getElementById(id); });
+  var idx = 0;
+
+  var counter = document.getElementById('counter');
+  var fill = document.getElementById('progress-fill');
+  var track = document.getElementById('progress-track');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var fsBtn = document.getElementById('fsBtn');
+  var dotsWrap = document.getElementById('dots');
+  var stage = document.getElementById('stage');
+  var hint = document.getElementById('hint');
+
+  slideIds.forEach(function (id, i) {
+    var d = document.createElement('button');
+    d.className = 'dot';
+    d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    d.addEventListener('click', function () { goTo(i); });
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function render() {
+    slides.forEach(function (s, i) { s.classList.toggle('active', i === idx); });
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    fill.style.width = (slides.length > 1 ? (idx / (slides.length - 1) * 100) : 100) + '%';
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === slides.length - 1;
+  }
+  function goTo(i) { idx = Math.max(0, Math.min(slides.length - 1, i)); render(); }
+  function next() { if (idx < slides.length - 1) { idx++; render(); } }
+  function prev() { if (idx > 0) { idx--; render(); } }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { goTo(0); }
+    else if (e.key === 'End') { goTo(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+    else if (e.key === 'Escape' && document.fullscreenElement) { document.exitFullscreen(); }
+  });
+
+  var touchStartX = null;
+  document.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, { passive: true });
+
+  track.addEventListener('click', function (e) {
+    var rect = track.getBoundingClientRect();
+    var ratio = (e.clientX - rect.left) / rect.width;
+    goTo(Math.round(ratio * (slides.length - 1)));
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen || function () {}).call(document.documentElement);
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  fsBtn.addEventListener('click', toggleFullscreen);
+
+  function scaleStage() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  var hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  document.addEventListener('mousemove', function () {
+    hint.style.opacity = '1';
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
