@@ -179,7 +179,7 @@ watch live wheel telemetry with no serial cable at all.
 | Pico `GND` | Both optocouplers `GND` |
 
 
-## 4. Build It: Phase 1 — Motor Driver Library and Basic Test - DONE
+## 4. Build It: Phase 1 — Motor Driver Library and Basic Test
 
 ### Wiring for this phase
 >**NOTE:** Very first thing is to do on the Emo Smart Robot Car Chassis Kit:
@@ -350,7 +350,7 @@ Confirm: `drive(0.5, 0.5)` moves both wheels forward together, `drive(-0.5, -0.5
 together, and `drive(-0.5, 0.5)` spins the wheels in opposite directions (a turn-in-place).
 `stop()` should halt both wheels immediately.
 
-## 5. Build It: Phase 2 — Attempt the Square and Circle - DONE
+## 5. Build It: Phase 2 — Attempt the Square and Circle
 
 ### Wiring for this phase
 
@@ -500,7 +500,7 @@ Run `drive_square(35)` and `drive_circle(35)` on your test track and confirm the
 both attempts start to finish without help, tracing a recognizable (even if imperfect) square and
 circle shape.
 
-## 6. Build It: Phase 3 — Wheel Odometry - DONE
+## 6. Build It: Phase 3 — Wheel Odometry
 
 ### Wiring for this phase
 
@@ -658,7 +658,7 @@ Confirm both `speed_left_cms` and `speed_right_cms` rise above zero while drivin
 `dir_left`/`dir_right` flip from `1` to `-1` when you tell the car to reverse — this is the moment
 measured speed and commanded direction combine into one reading.
 
-## 7. Build It: Phase 4 — Rover Status Website - DONE
+## 7. Build It: Phase 4 — Rover Status Website
 
 ### Wiring for this phase
 
