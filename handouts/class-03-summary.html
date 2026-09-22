@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Class 3: From Exploring to Engineering</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: #000; overflow: hidden;
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  h1, h2, h3, p, ul, li, table, tr, td, th { margin: 0; padding: 0; font-weight: 400; }
+  ul { padding-left: 1.1em; }
+  table { border-collapse: collapse; }
+  td, th { border: 1px solid #DCD9CF; padding: 10px 14px; }
+
+  #viewport {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #000; overflow: hidden;
+  }
+  #stage {
+    position: relative; width: 1920px; height: 1080px;
+    flex: none; transform: scale(1); transform-origin: center center;
+  }
+  .slide {
+    position: absolute; top: 0; left: 0; width: 1920px; height: 1080px;
+    opacity: 0; visibility: hidden; transition: opacity .35s ease;
+    padding: 128px; overflow: hidden;
+  }
+  .slide.active { opacity: 1; visibility: visible; }
+
+  /* ---- base slide surfaces ---- */
+  .dark   { background: #12181F; color: #F1F0EA; }
+  .light  { background: #F7F6F2; color: #1C232B; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    margin-bottom: 20px; display: inline-block;
+  }
+  .title    { font-size: 68px; font-weight: 700; line-height: 1.12; margin-bottom: 28px; }
+  .title-lg { font-size: 84px; font-weight: 700; line-height: 1.1; }
+  .subtitle { font-size: 32px; font-weight: 400; line-height: 1.5; max-width: 1350px; }
+  .body-text { font-size: 26px; line-height: 1.55; }
+  .bullets { font-size: 26px; line-height: 1.6; }
+  .bullets li { margin-bottom: 14px; }
+  .bullets.big li { margin-bottom: 22px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* semantic accents */
+  .teal    { color: #0F6E56; }
+  .coral   { color: #993C1D; }
+  .purple  { color: #3C3489; }
+  .amber   { color: #854F0B; }
+  .neutral { color: #5F5E5A; }
+
+  .card {
+    border-radius: 14px; padding: 32px 30px; border-top: 6px solid;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .card h3 { font-size: 30px; font-weight: 600; }
+  .card p, .card li { font-size: 21px; line-height: 1.45; }
+
+  .diagram-box {
+    background: #FFFFFF; border: 2px solid; border-radius: 12px;
+    padding: 28px 34px; font-family: 'JetBrains Mono', monospace;
+    white-space: pre; line-height: 1.42; overflow: hidden;
+  }
+  .dark .diagram-box { background: #1C232B; }
+
+  .panel {
+    border-radius: 14px; padding: 34px 36px; height: 100%;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .panel h3 { font-size: 32px; font-weight: 600; margin-bottom: 6px; }
+  .panel li, .panel p { font-size: 23px; line-height: 1.5; }
+
+  .num-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 52px; height: 52px; border-radius: 50%; font-family: 'JetBrains Mono', monospace;
+    font-size: 24px; font-weight: 700; flex: none;
+  }
+  .agenda-row { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 26px; }
+  .agenda-row .txt { font-size: 28px; line-height: 1.4; padding-top: 6px; }
+  .agenda-row .txt b { font-weight: 600; }
+
+  #controls {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+    display: flex; align-items: center; gap: 18px;
+    padding: 10px 24px; background: rgba(18,24,31,0.85); backdrop-filter: blur(6px);
+    font-family: 'IBM Plex Sans', Arial, sans-serif; color: #F1F0EA;
+  }
+  #controls button {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #F1F0EA;
+    width: 36px; height: 36px; border-radius: 8px; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none;
+  }
+  #controls button:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+  #controls button:disabled { opacity: .3; cursor: default; }
+  #counter { font-size: 14px; font-variant-numeric: tabular-nums; min-width: 60px; text-align: center; flex: none; }
+  #progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; position: relative; cursor: pointer; }
+  #progress-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #5DCAA5; border-radius: 2px; }
+  #dots { display: flex; gap: 6px; flex: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); border: none; padding: 0; cursor: pointer; }
+  .dot.active { background: #5DCAA5; }
+  #hint {
+    position: fixed; top: 18px; right: 18px; z-index: 1000;
+    font-size: 12px; color: rgba(255,255,255,0.55);
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+    background: rgba(18,24,31,0.6); padding: 6px 10px; border-radius: 6px;
+    transition: opacity .4s ease;
+  }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+
+    <!-- 1: COVER -->
+    <section id="s1" class="slide dark">
+      <div style="height:100%; display:flex; flex-direction:column; justify-content:center; max-width:1560px;">
+        <span class="eyebrow" style="color:#5DCAA5;">Class 3 &middot; Dual H-Bridge Motor Driver</span>
+        <h1 class="title-lg" style="margin-bottom:36px;">From Exploring<br>to Engineering</h1>
+        <p class="subtitle" style="margin-bottom:16px;">
+          Classes 1 and 2 were about trying things, poking at a breadboard, seeing what happens.
+          Starting today, that changes pace: we build <b>deliberately</b> and <b>carefully</b>,
+          because we are no longer experimenting &mdash; we are building a working robot.
+        </p>
+        <p class="subtitle" style="color:#B8E3D3;">
+          The goal ahead: a robot that can maneuver through a space without hitting anything &mdash;
+          and ideally find a door or opening and escape an enclosed space entirely.
+        </p>
+      </div>
+    </section>
+
+    <!-- 2: mindset shift statement -->
+    <section id="s2" class="slide dark">
+      <div style="height:100%; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;">
+        <span class="eyebrow" style="color:#5DCAA5;">The Shift</span>
+        <h2 class="title" style="font-size:58px; max-width:1500px;">
+          An <span class="teal" style="color:#5DCAA5;">exploring mindset</span> asks &ldquo;what happens if&hellip;&rdquo;<br>
+          An <span style="color:#F0997B;">engineering mindset</span> asks &ldquo;does it do what I designed it to do&mdash;every time?&rdquo;
+        </h2>
+        <p class="subtitle" style="margin-top:24px;">
+          Today you wire real force into your car for the first time, and you'll spend the whole
+          class discovering just how much care that force demands.
+        </p>
+      </div>
+    </section>
+
+    <!-- 3: agenda -->
+    <section id="s3" class="slide light">
+      <span class="eyebrow teal">Today's Build</span>
+      <h2 class="title">What We're Doing &amp; Creating</h2>
+      <div style="margin-top:36px; max-width:1500px;">
+        <div class="agenda-row">
+          <span class="num-badge" style="background:#E1F5EE; color:#0F6E56;">1</span>
+          <span class="txt"><b>Motor driver library</b> &mdash; wire the DRV8833, get both wheels moving forward, reverse, stop, on command.</span>
+        </div>
+        <div class="agenda-row">
+          <span class="num-badge" style="background:#FAECE7; color:#993C1D;">2</span>
+          <span class="txt"><b>Attempt a 35&nbsp;cm square and circle</b> &mdash; timed moves only, no feedback &mdash; and see exactly how it drifts.</span>
+        </div>
+        <div class="agenda-row">
+          <span class="num-badge" style="background:#FBF0DE; color:#854F0B;">3</span>
+          <span class="txt"><b>Wheel odometry</b> &mdash; give the car a way to measure its own wheel speed with IR optocouplers.</span>
+        </div>
+        <div class="agenda-row">
+          <span class="num-badge" style="background:#EEEDFE; color:#3C3489;">4</span>
+          <span class="txt"><b>Rover status website</b> &mdash; the Pico hosts its own WiFi and reports live telemetry &mdash; the first version of a site every later class builds onto.</span>
+        </div>
+        <div class="agenda-row">
+          <span class="num-badge" style="background:#E1F5EE; color:#0F6E56;">5</span>
+          <span class="txt"><b>Close the loop</b> &mdash; use measured wheel speed to correct steering in real time, the first taste of engineering feedback.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4: reading vs moving comparison -->
+    <section id="s4" class="slide light">
+      <span class="eyebrow neutral" style="color:#5F5E5A;">Why Today Feels Different</span>
+      <h2 class="title">From Reading the World to Moving It</h2>
+      <div style="display:flex; gap:36px; margin-top:20px; height:640px;">
+        <div class="panel" style="background:#F1EFE8; flex:1; border-top:6px solid #B4B2A9;">
+          <h3 style="color:#5F5E5A;">Classes 1&ndash;2: Reading</h3>
+          <ul>
+            <li>A button and rotary encoder &mdash; sensing a press or a turn</li>
+            <li>An HC&#8209;SR04 sensor &mdash; sensing distance</li>
+            <li>Mistakes are cheap: a bounced signal just prints a wrong number</li>
+            <li>You could explore freely &mdash; nothing on the breadboard could hurt itself</li>
+          </ul>
+        </div>
+        <div class="panel" style="background:#E1F5EE; flex:1; border-top:6px solid #5DCAA5;">
+          <h3 style="color:#0F6E56;">Class 3: Moving</h3>
+          <ul>
+            <li>A DRV8833 motor driver pushing real current into two DC gearbox motors</li>
+            <li>A separate 9V battery now also powers the Pico itself</li>
+            <li>Mistakes cost more: a wrong wire, a missing ground, a stalled wheel can trip a fault or fry a chip</li>
+            <li>Every wiring step gets traced out loud, on purpose, before code ever runs</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5: H-bridge -->
+    <section id="s5" class="slide light">
+      <span class="eyebrow teal">Meet the Hardware</span>
+      <h2 class="title">The H-Bridge: How One Chip Reverses a Motor</h2>
+      <ul class="bullets big" style="max-width:1500px; margin-top:24px;">
+        <li>Your Pico's GPIO pins can only push current one direction, at low voltage &mdash; not enough to drive a real motor, and no way to reverse it.</li>
+        <li>An <b>H-bridge</b> is a small switching circuit &mdash; named for its shape, an &ldquo;H&rdquo; with the motor as the crossbar &mdash; that flips which pair of switches is closed to reverse current through the motor.</li>
+        <li>The DRV8833 packs <b>two</b> complete H-bridges onto one board, one per motor, using <b>locked-antiphase control</b>: two PWM pins per motor, driven in opposite phase.</li>
+        <li>In code, that's hidden behind one simple number &mdash; <span class="mono">.throttle</span>, from <span class="mono">-1.0</span> (full reverse) to <span class="mono">1.0</span> (full forward), with <span class="mono">0.0</span> actively braking.</li>
+      </ul>
+    </section>
+
+    <!-- 6: duty cycle != speed -->
+    <section id="s6" class="slide light">
+      <span class="eyebrow coral">A First Engineering Lesson</span>
+      <h2 class="title">50% Duty Cycle Is Not 50% Speed</h2>
+      <div style="display:flex; gap:40px; margin-top:30px; align-items:stretch; height:600px;">
+        <div style="flex:1.1;">
+          <p class="body-text" style="margin-bottom:24px;">
+            A PWM signal tells the motor how much power to send &mdash; but real hardware eats
+            into that number before any of it becomes motion:
+          </p>
+          <ul class="bullets">
+            <li><b>Stall torque</b> &mdash; a motor needs a minimum voltage just to overcome friction and start moving at all</li>
+            <li><b>Gearbox &amp; wheel friction</b> &mdash; mechanical drag that never shows up in the code</li>
+            <li><b>Voltage sag</b> &mdash; a loaded 9V battery delivers less than its rated voltage</li>
+          </ul>
+        </div>
+        <div class="card" style="flex:0.9; background:#FAECE7; border-top-color:#F0997B; justify-content:center;">
+          <h3 style="color:#993C1D;">Why this matters</h3>
+          <p style="color:#712B13;">
+            This project caps throttle with a <span class="mono">MAX_THROTTLE</span> constant &mdash;
+            to limit current draw and protect the hardware, not to set a precise speed. The engineering
+            mindset means designing around what the hardware actually does, not what the number on
+            paper says it should do.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7: open loop diagram -->
+    <section id="s7" class="slide light">
+      <span class="eyebrow coral">Phase 2 &mdash; Attempt the Square and Circle</span>
+      <h2 class="title" style="font-size:54px;">Open Loop: Trusting the Clock, Nothing Else</h2>
+      <div class="diagram-box" style="border-color:#F0997B; font-size:22px; margin-top:20px; color:#1C232B;">   OPEN LOOP -- drive_straight(35) with timed moves
+
+   your code                          the real world (code can't see this)
+   ---------                          ------------------------------------
+   drive(0.5, 0.5)  ---- PWM ------>  motors spin, wheels roll, car moves
+        |                                  |   |   |
+   time.sleep(35 * 0.035)                  |   |   +-- battery sags -> slower
+        |   (= 1.23 s, and that's          |   +------ left/right motors differ
+        |    ALL the code knows)           +---------- floor grip, wheel slip
+        v
+   stop()  ----------------------->  car coasts to a halt somewhere...
+
+   What the code ASSUMES:   went 35.0 cm, straight ahead
+   What actually happened:  went 30.5 cm (say), drifted 4 cm left</div>
+      <p class="body-text" style="margin-top:20px; color:#712B13;">
+        Nothing flows back from the car to the code. This is <b>dead reckoning</b> &mdash;
+        and discovering why it drifts, first-hand, is the whole point of the Independent Work.
+      </p>
+    </section>
+
+    <!-- 8: errors stack -->
+    <section id="s8" class="slide light">
+      <span class="eyebrow coral">Errors Don't Cancel &mdash; They Stack</span>
+      <h2 class="title" style="font-size:54px;">A Commanded Square vs. What Actually Happens</h2>
+      <div class="diagram-box" style="border-color:#F0997B; font-size:22px; margin-top:16px; color:#1C232B;">   COMMANDED square                 ACTUAL path (errors accumulate)
+
+   start/end                        start                 end (never closes)
+   +-----------+                    +----------.           .
+   |           |                    |            `.         |  <- gap between
+   |           |                    |              \        |     start and end
+   |  35 cm    |                    |               `--+    |     = accumulated
+   |           |                    |                   |   |       error
+   +-----------+                    +-------------------+   '
+                                    side 1 long, turn 1 short, side 2 curves...
+                                    each move starts from where the LAST one ended up</div>
+      <p class="body-text" style="margin-top:20px;">
+        You told the car to go exactly 35&nbsp;cm. Every side and every turn is a little off &mdash;
+        and each move starts from wherever the last one actually ended, not where it should have.
+        That gap is the price of never checking.
+      </p>
+    </section>
+
+    <!-- 9: wheel odometry -->
+    <section id="s9" class="slide light">
+      <span class="eyebrow amber">Phase 3 &mdash; Wheel Odometry</span>
+      <h2 class="title">Giving the Car a Way to Measure Itself</h2>
+      <div style="display:flex; gap:36px; margin-top:24px; height:600px;">
+        <div class="panel" style="background:#FBF0DE; border-top:6px solid #E0A94C; flex:1;">
+          <h3 style="color:#854F0B;">What it senses</h3>
+          <ul>
+            <li>A Slot Type IR Optocoupler at each wheel reads the encoder disc molded into the chassis kit's wheels</li>
+            <li>Each tooth interrupts the beam once per slot &mdash; debounced ticks, the same fix Class 1's button/encoder needed</li>
+            <li>Tick count &rarr; revolutions &rarr; distance &rarr; <b>speed in cm/s</b>, once per wheel</li>
+          </ul>
+        </div>
+        <div class="panel" style="background:#FAECE7; border-top:6px solid #F0997B; flex:1;">
+          <h3 style="color:#993C1D;">The catch</h3>
+          <ul>
+            <li>One optocoupler tells you <i>that</i> the wheel moved &mdash; not <i>which way</i></li>
+            <li>A tick is a tick either direction the disc spins</li>
+            <li>So direction is <i>borrowed</i> from <span class="mono">motor_driver.py</span>'s last-commanded direction &mdash; a reasonable stand-in, but it assumes the wheel is actually obeying that last command</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10: rover website -->
+    <section id="s10" class="slide light">
+      <span class="eyebrow teal">Phase 4 &mdash; Rover Status Website</span>
+      <h2 class="title" style="font-size:56px;">The Pico Hosts Its Own Website</h2>
+      <ul class="bullets big" style="max-width:1550px; margin-top:20px;">
+        <li>The Pico's WiFi radio broadcasts <b>its own network</b> &mdash; access point (AP) mode &mdash; no classroom router, no internet, at all.</li>
+        <li>It runs a tiny HTTP server serving <span class="mono">/data.json</span> (live wheel speed &amp; direction) and a page that polls it twice a second.</li>
+        <li>This site is built small <b>on purpose</b> &mdash; every later class adds more to this same site rather than starting a new one.</li>
+      </ul>
+      <div class="card" style="margin-top:32px; background:#E1F5EE; border-top-color:#5DCAA5; max-width:1550px;">
+        <h3 style="color:#0F6E56;">The real mission</h3>
+        <p style="color:#085041;">
+          Spinning a wheel by hand only proves the plumbing works. The actual goal is a website that
+          updates <b>while the rover drives itself</b> &mdash; no hand ever touching a wheel &mdash;
+          speeds and direction changing live, straight from the car's own behavior.
+        </p>
+      </div>
+    </section>
+
+    <!-- 11: closed loop diagram -->
+    <section id="s11" class="slide light">
+      <span class="eyebrow teal">Phase 5 &mdash; Closing the Loop</span>
+      <h2 class="title" style="font-size:52px;">Measure. Compare. Correct. Repeat.</h2>
+      <div class="diagram-box" style="border-color:#5DCAA5; font-size:19px; margin-top:14px; color:#1C232B;">   CLOSED LOOP -- "measure, compare, correct"
+     GOAL: both wheels the SAME speed  (error = 0)
+
+
+                       +-------------------------<-------------------------------+
+                       |             the loop repeats ~4x / second               ^
+                       |                                                         |
+   +-----------+       v                                                         |
+   | 3. NUDGE  |   +----------+    drive (left, right)     +--------+     +--------------+
+   |           |   | motor_   |--------------------------->| motors |---->|  wheels turn |
+   | trim +=   |   |  driver  |                            +--------+     +--------------+
+   |  KI*error |   +----------+                                 ^                |
+   |           |        ^                                       |                | slots pass
+   |           |        | new throttles: left/right       disturbances           | the sensors
+   |           |--------+                                (motor mismatch,        |
+   +-----------+                                          battery sag)           v
+        ^                                                                 +--------------+
+        |  error = speed_left - speed_right                               | 1. MEASURE   |
+        |                                                                 | read_speed() |
+   +----+-------+                                                         +------+-------+
+   | 2. COMPARE |<---------------------------<------------------------------------+
+   +------------+</div>
+      <p class="body-text" style="margin-top:16px;">
+        This is the engineering mindset made literal: the car measures its actual result, compares
+        it to the goal, and corrects itself &mdash; instead of just hoping the plan worked.
+      </p>
+    </section>
+
+    <!-- 12: preview of Class 4 -->
+    <section id="s12" class="slide light">
+      <span class="eyebrow purple">Looking Ahead</span>
+      <h2 class="title" style="font-size:54px;">Wheel Feedback Isn't the Whole Answer</h2>
+      <div style="display:flex; gap:40px; margin-top:16px; align-items:center; height:620px;">
+        <div style="flex:1;">
+          <p class="body-text" style="margin-bottom:20px;">
+            Matching wheel speeds is not quite the same as going straight &mdash; if one wheel
+            slips, both wheels can still report the same speed while the car veers. Nothing here
+            measures which way the car is actually <b>pointing</b>.
+          </p>
+          <p class="body-text">
+            Next class's IMU adds an outer loop that watches <b>heading</b>, wrapped around today's
+            inner loop that watches the wheels &mdash; one more sense the car needs before it can
+            reliably steer itself around obstacles.
+          </p>
+        </div>
+        <div class="diagram-box" style="flex:1; border-color:#AFA9EC; font-size:17px; color:#1C232B;">   TODAY: one loop, watches the WHEELS
+     wheels match --> nudge throttles --> motors
+
+   CLASS 4 PREVIEW: add an outer loop, watches HEADING
+
+     +----------------+   "wheels should differ"   +----------------+
+     | OUTER loop     |--------------------------->| INNER loop     |
+     | compare heading|                             | (today)       |
+     | to goal        |                             | match wheels  |
+     +-------^--------+                             +--------+-------+
+             |  yaw angle                                    |
+     +-------+--------+                                       v
+     | IMU (LSM9DS1)  |<---- car rotates (or slips!) --- motors, wheels
+     +----------------+</div>
+      </div>
+    </section>
+
+    <!-- 13: closing / what you learned -->
+    <section id="s13" class="slide dark">
+      <div style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="eyebrow" style="color:#5DCAA5;">What You Built Today</span>
+        <h2 class="title" style="font-size:56px; max-width:1600px;">A Car That Moves, Measures, and Starts to Correct Itself</h2>
+        <ul class="bullets big" style="max-width:1650px; color:#F1F0EA; margin-top:10px;">
+          <li>Real force under code control &mdash; forward, reverse, stop, on command</li>
+          <li>A first, honest encounter with open-loop drift &mdash; and why it happens</li>
+          <li>A way to <i>measure</i> the car's own wheel speed, instead of just guessing</li>
+          <li>A Pico-hosted website reporting live telemetry &mdash; the seed of every later class's rover site</li>
+          <li>A first taste of closed-loop engineering: measure, compare, correct</li>
+        </ul>
+        <p class="subtitle" style="margin-top:36px; color:#B8E3D3;">
+          Every one of these pieces &mdash; sensing, moving, measuring, correcting &mdash; is a
+          building block toward the Random Rover: a robot that can maneuver a space, avoid
+          obstacles, and find its way out.
+        </p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="hint">Space / &larr; &rarr; to navigate &middot; F fullscreen</div>
+
+<div id="controls">
+  <button id="prevBtn" title="Previous (&larr;)" aria-label="Previous slide">&#8249;</button>
+  <span id="counter">1 / 13</span>
+  <button id="nextBtn" title="Next (&rarr; / Space)" aria-label="Next slide">&#8250;</button>
+  <div id="progress-track" title="Click to jump to a point in the deck">
+    <div id="progress-fill"></div>
+  </div>
+  <div id="dots"></div>
+  <button id="fsBtn" title="Fullscreen (F)" aria-label="Toggle fullscreen">&#9974;</button>
+</div>
+
+<script>
+(function () {
+  var slideIds = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13'];
+  var slides = slideIds.map(function (id) { return document.getElementById(id); });
+  var idx = 0;
+
+  var counter = document.getElementById('counter');
+  var fill = document.getElementById('progress-fill');
+  var track = document.getElementById('progress-track');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var fsBtn = document.getElementById('fsBtn');
+  var dotsWrap = document.getElementById('dots');
+  var stage = document.getElementById('stage');
+  var hint = document.getElementById('hint');
+
+  slideIds.forEach(function (id, i) {
+    var d = document.createElement('button');
+    d.className = 'dot';
+    d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    d.addEventListener('click', function () { goTo(i); });
+    dotsWrap.appendChild(d);
+  });
+  var dots = Array.prototype.slice.call(dotsWrap.children);
+
+  function render() {
+    slides.forEach(function (s, i) { s.classList.toggle('active', i === idx); });
+    counter.textContent = (idx + 1) + ' / ' + slides.length;
+    fill.style.width = (slides.length > 1 ? (idx / (slides.length - 1) * 100) : 100) + '%';
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === slides.length - 1;
+  }
+  function goTo(i) { idx = Math.max(0, Math.min(slides.length - 1, i)); render(); }
+  function next() { if (idx < slides.length - 1) { idx++; render(); } }
+  function prev() { if (idx > 0) { idx--; render(); } }
+
+  prevBtn.addEventListener('click', prev);
+  nextBtn.addEventListener('click', next);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') { goTo(0); }
+    else if (e.key === 'End') { goTo(slides.length - 1); }
+    else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+    else if (e.key === 'Escape' && document.fullscreenElement) { document.exitFullscreen(); }
+  });
+
+  var touchStartX = null;
+  document.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, { passive: true });
+
+  track.addEventListener('click', function (e) {
+    var rect = track.getBoundingClientRect();
+    var ratio = (e.clientX - rect.left) / rect.width;
+    goTo(Math.round(ratio * (slides.length - 1)));
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen || function () {}).call(document.documentElement);
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  fsBtn.addEventListener('click', toggleFullscreen);
+
+  function scaleStage() {
+    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    stage.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', scaleStage);
+  scaleStage();
+
+  var hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  document.addEventListener('mousemove', function () {
+    hint.style.opacity = '1';
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 4000);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>

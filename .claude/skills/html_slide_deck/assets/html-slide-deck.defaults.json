@@ -1,0 +1,94 @@
+{
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "aspectRatio": "16:9"
+  },
+  "fonts": {
+    "heading": "IBM Plex Sans",
+    "body": "IBM Plex Sans",
+    "mono": "JetBrains Mono",
+    "googleFontsUrl": "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+  },
+  "colors": {
+    "cover": { "background": "#12181F", "text": "#F1F0EA", "accent": "#5DCAA5" },
+    "closing": { "background": "#12181F", "text": "#F1F0EA", "accent": "#5DCAA5" },
+    "content": { "background": "#F7F6F2", "text": "#1C232B" },
+    "accentColor": "#5DCAA5",
+    "semantic": {
+      "teal": {
+        "meaning": "positive / solution / today",
+        "text": "#0F6E56",
+        "textDark": "#085041",
+        "background": "#E1F5EE",
+        "border": "#5DCAA5"
+      },
+      "coral": {
+        "meaning": "problem / warning / disturbance",
+        "text": "#993C1D",
+        "textDark": "#712B13",
+        "background": "#FAECE7",
+        "border": "#F0997B"
+      },
+      "purple": {
+        "meaning": "alternate view / preview / \"think\"",
+        "text": "#3C3489",
+        "textDark": "#534AB7",
+        "background": "#EEEDFE",
+        "border": "#AFA9EC"
+      },
+      "amber": {
+        "meaning": "process / tuning / homework",
+        "text": "#854F0B",
+        "textDark": "#BA7517",
+        "background": "#FBF0DE",
+        "border": "#E0A94C"
+      },
+      "neutral": {
+        "meaning": "inert / not-yet-built",
+        "text": "#5F5E5A",
+        "textDark": "#8A9199",
+        "background": "#F1EFE8",
+        "border": "#B4B2A9"
+      }
+    }
+  },
+  "templates": {
+    "mode": "all",
+    "enabled": [
+      "title",
+      "agenda",
+      "two-panel-comparison",
+      "card-grid",
+      "big-statement",
+      "data-table",
+      "two-column-detail",
+      "flow-diagram",
+      "dark-punchline"
+    ]
+  },
+  "navigation": {
+    "controls": "full",
+    "showPrevNext": true,
+    "showCounter": true,
+    "showProgressBar": true,
+    "showDots": true,
+    "showFullscreenToggle": true,
+    "transition": { "type": "fade", "durationMs": 350 },
+    "keyboard": {
+      "next": ["ArrowRight", "Space", "PageDown"],
+      "prev": ["ArrowLeft", "PageUp"],
+      "first": ["Home"],
+      "last": ["End"],
+      "fullscreen": ["f", "F"],
+      "exitFullscreen": ["Escape"]
+    },
+    "touch": { "swipe": true, "thresholdPx": 50 }
+  },
+  "extras": {
+    "pageNumbers": false,
+    "speakerNotes": false,
+    "printStylesheet": false,
+    "logoWatermark": false
+  }
+}

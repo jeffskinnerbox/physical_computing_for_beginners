@@ -786,6 +786,46 @@ Give this to me in a step wise procedure.
 
 ----
 
+## My 32nd Prompt - SKILL.md for Presentation Summarizing a File
+I experimented with the browser based version of Claude to create a presentation.
+I liked what it created, so within that Claude session, I asked for a SKILL.md.
+That prompt is below:
+
+I find these HTML formatted presentation, aka single-file HTML slide deck, very useful.
+I would like to have a Claude skill that I could use to create such a presentation.
+The use case I'm envisioning is I tell Claude to create a presentation from a markdown document.
+Help me create this SKILL.md file that will work in Claude Code.
+
+What your are currently using is a good default format,
+but I may want to modify the default for a given presentation or reset the default it self.
+I would like the skill to prompt me for changes.
+I may say use the default, and if not, the skill steps me through changes I could make.
+Give me clear descriptions of the my options, ideally it would visually show me my choose and I could pick from a visual menu.
+
+Can you create a Claude Code SKILL.md file for this?
+
+----
+
+## My 33nd Prompt - Presentation Summarizing Class 3 Lesson Script
+Using the /html_slide_deck skill, summarize the file @lesson_scripts/class-03-lesson-script.md
+
+I will use the presentation to brief my students on what we will be doing & creating in Class 3.
+I wish to emphasize that will be changing our pace of activity,
+being more deliberate / careful in what we are building.
+We are no longer exploring & experimenting but building a working robot.
+We are replacing our exploring mindset for an engineering mind set.
+We want to create a robot that can maneuver through a space and not hit any objects,
+ideally, finding a door / opening, and escaping an enclosed space.
+
+Express the prospective above in the first slide and then summarize the file
+@lesson_scripts/class-03-lesson-script.md using this prospective.
+Do NOT summarize the bill of materials, wiring plans, references, trouble shooting.
+Make use of the text diagrams when it make sense to do so.
+
+Place the presentation you create in @handouts and call it class-03-summary.html
+
+----
+
 
 
 

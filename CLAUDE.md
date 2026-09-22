@@ -67,14 +67,16 @@ separate artifacts.
 Six classes plus a Pre-Class, each building hardware/skills on top of the previous one without
 rewiring what came before (see "Wiring Continuity" notes per class in `my-vision.md`):
 Pre-Class (board bring-up) → Class 1 (button + rotary encoder, debouncing) → Class 2 (HC-SR04
-ultrasonic sensor + SG90 servo) → Class 3 (DRV8833 dual H-bridge motor driver) → Class 4 (LSM9DS1
-IMU with Mahony filter) → Class 5 (Random Rover: sensor+servo+motor driver combined for collision
-avoidance) → Class 6 (finish Rover + stretch goals: encoder speed control, WiFi IMU chart, TFT
-status display). GPIO pin assignments are deliberately non-overlapping across classes so old
-circuits keep working when new ones are added — preserve that when editing class code or wiring
-docs. `class-N-code-*.py` files referenced throughout `my-vision.md` are pseudocode/code
-deliverables to be generated per-class (see "My 5th Prompt" in `input/my-prompts.md`), not yet
-present in the repo as of this writing.
+ultrasonic sensor + SG90 servo) → Class 3 (DRV8833 dual H-bridge motor driver; adds IR optocoupler
+wheel-speed sensors for odometry and starts a Pico-hosted rover status website) → Class 4 (LSM9DS1
+IMU with Mahony filter, orientation posted to the same rover website) → Class 5 (Random Rover:
+sensor+servo+motor driver combined for collision avoidance, scan/heading/stop telemetry added to
+the rover website) → Class 6 (finish Rover + stretch goals: encoder speed control, rolling-history
+chart added to the rover website, TFT status display). GPIO pin assignments are deliberately
+non-overlapping across classes so old circuits keep working when new ones are added — preserve
+that when editing class code or wiring docs. `class-N-code-*.py` files referenced throughout
+`my-vision.md` are pseudocode/code deliverables to be generated per-class (see "My 5th Prompt" in
+`input/my-prompts.md`), not yet present in the repo as of this writing.
 
 ## Markdown conventions (all generated docs)
 
@@ -100,14 +102,16 @@ installed.
 ## Skills available in `.claude/skills/`
 
 `bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
-`lesson_plan_generator`, `python_code`, `readme_generator`, `syllabus_generator`,
+`html_slide_deck`, `lesson_plan_generator`, `python_code`, `readme_generator`, `syllabus_generator`,
 `teen-install-instructions`, `theory_of_operation`, `wiring_diagram`, `workbench_voice`. These are
 the primary tools for generating course content — prefer invoking the matching skill over
 freehand-writing a new syllabus/lesson-plan/install-guide/BOM/README section from scratch.
 `wiring_diagram` generates a labeled schematic PNG from a "Wiring — <Board> to <Module>" markdown
 table and embeds it in the doc. `readme_generator` generates/refreshes a `README.md` for one
 specified directory, using any existing README in that directory as a content directive and
-`grill-me` to resolve ambiguities before writing. `workbench_voice` rewrites existing prose into a
+`grill-me` to resolve ambiguities before writing. `html_slide_deck` turns a markdown doc/outline
+into a self-contained single-file HTML slide presentation, prompting for a saved-default vs.
+customized look before building. `workbench_voice` rewrites existing prose into a
 direct, hands-on explainer voice — invoke it only when explicitly requested, not automatically
 alongside the other generators. `python_code` is a style guide for any generated Python/
 CircuitPython code (readability, Pythonic idioms, efficiency) — apply it whenever writing the
@@ -121,8 +125,11 @@ PII, not course content; don't quote or propagate it into generated docs or else
 
 `explainers/` holds standalone explainer docs generated via the `/explainer` skill (e.g.
 microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
-`README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has `class-00-handout.md`, `build-challenge.md`, and `references-and-resources.md`; its `README.md` is scratch notes and reference
-links (a glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` holds
+`README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has
+per-class handouts (`class-00-handout.md`, `class-03-handout.md`), `build-challenge.md`,
+`references-and-resources.md`, and standalone HTML handouts (`class-3-closing-the-loop.html`,
+`class-3-the-robotics-challenge.html`); its `README.md` is scratch notes and reference links (a
+glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` holds
 purchase receipts (photos, a `receipts/` subdir) — no established doc conventions there yet, not
 course content.
 
