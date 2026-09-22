@@ -93,6 +93,7 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Dupont Wires - 120pcs 20cm Jumper Wire | 1 | $9.99 | [Amazon][18] | shared jumper wire stock for all classes |
 | Invisible Hold Mounting Tape | 1 | $11.99 | [Amazon][19] | mounts the Class 2 HC-SR04 onto the SG90 servo horn and helps with chassis assembly |
+| Blu Tack | 1 | $5.70 | [Amazon][17] | hold in place circuit boards, battery, etc to the mobile chassis |
 | Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
 
 Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per student
@@ -209,8 +210,7 @@ part of the course budget above.
 [12]:https://www.amazon.com/LampVPath-Battery-Connector-Plastic-Housing/dp/B079HY8DD9?th=1
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1
 [16]:https://www.amazon.com/dp/B0FTF8P9DQ
-
-
+[17]:https://www.amazon.com/dp/B001FGLX72
 [18]:https://www.amazon.com/Connector-Solde
 [19]:https://www.amazon.com/Invisible-Mounting-Double-Sided-Permanent-Classroom/dp/B07LFRN1K8/
 [20]:https://circuitpython.org/board/raspberry_pi_pico2_w/

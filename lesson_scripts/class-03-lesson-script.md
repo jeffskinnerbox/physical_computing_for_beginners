@@ -45,16 +45,17 @@ you how to tune that fix, step by step, until it performs as well as your car ca
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
 | DRV8833 dual H-bridge motor driver breakout | 1 | Drives both DC gearbox motors from PWM logic signals |
 | Emo Smart Robot Car Chassis Kit | 1 | The two motors under test and the chassis they drive |
-| 9V battery clip and 9V battery | 1 each | Powers the motors (raw, via `VM`) and, through the buck converter, your Pico's own logic power |
+| 9V battery clip and 9V battery | 1 | Powers the motors (raw, via `VM`) and, through the buck converter, your Pico's own logic power |
 | 5V Buck Converter Module | 1 | Steps the 9V battery down to a regulated 5V for your Pico's `VSYS` power input |
+| 1000uF electrolytic capacitor | 1 | optional to reduce current spike from motors |
 | Slot Type IR Optocoupler for Motor Speed | 2 | Reads each driven wheel's built-in encoder disc for wheel-odometry tick counting |
 | Breadboard (from Classes 1-2) | 1 | Your existing circuits stay on it, untouched |
 | Dupont jumper wires | ~10 | Point-to-point connections |
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
-| (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Pico hosts the rover status website on a network it creates itself (AP mode) |
 | Marked 35 cm square / 35 cm-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
-| Masking tape and a tape measure | 1 each | Phases 5-6: a straight start line, and measuring how far the car drifts sideways |
+| Blu Tack | 1 (shared) | hold in place circuit boards, battery, etc. to the mobile chassis |
+| Masking tape and a tape measure | 1 (shared) | Phases 5-6: a straight start line, and measuring how far the car drifts sideways |
 
 **Additional components for the Homework Assignments** (Section 13) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
@@ -183,10 +184,14 @@ watch live wheel telemetry with no serial cable at all.
 ## 4. Build It: Phase 1 — Motor Driver Library and Basic Test - DONE
 
 ### Wiring for this phase
+>**NOTE:** Very first thing is to do on the Emo Smart Robot Car Chassis Kit:
+> 1. solder long male Dupont wires to the motors.
+> 2. solder shorter female Dupont wires to the switch.
 
-This is the complete wiring for the whole project, including the two optocouplers you'll mount and
-use starting in Phase 3 — nothing changes for Phase 2, 3, or 4. You can wire the optocouplers now
-too, but leave them unmounted at each wheel until Phase 3, once you've counted each disc's slots.
+This is the complete wiring for the whole Class 03 project.
+**DO NOT** use the wire the wiring from previous classes, start with a blank breadboard.
+You can wire the optocouplers now,
+but leave them unmounted at each wheel until Phase 3, once you've counted each disc's slots.
 * [Raspberry Pi Pico 2w Pinout][20]
 * [SG90 Servo Pinout][38]
 * [HC-SR04 Pinout][37]
@@ -195,7 +200,7 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 
 | Component | Pico 2 W Pin | Notes |
 | :---------- | :------------- | :---------- |
-| Buck converter `IN+`/`IN−` | 9V battery `+`/`−` | |
+| Buck converter `IN+`/`IN−` | 9V battery `+` / `−` | |
 | Buck converter `OUT+`/`OUT−` | Pico `VSYS` / `GND` | make sure this is a common `GND` |
 | DRV8833 `AIN1` (Motor A) | `GP9` | |
 | DRV8833 `AIN2` (Motor A) | `GP10` | |
@@ -215,9 +220,9 @@ too, but leave them unmounted at each wheel until Phase 3, once you've counted e
 
 Before writing any code, trace this wiring out loud, and specifically confirm two things:
 1. The Pico's `GND` is jumpered to the DRV8833's `GND`.
-1. DRV8833 `SLP` isjumpered to Pico `3V3`
+1. DRV8833 `SLP` is jumpered to Pico `3V3`
 
->**NOTE:** Make sure to create a commond ground (aka `GND`).
+>**NOTE:** Make sure to create a common ground (aka `GND`).
 >A missing common ground produces logic that "sort of" works, or works intermittently.<br>
 >**NOTE:** Make sure you have the DRV8833 `SLP`/`nSLEEP` jumpered to Pico `3V3`.
 >A missing `SLP`/`nSLEEP` jumper produces code that runs and prints normally while the motors never move at all.
@@ -1145,7 +1150,7 @@ inside the slow one:
               |  yaw angle                                  motors, wheels
               |                                                   |
       +-------+--------+                                          v
-      | IMU (LSM9DS1)  |<--------------- car rotates (or slips!) --+
+      | IMU (LSM9DS1)  |<-------------- car rotates (or slips!) --+
       | gyro -> yaw    |
       +----------------+
 
@@ -1159,15 +1164,15 @@ uses the accelerometer and gyroscope but not the magnetometer, and gravity can't
 which way is "north," so its yaw slowly drifts over time. That's fine for a straight run of a few
 seconds; it's the reason a long run would need something more.
 
-## 9. Build It: Phase 6 — Tuning KI and MAX_TRIM for Optimal Performance
+## 9.Homework Assignment — Tuning KI & MAX_TRIM for Optimal Performance
 
 Complete Phase 5 first — this phase needs `straight_drive.py` and the open-loop vs. closed-loop
 `code.py` already working, and a car that visibly drives straighter with feedback than without.
 
-> **[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
-> validate: the `KI ≈ 0.3 / k` starting rule; the sweep values; the "keep `KI × 4` under `0.02`"
-> noise limit; the `MAX_TRIM ≈ 1.5-2 × trim` rule; and the run and reset times in the sweep script.
-> Replace the placeholders with measured values and delete this note once validated.
+>**[VERIFY — bench test pending]** This whole section has not yet been run on a real car. Still to
+>validate: the `KI ≈ 0.3 / k` starting rule; the sweep values; the "keep `KI × 4` under `0.02`"
+>noise limit; the `MAX_TRIM ≈ 1.5-2 × trim` rule; and the run and reset times in the sweep script.
+>Replace the placeholders with measured values and delete this note once validated.
 
 ### Why tune, and what each knob does
 
@@ -1752,14 +1757,6 @@ gap — no way to check your heading against where you meant to be pointed — i
 website.
 
 ---
-## 13. Homework Assignment
-
-No homework assignments have been written for this class yet. This section will be filled in with
-optional take-home exercises, following the same format as the Pre-Class homework in
-[`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code does, full commented code, and real-world examples).
-
-Add the following:
-* watchdog timer - [CircuitPython Watchdog Module](https://learn.adafruit.com/circuitpython-watchdog-module)
 
 ## References
 
