@@ -477,7 +477,7 @@ led.direction = digitalio.Direction.OUTPUT
 # Anyone nearby can now see and join "<your-name>" like any other WiFi network.
 wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
 print("Access point started. Connect to:", ap_ssid)
-print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
+print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + ":5000/ in a browser")
 
 # --- Start a tiny web server on the Pico itself ---
 pool = socketpool.SocketPool(wifi.radio)
@@ -505,7 +505,7 @@ def base(request: Request):
     """
     return Response(request, html, content_type="text/html")
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80
 
 # --- Main loop: blink the LED AND keep answering webpage requests ---
 last_blink = time.monotonic()
@@ -522,7 +522,7 @@ while True:
 **Test it:** Save this as `code.py` on CIRCUITPY, wait for it to reboot, then on your phone or
 laptop open WiFi settings and connect to the `<your-name>` network using the password from
 `settings.toml`. Open a browser and go to the address printed in the serial console (something like
-`http://192.168.4.1/`) — the page should show ON/OFF and flip once a second, matching the physical
+`http://192.168.4.1:5000/`) — the page should show ON/OFF and flip once a second, matching the physical
 LED on the board.
 
 **Real-world examples:**
@@ -668,7 +668,7 @@ classic "DVD logo" screensaver. It introduces `displayio` (CircuitPython's graph
 a coordinate system with an X/Y origin, and the core game-physics idea of updating a position by a
 velocity every frame and reversing that velocity on collision with a boundary.
 
-This uses the same TFT and the same pins (`GP18`-`GP22`) documented for the Class 6 stretch goal,
+This uses the same TFT and the same pins (`GP26`, `GP27`, `GP20`-`GP22`) documented for the Class 6 stretch goal,
 so if you've already wired the display for that class, this program will run on it as-is with no
 rewiring.
 
@@ -678,8 +678,8 @@ rewiring.
 | ------------- | --------- | -------------------- |
 | `3V3(OUT)` | `VIN` | 3.3V power to the display |
 | `GND` | `GND` | Common ground |
-| `GP18` | `SCK` | SPI clock |
-| `GP19` | `MOSI` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
+| `GP26` | `SCK` | SPI clock |
+| `GP27` | `MOSI` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
 | `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
 | `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
 | `GP22` | `RST` | Reset (lets CircuitPython force the display back to a known state on startup) |
@@ -701,9 +701,11 @@ from adafruit_st7789 import ST7789   # matches the TFT used later in this course
 # --- Wire up and initialize the TFT display over SPI ---
 # Pin assignments match the wiring table above (and the Class 6 stretch-goal wiring).
 displayio.release_displays()  # frees up the display in case code.py has run before
-spi = busio.SPI(clock=board.GP18, MOSI=board.GP19)
+spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = fourwire.FourWire(spi, chip_select=board.GP20, command=board.GP21, reset=board.GP22)
-display = ST7789(display_bus, width=240, height=135, rotation=270)
+# rowstart/colstart shift drawing onto the visible glass: this panel's controller RAM (240x320)
+# is bigger than the screen (240x135), and the visible window sits offset inside it
+display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 
 # --- Build the shape we'll bounce: a small filled square ---
 main_group = displayio.Group()

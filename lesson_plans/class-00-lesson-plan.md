@@ -26,6 +26,7 @@ those same resources themselves whenever they get stuck.
 ## 2. Learning Goals
 
 * Install the Mu and Thonny editors and download the Adafruit CircuitPython Library Bundle
+* Install Python 3 on the laptop (used starting Class 4 for the laptop-side 3D display)
 * Flash CircuitPython firmware onto a Raspberry Pi Pico 2 W and locate the CIRCUITPY drive
 * Write, save (as `code.py`), and run a first CircuitPython program on the Pico 2 W
 * Connect to and use the serial console and the REPL to observe a running program
@@ -39,7 +40,7 @@ those same resources themselves whenever they get stuck.
 * **1-2 days before:** Confirm every Pico 2 W in the course kit is a genuine, working unit — spot-check
   a sample by flashing CircuitPython and running a blink test on the instructor bench. (~20 min)
 * **1-2 days before:** Download and stage local copies of the CircuitPython firmware `.uf2` file, the
-  Mu Editor installer, the Thonny installer, and the Adafruit CircuitPython Library Bundle `.zip` on a
+  Mu Editor installer, the Thonny installer, the Python 3 installer, and the Adafruit CircuitPython Library Bundle `.zip` on a
   USB stick or shared drive — classroom WiFi on the first night is exactly the wrong time to depend on
   everyone's home internet being fast and reliable. (~20 min)
 * **1-2 days before:** Verify the course GitHub repository is public (or that every student can be
@@ -174,11 +175,12 @@ anything else.
 **Step 3 — install the Adafruit CircuitPython Library Bundle.**
 Download the [Adafruit CircuitPython Library Bundle][05] (or use the staged local `.zip`) and unzip
 it somewhere memorable on the laptop — see [CircuitPython Libraries][06]. This is the shared source
-every later Class's `/lib` copies come from; students won't add anything to the board's `/lib`
-folder tonight, since `class-0-code.py` needs no external libraries.
+every later Class's `/lib` copies come from. `class-0-code.py` needs no external libraries, but have
+students drag `neopixel.mpy` into CIRCUITPY's `lib` folder and run a two-line `import neopixel` test
+(as in the lesson script) to prove the copy mechanism works before Class 1 depends on it.
 
 **Checkpoint 3:** Students can locate the unzipped Library Bundle folder on their own laptop without
-instructor help.
+instructor help, and the `import neopixel` test prints with no `ImportError`.
 
 **Step 4 — write, save, and run the first program.**
 Using [Creating and Editing Code][07] and [Exploring Your First CircuitPython Program][08] as a
@@ -217,6 +219,12 @@ Using [Connecting to the Serial Console][09], [Interacting with the Serial Conso
 [The REPL][11] as guides, open the serial console in Mu or Thonny and watch the `heartbeat:` count
 increment in real time. Then try typing a line directly at the REPL prompt (e.g. `print("hello")`)
 to see code execute interactively, separate from the saved `code.py` file.
+
+**Step 6 — install Python 3 on the laptop.**
+In a regular (non-admin) Windows Terminal, run `winget install --scope user -e --id Python.Python.3.13`
+(or use the staged installer), then open a new terminal and run `py --version`. Nothing uses it
+tonight — Class 4's laptop-side 3D display does — but installing it now keeps Class 4's time for the
+IMU. If `python` opens the Microsoft Store, tell students `py` works the same way.
 
 **What "done" looks like for this segment:** Every student can point at their own onboard LED
 blinking and, on the same screen, watch a live-incrementing `heartbeat:` count in the serial

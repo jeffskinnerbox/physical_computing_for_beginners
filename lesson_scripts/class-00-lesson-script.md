@@ -48,8 +48,9 @@ Whenever you get stuck later, those same sites are where you go, not just where 
 
 **Software you'll install tonight** (all free): the [Mu Editor][01] and [Thonny][02] (two code
 editors — you'll pick a favorite, but it's good to have both), the [CircuitPython firmware][03]
-for the Pico 2 W, and the [Adafruit CircuitPython Library Bundle][05] (a giant folder of
-pre-written code for sensors and motors you'll use starting in Class 1). Section 4 below walks
+for the Pico 2 W, the [Adafruit CircuitPython Library Bundle][05] (a giant folder of
+pre-written code for sensors and motors you'll use starting in Class 1), and [Python 3][37] for
+your laptop itself (Class 4 runs a small 3D-display program there). Section 4 below walks
 through every install step in order — you don't need to go anywhere else tonight.
 
 **Additional components for the Homework Assignments** (Section 10) — not needed for tonight's
@@ -112,11 +113,12 @@ Tonight everything is new: you set up the laptop tools and the board's firmware,
 | Mu Editor (laptop) | **New** — installed on the laptop | A beginner-friendly editor that auto-detects the board. Its Serial console shows everything your program prints. |
 | Thonny (laptop) | **New** — installed on the laptop | A second, actively maintained editor, so you're never stuck if Mu misbehaves. Its Files panel shows the board's files directly. |
 | Adafruit CircuitPython Library Bundle (laptop), test copy of `neopixel.mpy` in `/lib` | **New** — downloaded to the laptop | A folder of ready-made driver libraries; you copy just the ones a project needs into the board's `/lib` folder. Copying `neopixel.mpy` tonight proves that works. |
+| Python 3 (laptop) | **New** — installed with `winget` | Regular Python for your laptop. Nothing uses it tonight; Class 4 runs its 3D orientation display with it. |
 | `code.py` (on the Pico) | **New** — `class-0-code.py` | Blinks the onboard LED and prints a growing heartbeat count to the serial console. Seeing both proves the whole laptop-to-board chain works. |
 
 ### Install your software
 
-Do these four steps in order. Each one has its own quick test so you know it worked before moving
+Do these five steps in order. Each one has its own quick test so you know it worked before moving
 to the next.
 
 #### Step 1 — Flash CircuitPython onto the Pico 2 W
@@ -267,6 +269,27 @@ Save, then open the Serial console (Mu) or Shell pane (Thonny), click inside it,
 `neopixel library imported OK` with no traceback. Then delete those two lines and save again —
 this was just a test, and the next section will replace `code.py` with the real program for
 tonight.
+
+#### Step 5 — Install Python 3 on your laptop
+
+Everything so far runs on the Pico. Class 4 is the first class that also runs a Python program on
+your *laptop* (a live 3D display of the IMU's orientation), so install regular Python 3 now while
+you're already installing things.
+
+1. Open a regular (non-admin) Windows Terminal and run:
+
+    ```powershell
+    # --scope user installs Python just for your account -- no admin password needed
+    winget install --scope user -e --id Python.Python.3.13
+    ```
+
+1. Close the terminal and open a new one, so it picks up the newly installed commands.
+
+**Test it:** In the new terminal, run `py --version` and then `py -m pip --version`. You should
+see something like `Python 3.13.x` and a `pip ...` version line. If `py` isn't found, rerun the
+`winget` command and check it finished without errors. (Later classes write commands as
+`python ...` and `pip install ...`; if `python` opens the Microsoft Store instead, use `py` and
+`py -m pip install ...` — they do the same thing.)
 
 ### What this code does
 
@@ -427,7 +450,7 @@ undone — tonight's `code.py` simply gets replaced by Class 1's.
 Everything you installed tonight lives entirely inside your own user account and on the Pico
 itself — nothing tonight touched Windows system files or needs admin rights to remove. **You do
 not need to do any of this.** Nothing here gets in the way of Class 1 or any later class; Mu,
-Thonny, and CircuitPython are meant to stay installed for the whole course. Only work through this
+Thonny, Python, and CircuitPython are meant to stay installed for the whole course. Only work through this
 section if you specifically want your laptop back to the state it was in before tonight — for
 example, it's a shared or borrowed laptop, or you're troubleshooting a reinstall from scratch.
 
@@ -437,7 +460,7 @@ Do these steps in order. Each one has its own quick test, the same way the insta
 
 #### Step 1 — Uninstall Thonny
 
-1. Click **Start**, type `Add`, and open **Add or remove programs** (or **Add or remove programs**).
+1. Click **Start**, type `Add`, and open **Add or remove programs** (also called **Installed apps**).
 1. Search for **Thonny** in the list, click the **⋯** next to it (or click it once), and choose
     **Uninstall**.
 1. Confirm the uninstall when Windows asks.
@@ -447,7 +470,7 @@ launch. The **Installed apps** list should no longer list it either.
 
 #### Step 2 — Uninstall the Mu Editor
 
-1. Click **Start**, type `Add or`, and open **Add or remove programs** (or **Add or remove programs**).
+1. Click **Start**, type `Add or`, and open **Add or remove programs** (also called **Installed apps**).
 1. Search for **Mu** (sometimes listed as **Mu Editor**) in the list and choose **Uninstall**.
 1. Confirm the uninstall when Windows asks.
 
@@ -463,7 +486,7 @@ launch. The **Installed apps** list should no longer list it either.
 Step 4 of Section 4 unzipped the whole Library Bundle onto your laptop — the extracted `lib`
 folder full of `.mpy` files and folders is what you dragged individual libraries out of. That
 extracted copy lives entirely on your laptop's `Downloads` folder, separate from whatever you
-copied onto `CIRCUITPY`, so removing it from the Pico (Step 3 above) doesn't touch it — it has to
+copied onto `CIRCUITPY`, so removing it from the Pico (Step 4 below) doesn't touch it — it has to
 be deleted here too.
 
 1. Open File Explorer and go to your `Downloads` folder.
@@ -508,8 +531,16 @@ anymore, just nothing, confirming the firmware really is gone.
 
 Not strictly part of "uninstalling," but if you want your `Downloads` folder fully tidy: delete
 the `.msi` (Mu) and `.exe` (Thonny) installers, and the `.uf2` (CircuitPython firmware) you
-downloaded in Section 4. Unlike the Library Bundle in Step 4, none of these do anything just
+downloaded in Section 4. Unlike the Library Bundle in Step 3, none of these do anything just
 sitting in `Downloads` — this step is purely cosmetic.
+
+#### Step 6 — Uninstall Python 3
+
+1. Open a regular (non-admin) Windows Terminal and run
+    `winget uninstall --scope user -e --id Python.Python.3.13`.
+
+**Test it:** Open a new terminal and run `py --version` — it should report that `py` isn't
+recognized.
 
 ### Validation checklist
 
@@ -517,7 +548,8 @@ Confirm all of the following to be sure the uninstall was complete and correct:
 
 * [ ] **Start → type `Thonny`** shows no matching app.
 * [ ] **Start → type `Mu`** shows no matching app.
-* [ ] **Settings → Apps → Installed apps** no longer lists Thonny or Mu.
+* [ ] **Settings → Apps → Installed apps** no longer lists Thonny, Mu, or Python 3.13.
+* [ ] `py --version` in a new terminal is no longer recognized.
 * [ ] Pico 2 W plugged in normally (no BOOTSEL) shows **no** `CIRCUITPY` drive.
 * [ ] Pico 2 W plugged in while holding BOOTSEL shows `INFO_UF2.TXT` on **RPI-RP2**, confirming
     bare bootloader mode.
@@ -987,4 +1019,5 @@ See the "References & Resources" document in <https://github.com/jeffskinnerbox/
 [34]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
 [35]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers
 [36]:https://code.circuitpython.org/
+[37]:https://www.python.org/downloads/windows/
 
