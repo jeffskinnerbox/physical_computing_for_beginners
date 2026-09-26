@@ -68,6 +68,8 @@ with N20 geared motors.
 **Robotics Concepts**
 
 * Explain the difference between reading distance with an ultrasonic sensor and orientation with an IMU
+* Explain what gyroscope bias is, why it makes an IMU's heading (yaw) drift, and how calibrating it out
+  slows that drift
 * Combine a distance sensor and a servo sweep to scan for the clearest open direction
 * Describe, in plain language, how an obstacle-avoidance algorithm decides which way to steer
 * Explain why open-loop "dead reckoning" movement (timed, uncorrected motor moves) drifts off target
@@ -256,6 +258,8 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Why knowing speed, heading, and acceleration matters for a moving vehicle
 * Read acceleration and gyroscope data from the LSM9DS1 9-DOF IMU breakout board
 * Fuse the readings into a single roll/pitch/yaw orientation and stream it to a live 3D display on the laptop
+* Watch yaw drift while the board sits still, then calibrate out the gyroscope's bias (measured at startup,
+  refined whenever the board is still) and compare the drift before and after
 * Discuss: does the on-screen orientation match the IMU's real physical orientation? Does IMU
   orientation data help solve the Class 3 square/circle challenge, or is something still missing?
 * Add orientation to the Class 3 rover status website — same site, same webpage, just one more

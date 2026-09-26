@@ -111,7 +111,7 @@ This is the complete wiring for the whole project — Phases 2-4 add no new hard
 | :---------- | :----------------: | :-----------: | :------ |
 | LSM9DS1 `SDA` | Blue for `SDA` | `GP0` | |
 | LSM9DS1 `SCL` | Yellow for `SCL` | `GP1` | |
-| LSM9DS1 `VIN` | Red for `VIN` | `5V` | use the 5V power rail |
+| LSM9DS1 `VIN` | Red for `VIN` | `3V3` | use the Pico's 3.3V output, the same logic level as `SDA`/`SCL` |
 | LSM9DS1 `GND` | Black for `GND` | `GND` | make sure this is a common `GND` |
 
 Your Class 1-3 circuits stay exactly where they are on the breadboard. Before writing any code,

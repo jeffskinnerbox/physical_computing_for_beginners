@@ -394,8 +394,8 @@ Tips for Students:
     `/data.json` (currently just `wheel_odometry.read_speed()`'s fields) and a minimal HTML page that polls
     it. Imports `wheel_odometry`; prints the same data to the serial console each loop. Designed to be
     edited in place across later Classes rather than rewritten from scratch: Class 4's
-    `class-4-code-3.py` is a standalone script saved over this same file (mutually exclusive with
-    `class-4-code-1.py`, since both end in their own blocking loop); Class 5 refactors it into an
+    `class-4-phase-4-rover_server.py` is a standalone script saved over this same file (mutually
+    exclusive with `class-4-phase-3-code.py`, since both end in their own blocking loop); Class 5 refactors it into an
     importable library (`server`/`scan_status`, no owned loop) so `class-5-code.py` can drive and
     serve at once; Class 6's `class-6-code-2.py` then genuinely imports and extends that library.
   * `class-3-phase-5-straight_drive.py` &mdash; (stretch) wheel-feedback straight driving (save as
@@ -436,18 +436,25 @@ Tips for Students:
   In an enhancement to the IMU, the raw accelerometer and gyroscope readings are fused with a Mahony filter
   into a single roll/pitch/yaw orientation, which is what actually gets printed to the serial console
   (not the raw six values). Kalman and Madgwick filters are mentioned here only for context/comparison —
-  Mahony is the one implemented in `class-4-code-1.py`. Discuss why you need a filter like this at all.
+  Mahony is the one implemented in `class-4-phase-1-code.py`. Discuss why you need a filter like this at all.
+
+  Watching the live 3D display exposes the gyroscope's *bias* &mdash; a small nonzero reading even when the board
+  is perfectly still. The filter corrects it on roll and pitch (the accelerometer knows which way is down), but
+  spinning the board flat doesn't change "down," so nothing corrects yaw and it slowly drifts. Students fix most
+  of that by measuring the bias at startup (average ~2 s of gyro readings while the board sits still) and
+  refining it whenever the board is still (tiny rotation on every axis and ~1 g on the accelerometer). Only a
+  magnetometer could remove the remaining slow creep &mdash; a stretch idea, not Class 4 work.
 
   The same roll/pitch/yaw values are also posted into the Class 3 rover status website: `/data.json` grows
   three new `roll`/`pitch`/`yaw` fields alongside the wheel-odometry fields already there
   (`speed_left_cms`/`dir_left`/`speed_right_cms`/`dir_right`, unchanged), and the webpage adds an
   orientation readout next to the wheel-speed readout. This is a standalone script, saved over the existing
-  `rover_server.py` from Class 3, not something imported alongside `class-4-code-1.py` &mdash; the two are
+  `rover_server.py` from Class 3, not something imported alongside `class-4-phase-3-code.py` &mdash; the two are
   mutually exclusive, the same "run one or the other" pattern already established in Class 3, since each
   ends in its own blocking loop and there's no refactor to let them coexist until Class 5.
 
   If you have time, continue working the assembly of the Car Chassis Kit.
-* **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C) &mdash; Classes 1-3's circuits stay in place, untouched,
+* **Wiring Continuity**: All-new pins (`GP0`/`GP1` I2C, IMU `VIN` powered from the Pico's `3V3`) &mdash; Classes 1-3's circuits stay in place, untouched,
   including the Class 3 optocouplers (`GP19`/`GP17`), the buck converter still powering the Pico's `VSYS`, and
   the rover website they feed. This same I2C wiring is
   reused unchanged for the Class 6 stretch goal's rolling-history chart (`class-6-code-2.py`).
@@ -457,7 +464,8 @@ Tips for Students:
 * **Talking Points**:
   * IMU shows great potential, but does it solve our problems?  Can it help us do the square and the circle as in the 3rd class?
   * Why fuse the accelerometer and gyroscope instead of just using whichever one is "better"? What does each one get wrong on its own (accelerometer noisy under vibration, gyro drifts over time)?
-  * Have students actually raise/lower `MAHONY_KP` in class-4-code-1.py and watch the live tradeoff between drift and jitter, instead of just discussing it in the abstract.
+  * Have students actually raise/lower `MAHONY_KP` in class-4-phase-1-code.py and watch the live tradeoff between drift and jitter, instead of just discussing it in the abstract.
+  * Why does yaw drift while roll and pitch don't? What is gyro *bias*, and why can the accelerometer correct it on roll/pitch but not yaw? Time one minute of yaw drift before and after bias calibration.
   * Would mounting the IMU off to one side of the car vs. exactly at its pivot point change the readings while turning? Why or why not?
   * Orientation (roll/pitch/yaw) tells you which way you're pointed; Class 3's wheel odometry tells you how
     fast each wheel is spinning. Together, do they tell you how far you've traveled and in what direction, or
@@ -466,21 +474,30 @@ Tips for Students:
     choice in `rover_server.py` made that easy (a shared JSON route each sensor module contributes fields to)
     rather than hard (one server per sensor)?
 * **Features/Capabilities**: Reads accelerometer and gyroscope data from the IMU, fuses it with a Mahony filter into
-  roll/pitch/yaw, and streams that orientation over USB serial to a live 3D box rendered on the laptop, while
+  roll/pitch/yaw (with gyro bias calibrated out so yaw holds steady), and streams that orientation over USB
+  serial to a live 3D box rendered on the laptop, while
   also publishing it as a new field on the Class 3 rover status website alongside wheel speed/direction.
   The purpose is to show how the physical orientation of the IMU is accurately (or not) reflected in the display.
 * **Course Pseudocode**:
-  * `class-4-code-1.py` &mdash; runs on the Pico. LSM9DS1 over I2C, `SCL`->`GP1`, `SDA`->`GP0`.
+  * `class-4-phase-1-code.py` &mdash; runs on the Pico. LSM9DS1 over I2C, `SCL`->`GP1`, `SDA`->`GP0`, `VIN`->`3V3`.
     Reads accel + gyro, fuses them with a Mahony filter (tunable `MAHONY_KP`/`MAHONY_KI`) into roll/pitch/yaw,
     and prints `roll,pitch,yaw` CSV lines over USB serial. This is the "why do we need a filter" payoff:
-    raw accelerometer alone is noisy, raw gyro alone drifts.
-  * `class-4-code-2.py` &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`).
-    Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students see whether
-    tilting the physical board is faithfully reflected on screen. Usage: `python class-4-code-2.py <port>`.
-  * `class-4-code-3.py` &mdash; runs on the Pico as a standalone script, saved over
+    raw accelerometer alone is noisy, raw gyro alone drifts. (The library's `gyro` already returns rad/s &mdash;
+    no conversion.)
+  * `class-4-phase-2-wireframe.py` &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`),
+    saved as `wireframe.py`. Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students
+    see whether tilting the physical board is faithfully reflected on screen. Draws only the newest line (no
+    lag), labels the X/Y/Z axes and the box's red `Front` (+X) and `Right` (&minus;Y) faces, and negates roll to
+    match the physical board. Usage: `python wireframe.py <port>`.
+  * `class-4-phase-3-code.py` &mdash; runs on the Pico, replacing Phase 1's `code.py`. Phase 1 plus gyro bias
+    calibration: averages ~2 s of gyro readings at startup (board still) and subtracts that bias, then keeps
+    refining it whenever the board looks still. Starts the loop clock after calibrating. Same CSV output, so
+    `wireframe.py` works unchanged.
+  * `class-4-phase-4-rover_server.py` &mdash; runs on the Pico as a standalone script, saved over
     the existing `rover_server.py` from Class 3. Adds the Mahony-filtered roll/pitch/yaw as three new keys
     on the shared `/data.json` route and webpage, alongside the `speed_left_cms`/`dir_left`/`speed_right_cms`/
-    `dir_right` fields already there, unchanged. Mutually exclusive with `class-4-code-1.py`: a student runs
+    `dir_right` fields already there, unchanged. Includes Phase 3's bias calibration (rover still at boot).
+    Mutually exclusive with `class-4-phase-3-code.py`: a student runs
     one or the other as `code.py`, not both at the same time &mdash; the same "run one or the other" pattern
     already established in Class 3 between the driving code and the website code, since both end in their
     own blocking `while True:` loop and there's no refactor to let them coexist until Class 5.
@@ -589,7 +606,7 @@ Tips for Students:
   * `class-6-code-2.py` &mdash; stretch #2. Imports the already-running `rover_server`
     (from `class-3-phase-4-rover_server.py`, extended in Classes 4-5) and adds a rolling ~150-sample history buffer plus a
     hand-drawn HTML5 canvas chart to the existing page, polling `/data.json` every 200ms and plotting roll/pitch
-    (from `class-4-code-1.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
+    (from `class-4-phase-3-code.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
     join or web server is created here &mdash; both already exist from Class 3.
   * `class-6-code-3.py` &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
     (`SCK`/`MOSI` on `GP26`/`GP27`, `CS`/`DC`/`RST` on `GP20`-`GP22`) shows distance/heading/speed as large on-board text via
@@ -729,7 +746,7 @@ All free — no paid software is required anywhere in this course.
 | Thonny | [Setup Guide][22] | alternate editor, installed in the Pre-Class |
 | Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
-| Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-code-2.py`'s live 3D orientation display |
+| Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-phase-2-wireframe.py` (saved as `wireframe.py`), the live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-phase-4-rover_server.py`) that carries forward and grows through Class 6 |
 | (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
@@ -747,7 +764,7 @@ lesson plan — no separate cost, but listed here for completeness.
 | `class-3-phase-3-wheel_odometry.py` / `class-3-phase-4-rover_server.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
 | `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
-| `class-4-code-1.py` / `class-4-code-2.py` / `class-4-code-3.py` | 3 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + posting orientation to the Class 3 rover website, Class 4 |
+| `class-4-phase-1-code.py` / `class-4-phase-2-wireframe.py` / `class-4-phase-3-code.py` / `class-4-phase-4-rover_server.py` | 4 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + gyro bias calibration (Pico) + orientation on the Class 3 rover website, Class 4 |
 | `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
 
