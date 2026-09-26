@@ -338,8 +338,8 @@ Two files change and work together: `rover_server.py` becomes a library with no 
 
 | Software component | New, modified, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
-| `rover_server.py` | **Modified** — no new identifier; edits `class-4-phase-4-rover_server.py` | Adds a `scan_status` dict and three new `/data.json` fields (`scan_heading`, `drive_state`, `stop_reason`). Its `while True: server.poll()` loop is removed so it can be imported. |
-| `code.py` | **Modified** — `class-5-code.py` plus its Phase 2 additions | Same collision-avoidance loop, now importing `rover_server`, updating `scan_status` with each decision, and calling `server.poll()` once per cycle. |
+| `rover_server.py` | **Modified** — no new identifier; edits `class-4-phase-4-rover_server.py` | Adds a `scan_status` dict, an `update()` function that keeps the IMU filter running, and three new `/data.json` fields (`scan_heading`, `drive_state`, `stop_reason`). Its `while True: server.poll()` loop is removed so it can be imported. |
+| `code.py` | **Modified** — `class-5-code.py` plus its Phase 2 additions | Same collision-avoidance loop, now importing `rover_server`, updating `scan_status` with each decision, calling `server.poll()` once per cycle, and pausing with `wait()` so `rover_server.update()` keeps the IMU filter running. |
 | `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Still supplies the wheel speed and direction fields on the website. |
 | `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Drives the rover, exactly as in Phase 1. |
 | `adafruit_httpserver`, `adafruit_lsm9ds1.mpy`, `adafruit_hcsr04.mpy`, `adafruit_motor` (in `/lib`) | **Unchanged** — from Classes 2-4 | The web server, IMU, ultrasonic sensor, and servo libraries this combined program uses. |
@@ -362,8 +362,11 @@ Here's the wrinkle: Class 4's `rover_server.py` ends in its own blocking `while 
 server.poll()` loop, but Phase 1's `class-5-code.py` needs to run its *own* continuous drive/scan
 loop — and two blocking loops can't run at once. So today's edit does a small refactor: instead of
 owning the polling loop itself, `rover_server.py` stops after calling `server.start(...)` and
-exposes its already-built `server` object and a new `scan_status` dict for `class-5-code.py` to
-update and poll each cycle.
+exposes its already-built `server` object, a new `update()` function, and a new `scan_status` dict
+for `class-5-code.py` to poll, call, and update each cycle. `update()` matters: Class 4's loop was
+what kept the IMU filter running about every 20 ms, so without it yaw would only move when a browser
+asked for data. That's also why `class-5-code.py` swaps its `time.sleep()` pauses for a small
+`wait()` helper that calls `update()` while it waits.
 
 ### The code
 
@@ -375,8 +378,11 @@ old `while True: server.poll()` loop.
 # rover_server.py -- edited again (same file from Classes 3-4, no new filename).
 # Removes its own "while True: server.poll()" loop -- class-5-code.py's drive
 # loop now calls server.poll() itself once per cycle, since only one loop can
-# own the CPU at a time. Adds scan_status, a small dict class-5-code.py updates
-# each cycle with the collision-avoidance decision, merged into /data.json.
+# own the CPU at a time. Adds update(), which class-5-code.py calls to keep the
+# IMU filter running now that Class 4's loop is gone, and scan_status, a small
+# dict class-5-code.py updates each cycle with the collision-avoidance decision.
+# Everything above the routes (WiFi, IMU, Mahony filter, gyro bias calibration,
+# _update_orientation, latest_orientation) stays exactly as Class 4 left it.
 scan_status = {
     "scan_heading": 90,        # degrees -- last chosen heading, starts centered
     "drive_state": "driving",  # "driving" | "scanning" | "stopped"
@@ -384,10 +390,18 @@ scan_status = {
 }
 
 
+def update():
+    """Advance the IMU filter one step. Class 4's own main loop used to do this
+    every pass; that loop is gone now, so class-5-code.py calls update() instead."""
+    _update_orientation()
+
+
 @server.route("/data.json")
 def data_json(request: Request):
-    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
-    roll, pitch, yaw = _read_orientation()
+    # Unchanged from Class 4: keep the filter running during read_speed()'s 0.25 s window.
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed(
+        while_sampling=_update_orientation)
+    roll, pitch, yaw = latest_orientation  # kept current by update()
     return JSONResponse(request, {
         "speed_left_cms": speed_left,
         "dir_left": dir_left,
@@ -407,7 +421,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
+server.start(str(ap_ip), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
 # NOTE: the old "while True: server.poll()" loop is gone from this file --
 # class-5-code.py's own main loop polls it now (see below).
 ```
@@ -421,6 +435,17 @@ that one did.
 ```python
 # class-5-code.py -- Phase 2 additions (add alongside the Phase 1 code above)
 import rover_server  # Classes 3-4's website; today's edit removed its own poll() loop
+                     # (importing it calibrates the gyro -- keep the rover still at boot)
+
+
+def wait(seconds):
+    """Drop-in for time.sleep() that keeps rover_server's IMU filter running
+    about every 20 ms -- otherwise yaw would miss any turn made while sleeping.
+    Use it in place of every time.sleep() in scan(), turn_toward(), and below."""
+    end_time = time.monotonic() + seconds
+    while time.monotonic() < end_time:
+        rover_server.update()
+        time.sleep(0.02)
 
 
 def safety_override_triggered():
@@ -455,7 +480,7 @@ while True:
             motor_driver.stop()
             print("drive: emergency stop-and-reverse (safety override)")
             motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
-            time.sleep(0.3)  # back off enough to clear whatever triggered it
+            wait(0.3)  # back off enough to clear whatever triggered it
             motor_driver.stop()
             break
         distance = read_distance()
@@ -465,7 +490,7 @@ while True:
             break
         if time.monotonic() - last_scan_time >= SCAN_INTERVAL:
             break
-        time.sleep(0.05)
+        wait(0.05)
 
     rover_server.scan_status["stop_reason"] = stop_reason
     rover_server.scan_status["drive_state"] = "scanning"
@@ -499,6 +524,13 @@ flipping between `"driving"` and `"scanning"` as the rover cycles and `stop_reas
 whichever safety signal last fired. Confirm the Class 3-4 fields (`speed_left_cms`, `roll`, etc.)
 are still updating too — they shouldn't have stopped just because you edited the same file.
 
+>**NOTE — known limitation:** each time the browser asks for `/data.json`, `read_speed()` spends
+>about 0.25 s counting wheel ticks, and it does that *inside* `rover_server.server.poll()`. So while
+>the status page is open, the drive loop — including the bump-switch and IR checks — can pause for
+>up to 0.25 s about twice a second. At `DRIVE_SPEED = 0.4` that's acceptable for a class demo; for
+>the quickest reflexes, close the browser tab. Removing the pause for real means counting wheel
+>ticks without blocking, a redesign of `wheel_odometry.py` left for a future version of the course.
+
 ## 6. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
@@ -514,11 +546,13 @@ are still updating too — they shouldn't have stopped just because you edited t
 | Rover works on the bench but behaves erratically on the floor | Wheels slipping on the test surface, or the floor interfering with the ultrasonic beam | Test on a harder, flatter surface — this is a real-world limitation to note, not just a bug |
 | Bump switch never triggers even on a hard hit | Lever arm not mounted low/forward enough to actually contact obstacles, or `GP5` wiring loose | Reposition the switch so the lever leads the chassis edge; check wiring with a multimeter continuity test |
 | Rover constantly emergency-stops with nothing nearby | IR sensor's onboard sensitivity trimmer set too high, or aimed at a reflective floor | Turn the sensor's sensitivity trimmer down; re-aim slightly upward off the floor |
-| Rover backs into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `time.sleep(0.3)` backoff in `safety_override_triggered()`'s reverse step |
+| Rover backs into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `0.3` s backoff in the main loop's emergency stop-and-reverse step |
 | Website's new fields (`scan_heading`/`drive_state`/`stop_reason`) never appear or never change | Old Class 4 `rover_server.py` still on `CIRCUITPY`, or its old `while True: server.poll()` loop wasn't removed | Confirm only one `rover_server.py` exists and it's the Class 5 version; confirm `class-5-code.py` calls `rover_server.server.poll()` itself |
 | Website hangs/never responds once the rover starts driving | Both `rover_server.py`'s old loop and `class-5-code.py`'s new loop are calling `server.poll()` in separate blocking loops | Delete the old `while True: server.poll()` block from `rover_server.py` entirely — only `class-5-code.py`'s main loop should call it now |
 | Website's wheel-speed/orientation fields (Classes 3-4) stopped updating after today's edit | `GP19`/`GP17` or `GP0`/`GP1` wiring bumped while wiring today's limit switch/IR sensor | Re-verify those circuits weren't disturbed — they're unrelated to today's `GP5`/`GP13` wiring |
 | `NameError` or `AttributeError` mentioning `scan_status` or `server` | `class-5-code.py` imports `rover_server` but references `scan_status`/`server` directly instead of `rover_server.scan_status`/`rover_server.server` | Prefix both with `rover_server.` everywhere they're read or updated in `class-5-code.py` |
+| Rover reacts late to the bump switch/IR sensor, or turns overshoot, only while the status page is open | Each `/data.json` request blocks about 0.25 s in `read_speed()` inside `server.poll()` (see the known-limitation note in Phase 2) | Expected with the page open; close the browser tab for the quickest reflexes |
+| Website's `yaw` drifts or misses turns | `class-5-code.py` sleeps with `time.sleep()` instead of `wait()`, or never calls `rover_server.update()`, so the IMU filter stops between requests | Use `wait()` for every pause in `scan()`, `turn_toward()`, and the drive loop; keep the rover still while it boots so the gyro calibration is good |
 
 ## 7. Put It All Together
 
@@ -552,9 +586,11 @@ You need **four files** on your `CIRCUITPY` drive: `motor_driver.py` and `wheel_
 
 ```python
 # rover_server.py -- refactored this Class into a library. Same WiFi/server
-# setup, same /data.json route, same wheel_odometry + IMU reads as Classes
-# 3-4 -- but it no longer owns a "while True: server.poll()" loop, and it
-# adds scan_status for code.py to update with the collision-avoidance decision.
+# setup, same /data.json route, same wheel_odometry + IMU code as Class 4
+# (gyro bias calibration included -- keep the rover still while it boots) --
+# but it no longer owns a "while True: server.poll()" loop. It adds update()
+# for code.py to keep the IMU filter running, and scan_status for code.py to
+# fill in with the collision-avoidance decision.
 import os
 import math
 import time
@@ -566,37 +602,44 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.start_ap(
-    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
-)
-print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at http://{}:5000".format(wifi.radio.ipv4_address_ap))
+# Configure your Access Point credentials
+ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
+ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")   # Minimum 8 characters (or leave as "" for an open network)
 
+print("Starting Wi-Fi Access Point...")
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+
+# The default IP address for a CircuitPython AP is typically 192.168.4.1
+ap_ip = wifi.radio.ipv4_address_ap
+print(f"AP Active! Connect to SSID: '{ap_ssid}'")
+print(f"Server IP Address: {ap_ip}")
+
+# Set up socket pool and HTTP server
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
+#server = Server(pool, debug=True)
 
 i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as Class 4
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
-MAHONY_KP = 2.0   # calibrate: same tuned value as Class 4
-MAHONY_KI = 0.05  # calibrate: same tuned value as Class 4
+MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-phase-3-code.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-phase-3-code.py
+
+# Gyro bias settings -- same values and meaning as class-4-phase-3-code.py.
+CAL_SAMPLES = 200  # startup calibration: about 2 seconds of readings
+STILL_GYRO = 0.02  # rad/s: below this on every axis counts as "still"
+STILL_ACCEL = 0.3  # m/s^2: total acceleration this close to 1 g counts as "still"
+BIAS_ALPHA = 0.01  # while still, move the bias 1% of the way toward each reading
+GRAVITY = 9.81     # m/s^2
 
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
 integral_fbx = integral_fby = integral_fbz = 0.0
 last_time = time.monotonic()
 
-# New this Class: the collision-avoidance decision, updated each cycle by
-# code.py and merged into /data.json alongside wheel speed and orientation.
-scan_status = {
-    "scan_heading": 90,        # degrees -- last chosen heading, starts centered
-    "drive_state": "driving",  # "driving" | "scanning" | "stopped"
-    "stop_reason": "none",     # "none" | "ultrasonic" | "ir" | "limit_switch"
-}
-
 
 def _mahony_update(ax, ay, az, gx, gy, gz, dt):
-    # Identical math to Class 4's mahony_update() -- see Class 4's "Mahony
-    # filter" explanation for why fusing accel+gyro this way works.
+    # Identical math to class-4-phase-3-code.py's mahony_update() -- see Class 4's
+    # "Mahony filter" explanation for why fusing accel+gyro this way works.
     global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
     norm = (ax * ax + ay * ay + az * az) ** 0.5
     if norm == 0:
@@ -623,19 +666,67 @@ def _mahony_update(ax, ay, az, gx, gy, gz, dt):
     q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
 
 
+def _calibrate_gyro_bias():
+    """Same as class-4-phase-3-code.py: average the gyro while the rover sits still."""
+    print("Calibrating gyro -- keep the rover perfectly still...")
+    sum_x = sum_y = sum_z = 0.0
+    for _ in range(CAL_SAMPLES):
+        gx, gy, gz = imu.gyro  # already radians/sec
+        sum_x += gx
+        sum_y += gy
+        sum_z += gz
+        time.sleep(0.01)
+    return sum_x / CAL_SAMPLES, sum_y / CAL_SAMPLES, sum_z / CAL_SAMPLES
+
+
+def _is_still(ax, ay, az, gx, gy, gz):
+    """Same as class-4-phase-3-code.py: tiny rotation AND only gravity on the accelerometer."""
+    accel_mag = (ax * ax + ay * ay + az * az) ** 0.5
+    return (
+        abs(gx) < STILL_GYRO
+        and abs(gy) < STILL_GYRO
+        and abs(gz) < STILL_GYRO
+        and abs(accel_mag - GRAVITY) < STILL_ACCEL
+    )
+
+
 def _read_orientation():
     """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
-    global last_time
+    global last_time, bias_x, bias_y, bias_z
+    global integral_fbx, integral_fby, integral_fbz
     now = time.monotonic()
     dt = now - last_time
     last_time = now
     ax, ay, az = imu.acceleration
-    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    gx, gy, gz = imu.gyro  # already radians/sec
+    gx, gy, gz = gx - bias_x, gy - bias_y, gz - bias_z  # remove the gyro bias
+    if _is_still(ax, ay, az, gx, gy, gz):  # still: leftover reading is bias -- refine it
+        bias_x += BIAS_ALPHA * gx
+        bias_y += BIAS_ALPHA * gy
+        bias_z += BIAS_ALPHA * gz
+        integral_fbx = integral_fby = integral_fbz = 0.0  # Fix 2: clear integral windup
     _mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
     yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
     return roll, pitch, yaw
+
+
+# Measure the gyro bias once at startup (the rover must sit still while it
+# boots), then start the filter's clock so the first dt isn't the 2 s wait.
+bias_x, bias_y, bias_z = _calibrate_gyro_bias()
+last_time = time.monotonic()
+
+# The filter has to run continuously -- about every 20 ms, like Class 4 -- not
+# just when the browser asks for data. code.py's loop (via update()) and
+# read_speed() both call this; /data.json just reports the latest result.
+latest_orientation = (0.0, 0.0, 0.0)
+
+
+def _update_orientation():
+    """Advance the filter one step and remember the result for /data.json."""
+    global latest_orientation
+    latest_orientation = _read_orientation()
 
 
 STATUS_PAGE = """<!doctype html><html><body>
@@ -648,11 +739,28 @@ setInterval(() => fetch('/data.json').then(r => r.json())
 </script>
 </body></html>"""
 
+# New this Class: the collision-avoidance decision, updated each cycle by
+# code.py and merged into /data.json alongside wheel speed and orientation.
+scan_status = {
+    "scan_heading": 90,        # degrees -- last chosen heading, starts centered
+    "drive_state": "driving",  # "driving" | "scanning" | "stopped"
+    "stop_reason": "none",     # "none" | "ultrasonic" | "ir" | "limit_switch"
+}
+
+
+def update():
+    """Advance the IMU filter one step. Class 4's own main loop used to do this
+    every pass; that loop is gone now, so code.py calls update() instead."""
+    _update_orientation()
+
 
 @server.route("/data.json")
 def data_json(request: Request):
-    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
-    roll, pitch, yaw = _read_orientation()
+    # read_speed() spends 0.25 s counting wheel ticks; passing the filter update
+    # keeps orientation tracking running during that window (same as Class 4).
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed(
+        while_sampling=_update_orientation)
+    roll, pitch, yaw = latest_orientation  # kept current by update()
     return JSONResponse(request, {
         "speed_left_cms": speed_left,
         "dir_left": dir_left,
@@ -672,9 +780,10 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
+server.start(str(ap_ip), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
+print(f"HTTP Server running at http://{ap_ip}:5000")
 # NOTE: no "while True: server.poll()" loop here anymore -- code.py's own
-# main loop polls it now, once per cycle, so it can also keep driving.
+# main loop calls server.poll() and update() now, so it can also keep driving.
 ```
 
 `code.py` — Phase 1's collision-avoidance logic, plus Phase 2's `rover_server` import/polling:
@@ -689,7 +798,8 @@ import pwmio
 import adafruit_hcsr04
 from adafruit_motor import servo
 import motor_driver
-import rover_server  # now a library -- exposes server and scan_status
+import rover_server  # now a library -- exposes server, update(), and scan_status
+                     # (importing it calibrates the gyro -- keep the rover still at boot)
 
 sonar = adafruit_hcsr04.HCSR04(trigger_pin=board.GP6, echo_pin=board.GP7)
 pwm = pwmio.PWMOut(board.GP8, duty_cycle=0, frequency=50)
@@ -712,6 +822,14 @@ TURN_SECONDS_PER_DEGREE = 0.4 / 90  # replace 0.4 with your own measured 90-degr
 CENTER_ANGLE = 90
 
 
+def wait(seconds):
+    """time.sleep() that keeps rover_server's IMU filter running about every 20 ms."""
+    end_time = time.monotonic() + seconds
+    while time.monotonic() < end_time:
+        rover_server.update()
+        time.sleep(0.02)
+
+
 def read_distance():
     try:
         return sonar.distance
@@ -723,7 +841,7 @@ def scan():
     readings = {}
     for angle in SCAN_ANGLES:
         scan_servo.angle = angle
-        time.sleep(SETTLE_TIME)
+        wait(SETTLE_TIME)
         readings[angle] = read_distance()
         print("scan: angle", angle, "distance_cm", readings[angle])
     valid = {a: d for a, d in readings.items() if d is not None}
@@ -741,7 +859,7 @@ def turn_toward(angle):
         motor_driver.drive(DRIVE_SPEED, -DRIVE_SPEED)
     else:
         motor_driver.drive(-DRIVE_SPEED, DRIVE_SPEED)
-    time.sleep(turn_time)
+    wait(turn_time)
     motor_driver.stop()
 
 
@@ -772,7 +890,7 @@ while True:
             rover_server.scan_status["drive_state"] = "stopped"
             motor_driver.stop()
             motor_driver.drive(-DRIVE_SPEED, -DRIVE_SPEED)
-            time.sleep(0.3)
+            wait(0.3)
             motor_driver.stop()
             break
         distance = read_distance()
@@ -781,7 +899,7 @@ while True:
             break
         if time.monotonic() - last_scan_time >= SCAN_INTERVAL:
             break
-        time.sleep(0.05)
+        wait(0.05)
 
     rover_server.scan_status["stop_reason"] = stop_reason
     rover_server.scan_status["drive_state"] = "scanning"

@@ -922,15 +922,14 @@ the debounced button tonight.
 
 ### Homework 5 — Combination Lock: Using the KY-040's Built-In `SW` Pushbutton
 
-**What this teaches:** *(Requires one extra jumper wire — no new part.)* Every KY-040 module has a
-third signal besides `CLK` and `DT`: `SW`, a built-in pushbutton you get by pressing straight down
-on the knob's shaft. You've had it wired since Class 1 started but never used it — tonight's
-Section 3 even calls it out as "not used in this project." This exercise wires `SW` to its own
-GPIO pin, debounces it with the same `Debouncer` class as the standalone pushbutton, and combines
+**What this teaches:** *(No new part — `SW` is already wired to `GP18` from Phase 1.)* Every KY-040
+module has a third signal besides `CLK` and `DT`: `SW`, a built-in pushbutton you get by pressing
+straight down on the knob's shaft. Phase 1 used it only to reset the count, and the finished
+project leaves it unused. This exercise reads `SW` on `GP18`, debounces it with the same `Debouncer` class as the standalone pushbutton, and combines
 all three signals (`CLK`/`DT` to pick a digit, `SW` to confirm it, the outer pushbutton to reset)
 into a simple sequential state machine — a 3-digit combination lock.
 
-**Wiring — add to tonight's circuit:**
+**Wiring — already on tonight's circuit (confirm it's still connected):**
 * [Raspberry Pi Pico 2w Pinout][20]
 
 | Pico 2 W Pin | Encoder Pin | Signal / Function |
@@ -957,11 +956,11 @@ encoder_dt = digitalio.DigitalInOut(board.GP4)
 encoder_dt.direction = digitalio.Direction.INPUT
 encoder_dt.pull = digitalio.Pull.UP
 
-# --- NEW: the KY-040's own built-in pushbutton, wired to GP5 ---
+# --- The KY-040's own built-in pushbutton, wired to GP18 ---
 # Every KY-040 has this third signal (SW) alongside CLK/DT, wired the same
-# active-low way as the standalone pushbutton -- we just haven't used it
-# until now. It debounces with the same Debouncer class as any other switch.
-encoder_sw_pin = digitalio.DigitalInOut(board.GP5)
+# active-low way as the standalone pushbutton -- Phase 1 only used it to reset
+# the count. Here it debounces with the same Debouncer class as any other switch.
+encoder_sw_pin = digitalio.DigitalInOut(board.GP18)
 encoder_sw_pin.direction = digitalio.Direction.INPUT
 encoder_sw_pin.pull = digitalio.Pull.UP
 encoder_button = Debouncer(encoder_sw_pin)

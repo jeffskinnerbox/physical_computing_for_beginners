@@ -10,7 +10,7 @@
     loop, with `motor_driver.py` present on your `CIRCUITPY` drive. Class 1's encoder circuit should
     still be intact on your breadboard, even though unused since Class 1 — you'll reconnect it today
     if you attempt Stretch 1. Class 4's IMU circuit should also still be intact, but it's not
-    actually idle: `rover_server.py` has kept reading it every request since Class 4, since the
+    actually idle: `rover_server.py` has kept reading it continuously since Class 4, since the
     website has carried orientation data all along — Stretch 2 below just adds a history chart on
     top of readings the site is already serving.
 
@@ -223,17 +223,18 @@ Class 3.
 
 `class-6-code-2.py` is a small module imported *alongside* `class-5-code.py` (or
 `class-6-code-1.py`, if you merged Stretch 1) — it is not saved as `code.py` on its own, since it
-has no main loop of its own to run.
+has no main loop of its own to run. Save it as `history_chart.py` (Python can't `import` a name
+with dashes in it), then add `import history_chart` near the top of your rover's `code.py`, right
+after `import rover_server` and before the main loop starts.
 
 ```python
-# class-6-code-2.py
+# class-6-code-2.py -- save as history_chart.py; code.py does `import history_chart`
 # Stretch 2: add a rolling-history chart to the rover website already running
 # since Class 3. Reuses rover_server's `server` object -- no new WiFi join, no
-# new adafruit_httpserver instance. This file only registers one new route and
-# appends a small history section to the existing status page's HTML.
+# new adafruit_httpserver instance. This file only appends a small history
+# section to the existing status page's HTML.
 
 import rover_server  # Classes 3-5's website; server/scan_status already exist
-from adafruit_httpserver import Request, Response
 
 CHART_PAGE_ADDITION = """
 <h2>Recent History</h2>
@@ -275,17 +276,11 @@ rover_server.STATUS_PAGE = rover_server.STATUS_PAGE.replace(
     "</body>", CHART_PAGE_ADDITION + "</body>"
 )
 
-
-@rover_server.server.route("/")
-def index(request: Request):
-    # Re-registers "/" so it serves the STATUS_PAGE string *after* today's edit
-    # above. rover_server.server already exists -- nothing new is started here.
-    return Response(request, rover_server.STATUS_PAGE, content_type="text/html")
-
+# No new route is needed: rover_server's existing "/" handler looks up
+# STATUS_PAGE each time a browser asks, so it serves the edited page from now on.
 # No new main loop, no new server.start(), no new server.poll() loop here --
 # class-5-code.py's (or class-6-code-1.py's, if merged) existing main loop
-# already calls rover_server.server.poll() every cycle; that single call keeps
-# answering this new "/" route too.
+# already calls rover_server.server.poll() every cycle.
 ```
 
 ### Try it / what you should see
@@ -356,7 +351,8 @@ displayio.release_displays()
 
 spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
-display = ST7789(display_bus, width=240, height=135, rotation=270)
+# rowstart/colstart shift drawing onto the visible glass -- see the Pre-Class TFT homework note
+display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 
 group = displayio.Group()
 distance_label = label.Label(terminalio.FONT, text="dist: -- cm", x=10, y=20, scale=2)
@@ -401,9 +397,9 @@ allows.
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, failed buck converter, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch 1: `current_speed` never changes | Encoder wiring drifted since Class 1, or the code wasn't actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was done, not just run standalone |
 | Stretch 1: speed changes but the rover jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
-| Stretch 2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then runs `class-6-code-2.py`'s edit |
+| Stretch 2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then `import history_chart` (`class-6-code-2.py`) |
 | Stretch 2: chart appears but is flat/frozen, other fields on the page also stopped updating | Rover's main loop stopped calling `rover_server.server.poll()` (same failure mode Class 5 introduced) | Confirm the main drive loop still calls `rover_server.server.poll()` every cycle |
-| Stretch 2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `/` route re-registration didn't take effect, or the browser is caching an old page | Hard-refresh the browser page; confirm only one `@rover_server.server.route("/")` handler is defined |
+| Stretch 2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `class-6-code-2.py` was imported after the browser loaded the page, or the browser is caching an old page | Hard-refresh the browser page; confirm `code.py` does `import history_chart` before its main loop starts |
 | Stretch 2: chart plots roll/pitch but not wheel speed (or vice versa) | `drawSeries` called with a field name that doesn't match `/data.json`'s actual key (e.g. `speed_left_cms`) | Check the exact field names already established in Classes 3-5's `/data.json` response |
 | Stretch 3: blank/garbled TFT screen | SPI pins mismatched, or `displayio.release_displays()` was omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch 3: TFT shows only demo values | Demo variables never replaced with the real rover variables | Expected unless full integration was completed — not a bug, just an unfinished integration step |
@@ -440,7 +436,7 @@ and `class-6-code-3.py` (Stretch 3). Full integration of Stretch 1 or Stretch 3 
 logic into `class-5-code.py` rather than running it standalone — the specific merge points are
 called out in each section above. Stretch 2 is different: `class-6-code-2.py` is never merged into
 `class-5-code.py`'s logic — it's simply imported alongside it (after `rover_server`) so its
-one-time `STATUS_PAGE` edit and route re-registration take effect before the rover's existing main
+one-time `STATUS_PAGE` edit takes effect before the rover's existing main
 loop starts calling `rover_server.server.poll()`.
 
 ## 10. What You Learned

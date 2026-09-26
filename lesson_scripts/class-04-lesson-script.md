@@ -1010,8 +1010,8 @@ This is the finished project in one place. Unlike Phases 1-3, where `code.py` an
 viewer were the only pieces, this Class actually finishes with *two different things* `code.py`
 could be — the IMU-streaming/3D-viewer pair (Phases 1-3) or the extended rover status website
 (Phase 4) — since neither runs at the same time as the other (see Phase 4's "What this code does"
-for why). Save whichever one you want running as `code.py`; swap between them by replacing that one
-file. Both are shown below so you have the complete, final version of each in one place.
+for why). Swap between them by replacing `code.py`: Option A's program itself, or Option B's
+one-line `import rover_server` wrapper. Both are shown below so you have the complete, final version of each in one place.
 
 ### Complete wiring
 
@@ -1203,11 +1203,13 @@ while True:
     fig.canvas.flush_events()
 ```
 
-**Option B — `code.py` as the extended rover status website** (same as Phase 4, unchanged). You
-also need `motor_driver.py` and `wheel_odometry.py` still on `CIRCUITPY`, unchanged from Class 3:
+**Option B — `rover_server.py` plus the one-line `code.py` wrapper** (same as Phase 4, unchanged).
+Save this as `rover_server.py`, not `code.py` — Class 5 imports it by that name. `code.py` is the
+same one-line `import rover_server` from Class 3. You also need `motor_driver.py` and
+`wheel_odometry.py` still on `CIRCUITPY`, unchanged from Class 3:
 
 ```python
-# code.py -- complete project, option B: rover status website with orientation.
+# rover_server.py -- complete project, option B: rover status website with orientation.
 # Extends the Class 3 rover status website with IMU orientation. Same server,
 # same /data.json route -- just three new keys. Reuses the Mahony filter code
 # from class-4-phase-3-code.py rather than reinventing it (but as a copy, not an
@@ -1400,6 +1402,11 @@ while True:
     except Exception as e:
         print(f"Server error: {e}")
 
+```
+
+```python
+# code.py -- runs the rover status website (same one-line wrapper as Class 3)
+import rover_server
 ```
 
 To satisfy this Class's milestone (a live 3D orientation display *and* orientation visible on the

@@ -1162,7 +1162,7 @@ import time
 import motor_driver
 import straight_drive
 
-RUN_SECONDS = 6       # [VERIFY] about 16 correction cycles: long enough to show a clear curve without leaving the tape
+RUN_SECONDS = 4       # [VERIFY] about 16 correction cycles: long enough to show a clear curve without leaving the tape
 RESET_SECONDS = 15    # [VERIFY] time to measure the drift and carry the car back to the start line
 
 print("\nRun 1 -- open loop: equal throttle, no feedback")

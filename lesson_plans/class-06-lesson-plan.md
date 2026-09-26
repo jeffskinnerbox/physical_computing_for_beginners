@@ -10,7 +10,7 @@
   the CIRCUITPY drive. Class 1's button/encoder circuit (`GP2`-`GP4`, `GP14`-`GP15`) should still be
   intact on the breadboard, even though unused since Class 1 — it's reconnected today for Stretch 1.
   Class 4's IMU circuit (`GP0`/`GP1`) should also still be intact, but it isn't actually idle:
-  `rover_server.py` has kept reading it every request since Class 4, since the website has carried
+  `rover_server.py` has kept reading it continuously since Class 4, since the website has carried
   orientation data all along — Stretch 2 just adds a history chart on top of readings the site is
   already serving.
 
@@ -261,7 +261,8 @@ main drive loop) is the actual integration step, not just running this file stan
 this stretch needs (the Pico's own WiFi network, `adafruit_httpserver`, the Class 4 IMU on `SDA`
 `GP0`/`SCL` `GP1`) has been running since Class 3 and is already on every student's board.
 
-Load `class-6-code-2.py`. This file does **not** join WiFi or start a server — it imports the
+Load `class-6-code-2.py`, saved as `history_chart.py` (a dashed name can't be imported) and pulled in
+with `import history_chart` right after `import rover_server` in the rover's `code.py`. This file does **not** join WiFi or start a server — it imports the
 already-running `rover_server` module (same file since `class-3-phase-4-rover_server.py`, extended in Classes 4-5)
 and edits it in place: a rolling ~150-sample history buffer, plus a hand-drawn HTML5 canvas chart
 added to the existing status page, polling the existing `/data.json` route every 200ms and plotting
@@ -269,13 +270,12 @@ roll/pitch (already in the response since Class 4) and wheel speed (already in t
 Class 3) over time.
 
 ```python
-# class-6-code-2.py
+# class-6-code-2.py -- save as history_chart.py; code.py does `import history_chart`
 # Stretch #2: add a rolling-history chart to the rover website already running
 # since Class 3. Reuses rover_server's `server` object -- no new WiFi join, no
-# new adafruit_httpserver instance. This file only registers one new route and
-# appends a small history section to the existing status page's HTML.
+# new adafruit_httpserver instance. This file only appends a small history
+# section to the existing status page's HTML.
 import rover_server  # Classes 3-5's website; server/scan_status already exist
-from adafruit_httpserver import Request, Response
 
 CHART_PAGE_ADDITION = """
 <h2>Recent History</h2>
@@ -317,17 +317,11 @@ rover_server.STATUS_PAGE = rover_server.STATUS_PAGE.replace(
     "</body>", CHART_PAGE_ADDITION + "</body>"
 )
 
-
-@rover_server.server.route("/")
-def index(request: Request):
-    # Re-registers "/" so it serves the STATUS_PAGE string *after* today's edit
-    # above. rover_server.server already exists -- nothing new is started here.
-    return Response(request, rover_server.STATUS_PAGE, content_type="text/html")
-
+# No new route is needed: rover_server's existing "/" handler looks up
+# STATUS_PAGE each time a browser asks, so it serves the edited page from now on.
 # No new main loop, no new server.start(), no new server.poll() loop here --
 # class-5-code.py's (or class-6-code-1.py's, if merged) existing main loop
-# already calls rover_server.server.poll() every cycle; that single call keeps
-# answering this new "/" route too.
+# already calls rover_server.server.poll() every cycle.
 ```
 
 **What to watch for:** If the chart never appears, confirm `class-6-code-2.py` actually ran (it must
@@ -373,7 +367,8 @@ displayio.release_displays()
 
 spi = busio.SPI(clock=board.GP26, MOSI=board.GP27)
 display_bus = FourWire(spi, command=board.GP21, chip_select=board.GP20, reset=board.GP22)
-display = ST7789(display_bus, width=240, height=135, rotation=270)
+# rowstart/colstart shift drawing onto the visible glass -- see the Pre-Class TFT homework note
+display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, colstart=53)
 
 group = displayio.Group()
 distance_label = label.Label(terminalio.FONT, text="dist: -- cm", x=10, y=20, scale=2)
@@ -459,9 +454,9 @@ driver skills built here, with N20 geared motors and a new competitive line-sens
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, failed buck converter, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
 | Stretch #1: `current_speed` never changes | Encoder wiring drifted since Class 1, or `class-6-code-1.py` not actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was actually done, not just run standalone |
 | Stretch #1: rover speed changes but jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
-| Stretch #2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then runs `class-6-code-2.py`'s edit |
+| Stretch #2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then `import history_chart` (`class-6-code-2.py`) |
 | Stretch #2: chart appears but is flat/frozen, other fields on the page also stopped updating | Rover's main loop stopped calling `rover_server.server.poll()` (same failure mode Class 5 introduced) | Confirm the main drive loop still calls `rover_server.server.poll()` every cycle |
-| Stretch #2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `/` route re-registration didn't take effect, or browser is caching an old page | Hard-refresh the browser page; confirm only one `@rover_server.server.route("/")` handler is defined |
+| Stretch #2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `class-6-code-2.py` was imported after the browser loaded the page, or the browser is caching an old page | Hard-refresh the browser page; confirm `code.py` does `import history_chart` before its main loop starts |
 | Stretch #2: chart plots roll/pitch but not wheel speed (or vice versa) | `drawSeries` called with a field name that doesn't match `/data.json`'s actual key (e.g. `speed_left_cms`) | Check the exact field names already established in Classes 3-5's `/data.json` response |
 | Stretch #3: blank/garbled TFT screen | `SPI`/`command`/`chip_select`/`reset` pins mismatched, or `displayio.release_displays()` omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch #3: TFT shows only demo values, never real rover data | Demo variables never replaced with the actual `class-5-code.py`/`class-6-code-1.py` variables | This is expected unless full integration was completed — note as a partial-credit milestone, not a bug |

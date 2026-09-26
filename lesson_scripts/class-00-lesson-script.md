@@ -916,7 +916,7 @@ status_label.anchored_position = (display.width // 2, display.height // 2)
 
 main_group = displayio.Group()
 main_group.append(status_label)
-#display.root_group = main_group  # setting this is what stops the console mirroring
+display.root_group = main_group  # setting this is what stops the console mirroring
 
 ir_sensor = digitalio.DigitalInOut(board.GP13)
 ir_sensor.direction = digitalio.Direction.INPUT
@@ -939,18 +939,17 @@ while True:
 ```
 
 #### What You Observe
-If you're doing this homework on the same breadboard as Homework 3 (TFT display still
+If you run the **first** program above on the same breadboard as Homework 3 (TFT display still
 wired), you may notice the TFT starts mirroring the exact same text you see in the serial console.
 That's not a bug — it's a built-in CircuitPython behavior: any `displayio` display stays
 registered as the active display across a save/reload until something either releases it
 (`displayio.release_displays()`) or gives it its own `root_group`.
-Homework 3's code registered the TFT and set a `root_group`;
-this program never touches `displayio` at all, so CircuitPython
-falls back to showing its console output on the still-registered display.
+Homework 3's code registered the TFT; the first IR program never touches `displayio` at all, so
+CircuitPython falls back to showing its console output on the still-registered display.
 
-To stop that and show your own independent text instead, add a small `displayio` block that sets `root_group`,
-and once set, the console mirroring stops.
-In the code above, printing sensor status to the TFT instead of (or in addition to) the serial console.
+The **second** program fixes that: it releases the old display, sets up its own, and assigns its
+own `root_group` — the moment that line runs, the console mirroring stops and the TFT shows
+`clear` in green or `OBSTACLE DETECTED` in red, independent of the serial console.
 
 #### Real World Examples
 
