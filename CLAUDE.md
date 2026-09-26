@@ -49,6 +49,10 @@ Lesson scripts are student-facing, detailed build+code walkthroughs (not the ins
 lesson plan) — explanatory text plus fully-commented CircuitPython built up in phases, with the
 complete final code listed at the end. All seven (`class-00` through `class-06`) exist in
 `lesson_scripts/`. Regenerate/reconcile them the same class-at-a-time way as lesson plans.
+Each "Build It: Phase N" section has a fixed subsection order — Wiring for this phase →
+Software for this phase (table: component | new / modified / unchanged + its
+`class-xx-phase-x-*.py` id | what it does) → What this code does → The code → Try it / what you
+should see → Checkpoint. Keep that order and the Software table in sync when phase code changes.
 
 `my-vision.md`'s Course Documentation table also lists a few document types with no skill built
 yet and not present in the repo (build guide, wiring diagrams, code snippets, tested project
@@ -74,9 +78,11 @@ sensor+servo+motor driver combined for collision avoidance, scan/heading/stop te
 the rover website) → Class 6 (finish Rover + stretch goals: encoder speed control, rolling-history
 chart added to the rover website, TFT status display). GPIO pin assignments are deliberately
 non-overlapping across classes so old circuits keep working when new ones are added — preserve
-that when editing class code or wiring docs. `class-N-code-*.py` files referenced throughout
-`my-vision.md` are pseudocode/code deliverables to be generated per-class (see "My 5th Prompt" in
-`input/my-prompts.md`), not yet present in the repo as of this writing.
+that when editing class code or wiring docs.
+
+The Pico-hosted rover status website (Classes 3–6) runs the Pico as a WiFi access point
+(`http://192.168.4.1:5000`) on **port 5000, not 80**, because CircuitPython's Web Workflow may
+already hold port 80 — keep that consistent across lesson plans/scripts when editing server code.
 
 ## Markdown conventions (all generated docs)
 
@@ -138,7 +144,7 @@ that reads roll/pitch/yaw CSV over USB serial; its canonical copy is embedded in
 `lesson_scripts/class-04-lesson-script.md`, so keep the two in sync). `pyproject.toml` declares the
 wireframe deps (numpy, matplotlib, pyserial); flask and ruff sit in `src/.venv` undeclared, so
 `uv sync` will remove them — add new deps with `uv add`.
-Run with `cd src && uv run python wireframe.py /dev/ttyACM0` (`COM5`-style port on Windows);
+`main.py` is just the `uv init` stub. Run with `cd src && uv run python wireframe.py /dev/ttyACM0` (`COM5`-style port on Windows);
 lint with `uv run ruff check`. Pico-side CircuitPython can't run here — it needs the board.
 
 `tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated

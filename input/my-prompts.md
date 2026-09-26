@@ -750,7 +750,10 @@ you plans for the update).
 /clear
 /init
 Check all documents in the directory for consistency and completeness.
-Do this for all for all text and code.
+Do this for all text and code in the entire directory.
+Make sure documents are consistent with @input/my-vision.md.
+At this time, the definitive sources are likely the documents in @lesson_scripts.
+
 Use the `/grill-me` skill to clarify any questions you may have.
 When you find inconsistencies or incompleteness, describe to me what you found,
 list the options for changes to correct it,
@@ -758,7 +761,7 @@ recommend the changes to apply, and get my approval before making any changes.
 
 ----
 
-## My 29th Prompt - Recommand a Code Block
+## My 29th Prompt - Recommend a Code Block
 I'm testing the code in @lesson_scripts/class-03-lesson-script.md section
 "## 7. Build It: Phase 4 — Rover Status Website"
 and it recommend a code block to perform the test in section "#### Step 2 — the actual mission".
