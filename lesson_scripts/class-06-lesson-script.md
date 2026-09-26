@@ -100,6 +100,16 @@ No wiring changes. Confirm your Class 5 rover circuit is intact — if it regres
 mount, dead 9V battery, failed buck converter, a missing `motor_driver.py`), restore it to a
 known-working Class 5 state before attempting any stretch goal.
 
+### Software for this phase
+
+No new code — you tune the program you finished in Class 5. Everything else stays exactly as Class 5 left it.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **Modified** (constants only) — `class-5-code.py` | The Random Rover's stop-look-go program. You adjust `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, and `TURN_SECONDS_PER_DEGREE` until it avoids obstacles reliably. |
+| `rover_server.py` | **Unchanged** — Class 5 library version | Keeps publishing the rover's status to its webpage while you tune. |
+| `motor_driver.py`, `wheel_odometry.py` | **Unchanged** — `class-3-phase-1-motor-driver.py`, `class-3-phase-3-wheel_odometry.py` | Drive the rover and report wheel speed, as in Class 5. |
+
 ### What to do
 
 Revisit `class-5-code.py`'s constants — `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`,

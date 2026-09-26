@@ -225,6 +225,16 @@ Before writing any code, trace this wiring out loud, and specifically confirm tw
 >**NOTE:** Make sure you have the DRV8833 `SLP`/`nSLEEP` jumpered to Pico `3V3`.
 >A missing `SLP`/`nSLEEP` jumper produces code that runs and prints normally while the motors never move at all.
 
+### Software for this phase
+
+This phase introduces the pattern the rest of the course builds on: a small library file saved under its own name, plus a short `code.py` that imports and tests it.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `motor_driver.py` | **New** — `class-3-phase-1-motor-driver.py` | Library that wraps the DRV8833's PWM control in simple `drive(left, right)` and `stop()` functions, capped at `MAX_THROTTLE`. It also remembers each motor's last commanded direction for Phase 3. |
+| `code.py` | **New** — `class-3-phase-1-code.py` | Scratch test that imports `motor_driver` and runs forward, reverse, a turn, and stop, printing each move. |
+| `adafruit_motor` folder (in `/lib`) | **Unchanged** — from Class 2 | Its `motor` module drives the DC motors, the same library Class 2 used for the servo. |
+
 ### What this code does
 
 This phase is two files. First, `motor_driver.py` — a small library, not something you run
@@ -355,6 +365,15 @@ together, and `drive(-0.5, 0.5)` spins the wheels in opposite directions (a turn
 ### Wiring for this phase
 
 No wiring changes — same circuit as Phase 1.
+
+### Software for this phase
+
+Only `code.py` changes; the motor library from Phase 1 is imported as-is.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** — `class-3-phase-2-code.py`, replaces `class-3-phase-1-code.py` | Builds `drive_straight()` and `turn_90()` out of timed moves, then chains them into a 35 cm square and circle. It's open-loop: nothing checks where the car actually went. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Turns each timed move into motor commands. |
 
 ### What this code does
 
@@ -516,6 +535,17 @@ that count in a moment.
 | Both optocouplers `VCC` | Pico `3V3` |
 | Both optocouplers `GND` | Pico `GND` |
 
+### Software for this phase
+
+A second library joins `motor_driver.py`, tested by another short scratch `code.py`. Its libraries are the same two you copied for Class 1, so there's nothing new to download.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `wheel_odometry.py` | **New** — `class-3-phase-3-wheel_odometry.py` | Library that counts debounced optocoupler ticks over a short window and converts them to each wheel's speed in cm/s. It pairs each speed with `motor_driver`'s last commanded direction. |
+| `code.py` | **New** — `class-3-phase-3-code.py`, replaces `class-3-phase-2-code.py` | Scratch test that drives forward, then backward, printing `read_speed()` each cycle. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Drives the wheels for the test and supplies each wheel's direction to `wheel_odometry`. |
+| `adafruit_debouncer.mpy` + `adafruit_ticks.mpy` (in `/lib`) | **Unchanged** — from Class 1 | Filter each optocoupler signal so one slot passing the sensor counts as exactly one tick. |
+
 ### What this code does
 
 `wheel_odometry.py` is a second library file, saved alongside `motor_driver.py` — it doesn't run on
@@ -668,6 +698,19 @@ Phases 1-3, these aren't your classroom's existing WiFi credentials — they're 
 *you're choosing* for the Pico's own broadcast network (pick a name nobody else in the room is
 using, since everyone's Pico broadcasts at once; the password must be at least 8 characters for
 CircuitPython's `start_ap()` to accept it).
+
+### Software for this phase
+
+No new wiring, but new software on three fronts: a website library, a one-line `code.py` that starts it, and your own WiFi network settings in `settings.toml`.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `rover_server.py` | **New** — `class-3-phase-4-rover_server.py` | Broadcasts the Pico's own WiFi network and serves a status webpage plus a `/data.json` route with live wheel speed and direction. Classes 4-6 keep extending this same file. |
+| `code.py` | **New** — `class-3-phase-4-code.py`, replaces `class-3-phase-3-code.py` | The manual-check version is one line, `import rover_server`, which starts the website. The automatic-check version also drives the motors so the page updates on its own. |
+| `settings.toml` | **Modified** — add `CIRCUITPY_WIFI_AP_SSID` and `CIRCUITPY_WIFI_AP_PASSWORD` | Holds the network name and password you choose for the Pico's own WiFi network. The password must be at least 8 characters. |
+| `adafruit_httpserver` folder (in `/lib`) | **New** — copy from the Library Bundle | The small web server library that answers the browser's requests for the page and `/data.json`. |
+| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Supplies the wheel speed and direction that `/data.json` reports. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Imported by `wheel_odometry` for direction, and by the automatic check to drive the wheels. |
 
 ### What this code does
 
@@ -991,6 +1034,17 @@ for a *steady* difference:
 
 No new wiring — same circuit as Phase 3, with both optocouplers mounted and working.
 
+### Software for this phase
+
+A third library turns wheel speed into steering corrections, plus a `code.py` that compares driving with and without it. It runs on its own, not alongside the website.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `straight_drive.py` | **New** — `class-3-phase-5-straight_drive.py` | Library with `drive_straight_feedback(seconds)`: it measures both wheel speeds, compares them, and slows the faster wheel a little each cycle. That makes it an integral controller tuned by `KI`. |
+| `code.py` | **New** — `class-3-phase-5-code.py`, replaces the Phase 4 `code.py` | Drives the same straight line twice, once open-loop and once with feedback, so you can compare the sideways drift. |
+| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Provides the wheel speeds the feedback loop compares. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Applies the corrected throttle to each wheel. |
+
 ### What this code does
 
 `straight_drive.py` is a small library with one function, `drive_straight_feedback(seconds)`. It
@@ -1237,6 +1291,18 @@ Keep a log as you go, one row per setting:
 
 No new wiring — same circuit as Phase 5. You are only changing two constants and reading the same
 serial output.
+
+### Software for this phase
+
+Two scratch programs take turns as `code.py`. `straight_drive.py` isn't edited while you tune — the sweep sets its `KI` and `MAX_TRIM` from outside — until you save the winning values into it at the end.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` (measure `k`) | **New** — `class-3-phase-6-measure-k.py` | Drives at a few throttle levels and measures `k`, the cm/s of wheel speed gained per `1.0` of throttle. `k` tells you where to start `KI`. |
+| `code.py` (sweep) | **New** — `class-3-phase-6-code.py`, replaces `class-3-phase-6-measure-k.py` | Runs the feedback drive several times for each `(KI, MAX_TRIM)` pair in a list, printing a banner before each run. It stops between runs so you can measure the drift. |
+| `straight_drive.py` | **Unchanged** — `class-3-phase-5-straight_drive.py`; only its `KI`/`MAX_TRIM` values change at the end | The feedback controller being tuned. It reads `KI` and `MAX_TRIM` each time it runs, which is why the sweep can override them. |
+| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Provides the wheel speeds for both the `k` measurement and the feedback loop. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Drives the wheels for every run. |
 
 ### What this code does
 

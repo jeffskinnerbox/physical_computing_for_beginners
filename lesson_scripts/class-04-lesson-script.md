@@ -118,6 +118,15 @@ Your Class 1-3 circuits stay exactly where they are on the breadboard. Before wr
 trace this wiring out loud — especially confirm `SDA`/`SCL` aren't swapped, since I2C devices
 commonly fail *silently* (no error, just no data at all) when they are.
 
+### Software for this phase
+
+A new `code.py` and one new library. Class 3's files (`motor_driver.py`, `wheel_odometry.py`, `rover_server.py`) stay on `CIRCUITPY` for Phase 4, but aren't used here.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** — `class-4-phase-1-code.py` | Reads the accelerometer and gyroscope, fuses them with a Mahony filter into roll/pitch/yaw, and prints them as CSV lines about 50 times a second. |
+| `adafruit_lsm9ds1.mpy` (in `/lib`) | **New** — copy from the Library Bundle | Driver for the LSM9DS1 IMU over I2C. Its `gyro` property already returns radians/sec. |
+
 ### What this code does
 
 This program reads raw acceleration and rotation-rate values from the IMU, feeds them into a
@@ -253,6 +262,16 @@ produces sensible roll/pitch changes you can visually correlate to the motion yo
 No wiring changes — same as Phase 1. This phase is entirely software, and it runs on your
 **laptop**, not the Pico. Leave `class-4-phase-1-code.py` running on the Pico; you're adding a second,
 separate program on your laptop that reads what the Pico is printing.
+
+### Software for this phase
+
+The first software in the course that runs on your laptop instead of the Pico. The Pico keeps running Phase 1's program unchanged.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `wireframe.py` (laptop) | **New** — `class-4-phase-2-wireframe.py` | Reads the Pico's roll/pitch/yaw lines over USB serial and draws a live 3D box rotated to match. It labels the X/Y/Z axes and the box's red `Front` and `Right` faces. |
+| `pyserial`, `matplotlib`, `numpy` (laptop) | **New** — `pip install pyserial matplotlib numpy` | Python packages for the laptop: `pyserial` reads the USB serial port, `numpy` does the rotation math, and `matplotlib` draws the 3D box. |
+| `code.py` (on the Pico) | **Unchanged** — `class-4-phase-1-code.py` | Keeps streaming the roll/pitch/yaw CSV that `wireframe.py` draws. |
 
 ### What this code does
 
@@ -414,6 +433,16 @@ yaw should each visibly correspond to a specific physical motion.
 
 No wiring changes — same as Phase 1. This phase replaces the Pico's `code.py` with an improved
 version; Phase 2's `wireframe.py` on your laptop works with it unchanged.
+
+### Software for this phase
+
+One file changes: the Pico's `code.py` gains gyro bias calibration. Its output format doesn't change, so the laptop side needs no edits.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **Modified** — `class-4-phase-3-code.py`, replaces `class-4-phase-1-code.py` | Phase 1's program plus a 2-second startup gyro bias measurement and continuous bias refinement whenever the board is still. Yaw holds steady instead of drifting. |
+| `wireframe.py` (laptop) | **Unchanged** — `class-4-phase-2-wireframe.py` | Draws the same CSV stream; it skips the new calibration message lines automatically. |
+| `adafruit_lsm9ds1.mpy` (in `/lib`) | **Unchanged** — from Phase 1 | Reads the accelerometer and gyroscope, including the readings averaged during calibration. |
 
 ### Why yaw drifts (and why the filter can't fix it)
 
@@ -624,6 +653,19 @@ yaw.
 
 No new wiring — same IMU wiring as Phase 1. This phase edits software only, and it edits your
 Class 3 `rover_server.py`, not `class-4-phase-3-code.py`.
+
+### Software for this phase
+
+The Class 3 website file gets three new fields and Phase 3's calibrated IMU code. Every other file it relies on comes from Class 3 unchanged.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `rover_server.py` | **Modified** — `class-4-phase-4-rover_server.py`, edits `class-3-phase-4-rover_server.py` | Same WiFi network, server, and webpage, now also reading and fusing the IMU. `/data.json` gains `roll`, `pitch`, and `yaw` next to the wheel fields. |
+| `code.py` | **Unchanged** — `class-3-phase-4-code.py` | The one-line `import rover_server` that starts the website. It goes back in place of Phase 3's IMU program, since only one program runs at a time. |
+| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Still supplies the wheel speed and direction fields. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Imported by `wheel_odometry` for each wheel's direction. |
+| `adafruit_lsm9ds1.mpy`, `adafruit_httpserver` (in `/lib`) | **Unchanged** — from Phase 1 and Class 3 | The IMU driver and the web server library the website needs. |
+| `settings.toml` | **Unchanged** — from Class 3 | Same network name and password for the Pico's WiFi network. |
 
 ### What this code does
 

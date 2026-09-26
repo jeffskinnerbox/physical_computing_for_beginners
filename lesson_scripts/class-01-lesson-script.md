@@ -148,6 +148,15 @@ only the code does.
 Before writing any code, trace your own wiring against this table out loud — wiring mistakes are
 much faster to catch now than after you're staring at confusing code output.
 
+### Software for this phase
+
+Phase 1 is two short programs, run one after the other as `code.py`. Both use only modules built into CircuitPython (`board`, `digitalio`, `rotaryio`, `pwmio`), so there's nothing to copy into `/lib` yet.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` (encoder only) | **New** — `class-1-code-1A.py` | Reads the rotary encoder with no filtering and prints its position. Pressing the knob resets the count to zero. |
+| `code.py` (encoder + buttons + LEDs) | **New** — `class-1-code-1B.py`, replaces `class-1-code-1A.py` | Adds the pushbutton and both LEDs, still with no debouncing. It's deliberately naive so you can watch one press or turn produce several erratic readings. |
+
 ### Understanding Pull-Up & Pull-Down Resistors
 [Pull-up and pull-down resistors][37] are basic electronic components used in digital circuits
 to give an input pin a clear, default voltage state and prevent a "floating" (unpredictable) condition
@@ -350,6 +359,16 @@ touching the code — a miss-wired pin is far more likely than a code bug at thi
 ### Wiring for this phase
 
 No wiring changes — same circuit as Phase 1.
+
+### Software for this phase
+
+Same circuit, better code: `code.py` is replaced with a debounced version, and you copy your first two libraries from the Library Bundle.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **Modified** — `class-1-code-2.py`, replaces `class-1-code-1B.py` | Reads the same button and encoder, but filters out switch bounce. The button uses a `Debouncer`; the encoder ignores changes that arrive too soon after the last one. |
+| `adafruit_debouncer.mpy` (in `/lib`) | **New** — copy from the Library Bundle | Tracks a pin's state over time and reports a press only once it has been stable. |
+| `adafruit_ticks.mpy` (in `/lib`) | **New** — copy from the Library Bundle | A small timing helper that `adafruit_debouncer` imports internally. Without it, the debouncer fails to import. |
 
 ### What this code does
 

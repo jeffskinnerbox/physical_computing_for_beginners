@@ -102,6 +102,18 @@ connection, the `CIRCUITPY` drive) is already built into the board.
 None — nothing external is wired tonight. The only hardware is the Pico itself, plugged into your
 laptop by USB.
 
+### Software for this phase
+
+Tonight everything is new: you set up the laptop tools and the board's firmware, then save your first program. "Install your software" below walks through each install with its own test.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| CircuitPython firmware (`.uf2`, on the Pico) | **New** — flashed onto the board | The Python interpreter that runs on the Pico itself. Once it's installed, the board shows up on your laptop as the `CIRCUITPY` drive. |
+| Mu Editor (laptop) | **New** — installed on the laptop | A beginner-friendly editor that auto-detects the board. Its Serial console shows everything your program prints. |
+| Thonny (laptop) | **New** — installed on the laptop | A second, actively maintained editor, so you're never stuck if Mu misbehaves. Its Files panel shows the board's files directly. |
+| Adafruit CircuitPython Library Bundle (laptop), test copy of `neopixel.mpy` in `/lib` | **New** — downloaded to the laptop | A folder of ready-made driver libraries; you copy just the ones a project needs into the board's `/lib` folder. Copying `neopixel.mpy` tonight proves that works. |
+| `code.py` (on the Pico) | **New** — `class-0-code.py` | Blinks the onboard LED and prints a growing heartbeat count to the serial console. Seeing both proves the whole laptop-to-board chain works. |
+
 ### Install your software
 
 Do these four steps in order. Each one has its own quick test so you know it worked before moving

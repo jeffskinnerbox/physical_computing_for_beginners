@@ -150,6 +150,16 @@ sensor sweep test and a quick motor forward/reverse test, confirming both still 
 they did at the end of Class 2 and Class 3. Catching a regression now is far easier than debugging
 it once it's buried inside the combined rover logic.
 
+### Software for this phase
+
+One new program reuses the sensor, servo, and motor code from Classes 2 and 3 — no new libraries.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** — `class-5-code.py` | The stop-look-go loop: drive forward, stop for an obstacle, the bump switch, or the IR sensor, sweep to find the most open direction, turn toward it, and repeat. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Drives, stops, reverses, and turns the rover; `class-5-code.py` imports it instead of reimplementing motor control. |
+| `adafruit_hcsr04.mpy`, `adafruit_motor` folder (in `/lib`) | **Unchanged** — from Class 2 | Read the ultrasonic sensor and position the scanning servo. |
+
 ### What this code does
 
 This program is the "stop-look-go" cycle described above, running forever. It drives forward,
@@ -321,6 +331,18 @@ line and a stop-and-reverse, then wave your hand close in front of the IR sensor
 
 No new wiring. This phase edits software only — the same `rover_server.py` you've been growing
 since Class 3, plus a small addition to `class-5-code.py` from Phase 1.
+
+### Software for this phase
+
+Two files change and work together: `rover_server.py` becomes a library with no loop of its own, and `class-5-code.py`'s drive loop now polls the server itself.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `rover_server.py` | **Modified** — no new identifier; edits `class-4-phase-4-rover_server.py` | Adds a `scan_status` dict and three new `/data.json` fields (`scan_heading`, `drive_state`, `stop_reason`). Its `while True: server.poll()` loop is removed so it can be imported. |
+| `code.py` | **Modified** — `class-5-code.py` plus its Phase 2 additions | Same collision-avoidance loop, now importing `rover_server`, updating `scan_status` with each decision, and calling `server.poll()` once per cycle. |
+| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Still supplies the wheel speed and direction fields on the website. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Drives the rover, exactly as in Phase 1. |
+| `adafruit_httpserver`, `adafruit_lsm9ds1.mpy`, `adafruit_hcsr04.mpy`, `adafruit_motor` (in `/lib`) | **Unchanged** — from Classes 2-4 | The web server, IMU, ultrasonic sensor, and servo libraries this combined program uses. |
 
 ### What this code does
 

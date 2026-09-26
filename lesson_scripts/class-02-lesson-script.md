@@ -124,6 +124,15 @@ Before writing any code, trace this new wiring out loud.
 >   GND
 >```
 
+### Software for this phase
+
+One new program and one new library. Class 1's code and libraries stay on `CIRCUITPY`, but aren't used today.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** — `class-2-phase-1-code.py` | Triggers the HC-SR04 and prints the measured distance in centimeters, over and over. |
+| `adafruit_hcsr04.mpy` (in `/lib`) | **New** — copy from the Library Bundle | Driver for the HC-SR04 ultrasonic sensor: it sends the trigger pulse and times the echo for you. |
+
 ### What this code does
 
 This program pulses `TRIG`, waits for the sensor to time the echo,
@@ -184,6 +193,15 @@ Add this alongside Phase 1's sensor wiring — you're not removing anything, jus
 | SG90 servo `+` / `5V` (red) | `5V` / `VBUS` |
 | SG90 `GND` (brown) | `GND` |
 
+### Software for this phase
+
+A second standalone program, this time for the servo, plus the motor library that drives it. It temporarily replaces Phase 1's `code.py`; Phase 3 combines the two.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** — `class-2-phase-2-code.py`, replaces `class-2-phase-1-code.py` for now | Sweeps the servo from 0 to 180 degrees and back in 5-degree steps, printing each angle. |
+| `adafruit_motor` folder (in `/lib`) | **New** — copy from the Library Bundle | Adafruit's motor library; its `servo` module turns an angle into the right PWM pulse. Class 3 reuses it for the DC motors. |
+| `adafruit_hcsr04.mpy` (in `/lib`) | **Unchanged** — from Phase 1 | Stays in `/lib` for Phase 3; not used by this phase's program. |
 
 ### What this code does
 
@@ -250,6 +268,16 @@ No new wiring — this phase uses the exact same pins as Phase 1 and Phase 2 com
 for the sensor, `GP8` for the servo). What changes is physical: mount the HC-SR04 onto the servo
 horn/shaft with double-sided tape, leaving the sensor's wires with enough slack to follow the
 sweep without snagging or pulling loose.
+
+### Software for this phase
+
+No new libraries — this phase merges the two programs you already have into one.
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **Modified** — `class-2-phase-3-code.py`, combines `class-2-phase-1-code.py` and `class-2-phase-2-code.py` | Sweeps the servo and, at each stop, pauses and reads the distance sensor. It prints an angle/distance pair for every step. |
+| `adafruit_hcsr04.mpy` (in `/lib`) | **Unchanged** — from Phase 1 | Reads the ultrasonic sensor at each servo stop. |
+| `adafruit_motor` folder (in `/lib`) | **Unchanged** — from Phase 2 | Positions the servo at each sweep angle. |
 
 ### What this code does
 
