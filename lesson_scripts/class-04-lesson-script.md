@@ -15,7 +15,6 @@
 
 ---
 
-
 ## 1. What This Project Is
 
 Class 3 ended with a real gap: your car can move, but it has no way to know whether it actually
@@ -26,8 +25,9 @@ pointed, the same way your inner ear tells you which way is up with your eyes cl
 You'll wire the IMU over I2C, read its raw acceleration and rotation-rate data, and then combine
 ("fuse") those two individually-flawed signals into one stable roll/pitch/yaw orientation using a
 **Mahony filter**. You'll stream that orientation live from your Pico to a 3D box drawn on your
-laptop screen, so you can watch your physical tilt reflected on screen in real time. Then you'll
-add that same orientation to your Class 3 rover status website — `rover_server.py`'s `/data.json`
+laptop screen, so you can watch your physical tilt reflected on screen in real time. Next you'll
+teach the Pico to measure and cancel its gyroscope's built-in error (its *bias*), so the heading
+stops wandering while the board sits still. Then you'll add that same orientation to your Class 3 rover status website — `rover_server.py`'s `/data.json`
 route grows three new fields (`roll`, `pitch`, `yaw`) alongside the wheel speed/direction fields
 already there, so one browser tab shows both sensors' data together with no new website built. By
 the end, you'll also be able to say clearly why this — as exciting as it is — still doesn't solve
@@ -47,7 +47,7 @@ Class 3's square-and-circle problem on its own.
 | Laptop with Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
 | (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Class 3 rover status website runs on the network your Pico creates itself — nothing new to set up |
 
-**Additional components for the Homework Assignments** (Section 10) — no homework has been written
+**Additional components for the Homework Assignments** (Section 11) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
@@ -67,9 +67,11 @@ moving car constantly shakes it with forces that have nothing to do with tilt.
 **Gyroscope.** Measures angular *rate* — how fast the board is rotating around each axis, in
 degrees per second — not an absolute angle. Its weakness: small measurement errors accumulate
 ("integrate") over time into a growing drift, so a gyro-only orientation slowly wanders away from
-the truth even if the board never actually moves.
+the truth even if the board never actually moves. Most of that error is a small constant offset
+called **bias** — the gyro reads a little rotation even when perfectly still. Phase 3 measures it
+and subtracts it out.
 
-**Mahony filter.** Neither sensor alone is good enough, so `class-4-code-1.py` fuses both with a
+**Mahony filter.** Neither sensor alone is good enough, so `class-4-phase-1-code.py` fuses both with a
 Mahony filter: it trusts the gyroscope for fast, moment-to-moment changes, and continuously nudges
 its estimate back toward what the accelerometer says over the longer term — correcting the gyro's
 drift without inheriting the accelerometer's short-term noise. (Kalman and Madgwick filters solve
@@ -82,32 +84,35 @@ scratch meant standing up WiFi, an HTTP server, a route, and a page all at once.
 already works is a much smaller job: the page already calls `JSON.stringify()` on whatever the
 `/data.json` route hands it, so it already displays any field that dict contains — no HTML or
 JavaScript changes needed at all. Today's edit only touches the Pico side of `rover_server.py`: read
-and fuse the IMU the same way `class-4-code-1.py` does, then add three new keys to the dict the
+and fuse the IMU the same way `class-4-phase-3-code.py` does, then add three new keys to the dict the
 route already returns. That's the difference between building a website and growing one you already
 built.
 
 **Pinout summary** (Raspberry Pi Pico 2 W — new pins only; Classes 1-3 are unaffected):
 
 | Pin | What we use it for |
-| :---- | :-------------------- |
+| :----: | :-------------------- |
 | `GP0` | LSM9DS1 `SDA` (I2C data) |
 | `GP1` | LSM9DS1 `SCL` (I2C clock) |
 | `3V3` | LSM9DS1 `VIN`/power |
 | `GND` | LSM9DS1 `GND` |
 
-## 4. Build It: Phase 1 — Read, Fuse, and Print Orientation (on the Pico)
+## 4. Build It: Phase 1 — Read, Fuse, and Print Orientation (on the Pico) - DONE
 
 ### Wiring for this phase
 
-This is the complete wiring for the whole project — Phase 2 adds no new hardware, it just runs a
-second program on your laptop.
+This is the complete wiring for the whole project — Phases 2-4 add no new hardware, only new code
+(Phase 2's runs on your laptop).
+* [Raspberry Pi Pico 2w Pinout][20]
+* [Adafruit 9-DOF IMU LSM9DS1 Pinout][21]
+* [STEMMA 4-Pin I2C Connector Pinout][22]
 
-| Component | Pico 2 W Pin |
-| :---------- | :------------- |
-| LSM9DS1 `SDA` | `GP0` |
-| LSM9DS1 `SCL` | `GP1` |
-| LSM9DS1 `VIN`/power | `3V3` |
-| LSM9DS1 `GND` | `GND` |
+| Component | STEMMA 4-Pin I2C Connector | Pico 2W Pin | Notes |
+| :---------- | :----------------: | :-----------: | :------ |
+| LSM9DS1 `SDA` | Blue for `SDA` | `GP0` | |
+| LSM9DS1 `SCL` | Yellow for `SCL` | `GP1` | |
+| LSM9DS1 `VIN` | Red for `VIN` | `5V` | use the 5V power rail |
+| LSM9DS1 `GND` | Black for `GND` | `GND` | make sure this is a common `GND` |
 
 Your Class 1-3 circuits stay exactly where they are on the breadboard. Before writing any code,
 trace this wiring out loud — especially confirm `SDA`/`SCL` aren't swapped, since I2C devices
@@ -125,7 +130,7 @@ every loop.
 Save this as `code.py` on your `CIRCUITPY` drive.
 
 ```python
-# class-4-code-1.py
+# class-4-phase-1-code.py -- save as code.py
 # Phase 1: LSM9DS1 over I2C -- reads accel+gyro, fuses with a Mahony filter,
 # prints roll,pitch,yaw as a CSV line every loop.
 
@@ -213,43 +218,45 @@ while True:
     last_time = now
 
     ax, ay, az = sensor.acceleration
-    gx, gy, gz = sensor.gyro  # degrees/sec
-    # Convert gyro readings to radians/sec to match the filter math above.
-    gx, gy, gz = math.radians(gx), math.radians(gy), math.radians(gz)
+    # The library already returns radians/sec -- exactly what the filter math
+    # above expects, so no conversion needed (converting again would shrink
+    # every rotation ~57x and leave yaw barely moving).
+    gx, gy, gz = sensor.gyro
 
     mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll, pitch, yaw = quaternion_to_euler()
-    print("{:.1f},{:.1f},{:.1f}".format(roll, pitch, yaw))
+    print(" {:.1f}, {:.1f}, {:.1f}".format(roll, pitch, yaw))
 
     time.sleep(0.02)
 ```
 
 ### Try it / what you should see
 
-You should see a stream of `roll,pitch,yaw` lines, updating fast (about 50 times a second). Tilt
+You should see a stream of `roll, pitch, yaw` lines, updating fast (about 50 times a second). Tilt
 the board by hand and watch roll and pitch change sensibly; yaw may drift slowly on its own even
 without rotating the board flat — that's expected gyro drift on the axis the accelerometer can't
-correct (it can't tell "which way is North," only "which way is down").
+correct (it can't tell "which way is North," only "which way is down"). Keep an eye on how fast
+it drifts — Phase 3 fixes most of it.
 
-If you see a flat `0.0,0.0,0.0` (or nothing at all), that's almost always an I2C wiring problem,
-not a filter math problem — double-check `SDA`/`SCL` before touching `MAHONY_KP` or `MAHONY_KI`.
+>**NOTE:** If you see a flat `0.0, 0.0, 0.0` (or nothing at all), that's almost always an I2C wiring problem,
+>not a filter math problem — double-check `SDA`/`SCL` before touching `MAHONY_KP` or `MAHONY_KI`.
 
 ### Checkpoint
 
 Confirm three changing numbers scroll by in the console, and that tilting the board by hand
 produces sensible roll/pitch changes you can visually correlate to the motion you just made.
 
-## 5. Build It: Phase 2 — Live 3D Visualization (on Your Laptop)
+## 5. Build It: Phase 2 — Live 3D Visualization (on Your Laptop) - DONE
 
 ### Wiring for this phase
 
 No wiring changes — same as Phase 1. This phase is entirely software, and it runs on your
-**laptop**, not the Pico. Leave `class-4-code-1.py` running on the Pico; you're adding a second,
+**laptop**, not the Pico. Leave `class-4-phase-1-code.py` running on the Pico; you're adding a second,
 separate program on your laptop that reads what the Pico is printing.
 
 ### What this code does
 
-This script opens your laptop's serial connection to the Pico, reads each `roll,pitch,yaw` line as
+This script opens your laptop's serial connection to the Pico, reads each `roll, pitch, yaw` line as
 it arrives, and redraws a simple 3D wireframe box rotated to match — live, using `matplotlib`.
 
 ### The code
@@ -260,13 +267,14 @@ First, install the needed packages once, in a terminal on your laptop:
 pip install pyserial matplotlib numpy
 ```
 
-Then save this file anywhere on your laptop (not the `CIRCUITPY` drive) as `class-4-code-2.py`:
+Then save this file anywhere on your laptop (not the `CIRCUITPY` drive) as `wireframe.py`:
 
 ```python
-# class-4-code-2.py
+# class-4-phase-2-wireframe.py -- save as wireframe.py on laptop and execute there, not the pico mcu
 # Phase 2: runs on your LAPTOP, not the Pico. Reads roll,pitch,yaw CSV over
-# serial from class-4-code-1.py and draws a live-updating 3D box.
-# Usage: python class-4-code-2.py <port>   (e.g. python class-4-code-2.py COM5)
+# serial from class-4-phase-1-code.py or class-4-phase-3-code.py and draws a live-updating 3D box.
+# Windows usage: python wireframe.py <port>     (e.g. python wireframe.py COM5)
+# Linux usage:   python wireframe.py <device>   (e.g. python wireframe.py /dev/ttyACM0)
 
 import sys
 import serial
@@ -290,10 +298,20 @@ box_vertices = np.array([
 edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4),
          (0, 4), (1, 5), (2, 6), (3, 7)]
 
+# The 4 corners of the small +X end of the box -- the "front", pointing
+# along the IMU's X (roll) axis.
+FRONT_FACE = [1, 2, 6, 5]
+
+# The 4 corners of the -Y long side. With X pointing forward and Z up,
+# +Y points LEFT (right-hand rule), so -Y is the box's "right" side.
+RIGHT_FACE = [0, 1, 5, 4]
+
 
 def rotation_matrix(roll, pitch, yaw):
     """Build a combined 3D rotation matrix from roll/pitch/yaw degrees."""
-    r, p, y = np.radians([roll, pitch, yaw])
+    # Roll is negated so the on-screen box rolls the same way as the physical
+    # board (display-only fix -- the Pico's roll value itself is unchanged).
+    r, p, y = np.radians([-roll, pitch, yaw])
     rx = np.array([[1, 0, 0], [0, np.cos(r), -np.sin(r)], [0, np.sin(r), np.cos(r)]])
     ry = np.array([[np.cos(p), 0, np.sin(p)], [0, 1, 0], [-np.sin(p), 0, np.cos(p)]])
     rz = np.array([[np.cos(y), -np.sin(y), 0], [np.sin(y), np.cos(y), 0], [0, 0, 1]])
@@ -303,11 +321,36 @@ def rotation_matrix(roll, pitch, yaw):
 plt.ion()
 fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
+ax.set_zlim(-2, 2)
+
+# Label each plot axis with the IMU axis it stands for, and the rotation
+# measured around it: roll spins around X, pitch around Y, yaw around Z.
+ax.set_xlabel("X  (roll axis)")
+ax.set_ylabel("Y  (pitch axis)")
+ax.set_zlabel("Z  (yaw axis)")
+
+# Create the 12 edge lines ONCE, then just move them every frame -- much
+# faster than clearing the plot and drawing brand-new lines each time.
+edge_lines = [ax.plot([], [], [], color="C0")[0] for _ in edges]
+
+# Red "Front" and "Right" labels, created once and moved to the center of
+# their faces every frame so you can always tell which way the box is facing.
+front_label = ax.text(0, 0, 0, "Front", color="red", ha="center", va="center")
+right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
+plt.show(block=False)
 
 print("Class 4, Phase 2 -- 3D box display starting, reading from", PORT)
 
 while True:
-    line = ser.readline().decode("utf-8", errors="ignore").strip()
+    # The Pico sends lines faster than we can draw them. Read everything
+    # already waiting and keep only the NEWEST line, so the box shows where
+    # the board is now -- not where it was several seconds ago.
+    raw = ser.readline()
+    while ser.in_waiting:
+        raw = ser.readline()
+    line = raw.decode("utf-8", errors="ignore").strip()
     if not line:
         continue
     try:
@@ -318,44 +361,269 @@ while True:
 
     rotated = box_vertices @ rotation_matrix(roll, pitch, yaw).T
 
-    ax.cla()
-    ax.set_xlim(-2, 2)
-    ax.set_ylim(-2, 2)
-    ax.set_zlim(-2, 2)
-    for a, b in edges:
+    for edge_line, (a, b) in zip(edge_lines, edges):
         pts = rotated[[a, b]]
-        ax.plot(pts[:, 0], pts[:, 1], pts[:, 2], color="C0")
+        edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
+    front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
+    right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
     ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
-    plt.pause(0.01)
+    # Redraw the window and let it handle events (resize, close, etc.).
+    fig.canvas.draw_idle()
+    fig.canvas.flush_events()
 ```
 
 Run it from a terminal, substituting your Pico's actual serial port:
 
 ```bash
-python class-4-code-2.py COM5
+# Windows - you may need to change COM5
+python wireframe.py COM5
+
+# Linux - you may need to change /dev/ttyACM0
+python wireframe.py /dev/ttyACM0
 ```
 
-**Important:** Mu or Thonny's serial console must be closed before running this — only one program
-can hold a serial port open at a time.
+>**Important:** Mu or Thonny's serial console must be closed before running this — only one program
+>can hold a serial port open at a time.
 
 ### Try it / what you should see
 
 A window should pop up showing a wireframe box. Tilt your physical board and the on-screen box
-should tilt to match, live. If the box moves but on a different axis than you expect (or
-inverted), that's a known rough edge in this visualization's axis assumptions — not a filter bug —
-worth noting but not worth chasing down today.
+should tilt to match, live — roll, pitch, and yaw should all turn the same direction as the board.
+(Roll is negated inside `rotation_matrix()` so it turns the right way; the Pico's roll number is
+unchanged.) If one motion still looks backwards, first make sure you're holding the board's +X end
+where the `Front` label is (see the note below) — a board turned end-for-end makes every tilt look
+reversed. If it's still backwards after that, flip that one angle's sign in `rotation_matrix()` the
+same way roll is flipped (e.g. `-pitch`) — it's a display fix, not a filter bug.
+
+>**Which end is "Front"?** The red `Front` label marks the end of the box that the IMU's **+X**
+>axis points toward — not necessarily the end of the board you'd call the front. Before you tilt
+>anything, find your board's +X end: look for the small X/Y arrows printed on the IMU breakout (if
+>there's more than one set, use the accelerometer/gyro one, not the magnetometer's). No arrows? Hold
+>the board flat, dip one short end down, and watch the screen — if the `Front` end dips too, that's
+>+X; if the opposite end dips, +X is the other end. Mark it with a dot of marker or tape so you don't
+>have to work it out again.
 
 ### Checkpoint
 
 Tilt the board along one axis at a time and confirm the on-screen box responds — roll, pitch, and
 yaw should each visibly correspond to a specific physical motion.
 
-## 6. Build It: Phase 3 — Extend the Rover Status Website
+## 6. Build It: Phase 3 — Stop the Yaw Drift: Gyro Bias Calibration (on the Pico)
+
+### Wiring for this phase
+
+No wiring changes — same as Phase 1. This phase replaces the Pico's `code.py` with an improved
+version; Phase 2's `wireframe.py` on your laptop works with it unchanged.
+
+### Why yaw drifts (and why the filter can't fix it)
+
+Leave the board flat and untouched for a minute with the Phase 2 box on screen: roll and pitch stay
+put, but yaw slowly spins away on its own. Here's why.
+
+Every gyroscope has a **bias** — a small, nonzero reading even when it isn't rotating at all. It's
+different on every chip, and it changes as the chip warms up. The filter integrates (adds up) the
+gyro's rotation rate every loop, so a constant bias turns into a steadily growing angle: a bias of
+just 0.5°/s becomes a 30° error after one minute.
+
+For roll and pitch, the Mahony filter catches this. The accelerometer knows which way is *down*, so
+whenever roll or pitch wanders, the filter sees the mismatch and pulls it back — that's exactly what
+`MAHONY_KP` and `MAHONY_KI` do. But turning the board flat on a table doesn't change which way is
+down, so the accelerometer has *no opinion* about yaw. Nothing corrects it, and yaw drifts at
+whatever rate the Z-axis bias happens to be. (`MAHONY_KI` can't help either — it learns bias only from
+the accelerometer's error, which stays at zero for yaw.)
+
+The fix is to stop the bias before it ever reaches the filter, in two parts:
+
+1. **Startup calibration.** When the board powers up, hold it still for about 2 seconds and average
+    the gyro readings. The board isn't rotating, so that average *is* the bias. Subtract it from
+    every reading from then on.
+2. **Keep refining whenever the board is still.** The bias shifts as the chip warms up, so a
+    startup snapshot slowly goes stale. Each loop, the code checks whether the board looks
+    motionless — every gyro axis reading almost nothing *and* the accelerometer measuring just
+    gravity (about 1 g). If so, whatever the gyro still reads must be leftover bias, not motion, so
+    the code nudges its bias estimate 1% of the way toward it. A rover that stops often gets its
+    bias re-trimmed at every stop.
+
+The tradeoff to know about: a turn slower than the "still" threshold (`STILL_GYRO`, about 1°/s)
+looks exactly like bias, so it gets absorbed into the bias instead of measured — a 90° turn made
+at half a degree per second would barely register. That's fine for a car, which turns far faster
+than that.
+
+This makes yaw drift far slower, but it can't stop it completely — a tiny leftover error still adds
+up over many minutes. Fully locking yaw needs an absolute heading reference, which is what the
+LSM9DS1's third sensor, the magnetometer (a compass), is for. That's a stretch goal, not today's work.
+
+### What this code does
+
+It's Phase 1's program with three additions: a `calibrate_gyro_bias()` function that averages the
+gyro for about 2 seconds at startup, an `is_still()` check, and two lines in the main loop — one
+subtracting the bias from every gyro reading, one refining the bias whenever `is_still()` is true.
+The filter math and the CSV output are unchanged, so the Phase 2 display keeps working.
+
+One subtle detail: the loop's clock (`last_time`) is started *after* calibration. If it started
+before, the first loop would see a 2-second `dt` and integrate a huge bogus rotation on its very
+first step.
+
+### The code
+
+Save this as `code.py` on your `CIRCUITPY` drive, replacing Phase 1's version.
+
+```python
+# class-4-phase-3-code.py -- save as code.py (replaces Phase 1's code.py)
+# Phase 3: Phase 1's IMU + Mahony filter, plus gyro bias calibration:
+#   1. at startup, measure the gyro's bias while the board sits still
+#   2. while running, keep refining that bias whenever the board is still
+# Still prints roll,pitch,yaw as CSV, so Phase 2's wireframe.py works unchanged.
+
+import time
+import math
+import board
+import busio
+import adafruit_lsm9ds1
+
+# busio.I2C takes (SCL, SDA) in that order -- easy to get backwards.
+i2c = busio.I2C(board.GP1, board.GP0)
+sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
+
+# Mahony filter tunable gains (same as Phase 1).
+MAHONY_KP = 2.0   # proportional gain -- drift-vs-jitter tradeoff
+MAHONY_KI = 0.05  # integral gain -- corrects long-term gyro bias, but only on roll/pitch
+
+# Gyro bias settings -- NEW in Phase 3.
+CAL_SAMPLES = 200  # startup calibration: 200 readings x 10 ms = about 2 seconds
+STILL_GYRO = 0.02  # rad/s (about 1 deg/s): below this on EVERY axis counts as "still"
+STILL_ACCEL = 0.3  # m/s^2: total acceleration this close to 1 g counts as "still"
+BIAS_ALPHA = 0.01  # while still, move the bias 1% of the way toward each new reading
+GRAVITY = 9.81     # m/s^2 -- what the accelerometer reads when only gravity acts on it
+
+q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
+integral_fbx = integral_fby = integral_fbz = 0.0
+
+
+def mahony_update(ax, ay, az, gx, gy, gz, dt):
+    """Unchanged from Phase 1 -- see Phase 1's code for line-by-line comments."""
+    global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
+    norm = (ax * ax + ay * ay + az * az) ** 0.5
+    if norm == 0:
+        return
+    ax, ay, az = ax / norm, ay / norm, az / norm
+    vx = 2 * (q1 * q3 - q0 * q2)
+    vy = 2 * (q0 * q1 + q2 * q3)
+    vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3
+    ex = ay * vz - az * vy
+    ey = az * vx - ax * vz
+    ez = ax * vy - ay * vx
+    integral_fbx += MAHONY_KI * ex * dt
+    integral_fby += MAHONY_KI * ey * dt
+    integral_fbz += MAHONY_KI * ez * dt
+    gx += MAHONY_KP * ex + integral_fbx
+    gy += MAHONY_KP * ey + integral_fby
+    gz += MAHONY_KP * ez + integral_fbz
+    qa, qb, qc = q0, q1, q2
+    q0 += (-qb * gx - qc * gy - q3 * gz) * 0.5 * dt
+    q1 += (qa * gx + qc * gz - q3 * gy) * 0.5 * dt
+    q2 += (qa * gy - qb * gz + q3 * gx) * 0.5 * dt
+    q3 += (qa * gz + qb * gy - qc * gx) * 0.5 * dt
+    norm = (q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3) ** 0.5
+    q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
+
+
+def quaternion_to_euler():
+    """Unchanged from Phase 1: the quaternion as roll/pitch/yaw degrees."""
+    roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
+    pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
+    yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
+    return roll, pitch, yaw
+
+
+def calibrate_gyro_bias():
+    """Average the gyro while the board sits still -- that average IS the bias."""
+    print("Calibrating gyro -- keep the board perfectly still...")
+    sum_x = sum_y = sum_z = 0.0
+    for _ in range(CAL_SAMPLES):
+        gx, gy, gz = sensor.gyro  # already radians/sec
+        sum_x += gx
+        sum_y += gy
+        sum_z += gz
+        time.sleep(0.01)
+    return sum_x / CAL_SAMPLES, sum_y / CAL_SAMPLES, sum_z / CAL_SAMPLES
+
+
+def is_still(ax, ay, az, gx, gy, gz):
+    """True if the board looks motionless: almost no rotation on any axis,
+    AND the accelerometer feels only gravity (no pushes or bumps)."""
+    accel_mag = (ax * ax + ay * ay + az * az) ** 0.5
+    return (
+        abs(gx) < STILL_GYRO
+        and abs(gy) < STILL_GYRO
+        and abs(gz) < STILL_GYRO
+        and abs(accel_mag - GRAVITY) < STILL_ACCEL
+    )
+
+
+print("Class 4, Phase 3 -- IMU orientation streaming with gyro bias calibration")
+bias_x, bias_y, bias_z = calibrate_gyro_bias()
+# No commas in this line, so wireframe.py skips it instead of trying to draw it.
+print("Gyro bias (deg/s): x={:.2f} y={:.2f} z={:.2f}".format(
+    math.degrees(bias_x), math.degrees(bias_y), math.degrees(bias_z)))
+
+# Start the clock AFTER calibrating -- otherwise the first loop would see a
+# 2-second dt and integrate a huge, bogus rotation.
+last_time = time.monotonic()
+
+while True:
+    now = time.monotonic()
+    dt = now - last_time
+    last_time = now
+
+    ax, ay, az = sensor.acceleration
+    gx, gy, gz = sensor.gyro  # already radians/sec
+
+    # Part 1: subtract the bias, so a still board reads (almost) zero rotation.
+    gx, gy, gz = gx - bias_x, gy - bias_y, gz - bias_z
+
+    # Part 2: if the board is still, whatever the gyro STILL reads is leftover
+    # bias, not motion -- nudge the bias estimate a little toward it. This
+    # tracks the slow bias change as the chip warms up.
+    if is_still(ax, ay, az, gx, gy, gz):
+        bias_x += BIAS_ALPHA * gx
+        bias_y += BIAS_ALPHA * gy
+        bias_z += BIAS_ALPHA * gz
+
+    mahony_update(ax, ay, az, gx, gy, gz, dt)
+    roll, pitch, yaw = quaternion_to_euler()
+    print("{:.1f},{:.1f},{:.1f}".format(roll, pitch, yaw))
+
+    time.sleep(0.02)
+```
+
+### Try it / what you should see
+
+Set the board flat on the table *before* it boots (or press reset with it lying still), and keep your
+hands off it. The serial console prints `Calibrating gyro -- keep the board perfectly still...`,
+then about 2 seconds later a line like `Gyro bias (deg/s): x=0.61 y=-0.35 z=0.18` — your chip's own
+bias, which will differ from your neighbor's. Then the familiar `roll,pitch,yaw` stream starts.
+
+Close the serial console and run `wireframe.py` again. Leave the board still for a full minute and
+watch yaw in the window title: it should now hold within a degree or so, instead of spinning away
+the way it did in Phase 2. Turn the board flat by 90° and back — yaw should follow the turn and
+return close to where it started.
+
+If yaw drifts badly from the very start, the board probably moved during those 2 seconds of
+calibration: press reset with the board lying still and try again.
+
+### Checkpoint
+
+Write down how many degrees yaw drifted in one minute with Phase 1's code, and how many with Phase
+3's. Be able to explain in one sentence why the accelerometer can correct roll and pitch but not
+yaw.
+
+## 7. Build It: Phase 4 — Extend the Rover Status Website
 
 ### Wiring for this phase
 
 No new wiring — same IMU wiring as Phase 1. This phase edits software only, and it edits your
-Class 3 `rover_server.py`, not `class-4-code-1.py`.
+Class 3 `rover_server.py`, not `class-4-phase-3-code.py`.
 
 ### What this code does
 
@@ -363,24 +631,23 @@ Recall `rover_server.py`'s `/data.json` route from Class 3: it returns a small d
 `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right` — and the webpage just calls
 `JSON.stringify()` on whatever that dict contains, so it already displays any field the dict has,
 with no HTML/JavaScript changes needed. Today's edit only touches the Pico side: add the
-sensor-read-and-fuse code from `class-4-code-1.py` into `rover_server.py`, and add three keys to
-the returned dict.
+sensor-read-and-fuse code from `class-4-phase-3-code.py` (including Phase 3's gyro bias
+calibration) into `rover_server.py`, and add three keys to the returned dict.
 
-This file duplicates rather than imports `class-4-code-1.py`'s Mahony filter code, and that's
-deliberate, not sloppy: `class-4-code-1.py` ends in its own blocking `while True:` loop that prints
+This file duplicates rather than imports `class-4-phase-3-code.py`'s Mahony filter code, and that's
+deliberate, not sloppy: `class-4-phase-3-code.py` ends in its own blocking `while True:` loop that prints
 CSV forever, and `rover_server.py` ends in its own blocking `while True: server.poll()` loop that
 answers web requests forever — two different infinite loops that can't run inside the same program
 at the same time. Class 3's `rover_server.py` was built the same non-library way — a module whose
 own blocking loop runs the moment something imports it, not something another file can call
 piecemeal — and today's edit keeps that same shape rather than turning it into a shared library. If
 you want to run the live 3D box
-(Phase 1-2) and the website (this phase) at once, you'd need a real rewrite that merges both loops
+(Phases 1-3) and the website (this phase) at once, you'd need a real rewrite that merges both loops
 into one — worth thinking about, not worth doing today.
-
-Because of this, `class-4-code-1.py` and today's edited `rover_server.py` are two different things
+`class-4-phase-3-code.py` and today's edited `rover_server.py` are two different things
 `code.py` on your `CIRCUITPY` drive could be — the same way Class 3's square/circle attempt and its
 website were two different `code.py` options. You'll only ever have one of them running at a time;
-Section 8's "Put It All Together" shows both as complete, final options.
+Section 9's "Put It All Together" shows both as complete, final options.
 
 ### The code
 
@@ -388,10 +655,10 @@ Open your existing `rover_server.py` (saved during Class 3 Phase 4) and edit it 
 below — or save this file over it directly.
 
 ```python
-# class-4-code-3.py  (save over rover_server.py)
+# class-4-phase-4-rover_server.py - save over rover_server.py
 # Extends the Class 3 rover status website with IMU orientation. Same server,
 # same /data.json route -- just three new keys. Reuses the Mahony filter code
-# from class-4-code-1.py rather than reinventing it (but as a copy, not an
+# from class-4-phase-3-code.py rather than reinventing it (but as a copy, not an
 # import -- see "What this code does" above for why).
 import os
 import math
@@ -413,11 +680,18 @@ print("rover server -- listening at", wifi.radio.ipv4_address_ap)
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
 
-i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-code-1.py
+i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-phase-3-code.py
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
-MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-code-1.py
-MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-code-1.py
+MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-phase-3-code.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-phase-3-code.py
+
+# Gyro bias settings -- same values and meaning as class-4-phase-3-code.py.
+CAL_SAMPLES = 200  # startup calibration: about 2 seconds of readings
+STILL_GYRO = 0.02  # rad/s: below this on every axis counts as "still"
+STILL_ACCEL = 0.3  # m/s^2: total acceleration this close to 1 g counts as "still"
+BIAS_ALPHA = 0.01  # while still, move the bias 1% of the way toward each reading
+GRAVITY = 9.81     # m/s^2
 
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
 integral_fbx = integral_fby = integral_fbz = 0.0
@@ -425,7 +699,7 @@ last_time = time.monotonic()
 
 
 def _mahony_update(ax, ay, az, gx, gy, gz, dt):
-    # Identical math to class-4-code-1.py's mahony_update() -- see Section 3's
+    # Identical math to class-4-phase-3-code.py's mahony_update() -- see Section 3's
     # "Mahony filter" explanation for why fusing accel+gyro this way works.
     global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
     norm = (ax * ax + ay * ay + az * az) ** 0.5
@@ -453,19 +727,54 @@ def _mahony_update(ax, ay, az, gx, gy, gz, dt):
     q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
 
 
+def _calibrate_gyro_bias():
+    """Same as class-4-phase-3-code.py: average the gyro while the rover sits still."""
+    print("Calibrating gyro -- keep the rover perfectly still...")
+    sum_x = sum_y = sum_z = 0.0
+    for _ in range(CAL_SAMPLES):
+        gx, gy, gz = imu.gyro  # already radians/sec
+        sum_x += gx
+        sum_y += gy
+        sum_z += gz
+        time.sleep(0.01)
+    return sum_x / CAL_SAMPLES, sum_y / CAL_SAMPLES, sum_z / CAL_SAMPLES
+
+
+def _is_still(ax, ay, az, gx, gy, gz):
+    """Same as class-4-phase-3-code.py: tiny rotation AND only gravity on the accelerometer."""
+    accel_mag = (ax * ax + ay * ay + az * az) ** 0.5
+    return (
+        abs(gx) < STILL_GYRO
+        and abs(gy) < STILL_GYRO
+        and abs(gz) < STILL_GYRO
+        and abs(accel_mag - GRAVITY) < STILL_ACCEL
+    )
+
+
 def _read_orientation():
     """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
-    global last_time
+    global last_time, bias_x, bias_y, bias_z
     now = time.monotonic()
     dt = now - last_time
     last_time = now
     ax, ay, az = imu.acceleration
-    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    gx, gy, gz = imu.gyro  # already radians/sec
+    gx, gy, gz = gx - bias_x, gy - bias_y, gz - bias_z  # remove the gyro bias
+    if _is_still(ax, ay, az, gx, gy, gz):  # still: leftover reading is bias -- refine it
+        bias_x += BIAS_ALPHA * gx
+        bias_y += BIAS_ALPHA * gy
+        bias_z += BIAS_ALPHA * gz
     _mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
     yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
     return roll, pitch, yaw
+
+
+# Measure the gyro bias once at startup (the rover must sit still while it
+# boots), then start the filter's clock so the first dt isn't the 2 s wait.
+bias_x, bias_y, bias_z = _calibrate_gyro_bias()
+last_time = time.monotonic()
 
 
 STATUS_PAGE = """<!doctype html><html><body>
@@ -501,7 +810,7 @@ def index(request: Request):
 
 server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
-print("Class 4, Phase 3 -- rover status website now serving orientation too...")
+print("Class 4, Phase 4 -- rover status website now serving orientation too...")
 while True:
     server.poll()
 ```
@@ -509,7 +818,8 @@ while True:
 ### Try it / what you should see
 
 Watch the serial console for the same `rover server -- broadcasting WiFi network: ...` and
-`rover server -- listening at ...` lines from Class 3. Join your Pico's own WiFi network from your
+`rover server -- listening at ...` lines from Class 3, then the new `Calibrating gyro` line — leave
+the rover untouched for those 2 seconds, since it measures the gyro bias exactly as Phase 3 does. Join your Pico's own WiFi network from your
 laptop (same network name and password as Class 3 — `settings.toml` carries over unchanged), then
 open its status webpage in a browser — you should now see seven fields updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
 Spin a wheel by hand and watch the speed fields jump; tilt the board and watch `roll`/`pitch`/`yaw`
@@ -517,7 +827,7 @@ change — all on the one page, with no separate display.
 
 If `roll`/`pitch`/`yaw` show up as `0.0` and never change, that's the same symptom as Phase 1's
 flat-line serial output — check `SDA`/`SCL` wiring before touching the server code. If the page is
-missing the Class 3 fields (`speed_left_cms`, etc.), you likely saved `class-4-code-3.py` as a new
+missing the Class 3 fields (`speed_left_cms`, etc.), you likely saved `class-4-phase-4-rover_server.py` as a new
 file instead of over the existing `rover_server.py` — make sure only one such file exists on
 `CIRCUITPY`. If the webpage doesn't pick up the new fields at all, try a hard refresh — your browser
 may be showing a cached copy of the page.
@@ -530,28 +840,31 @@ driving and orientation responding to tilting the board by hand. Be able to say 
 adding orientation didn't require touching any HTML or JavaScript — only the dict returned from
 `/data.json`.
 
-## 7. Troubleshooting Guide
+## 8. Troubleshooting Guide
 
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
-| No serial output at all from `class-4-code-1.py` | `SDA`/`SCL` swapped, or the I2C device isn't detected | Verify `SDA` on `GP0`, `SCL` on `GP1`; confirm power/ground |
+| No serial output at all from `class-4-phase-1-code.py` | `SDA`/`SCL` swapped, or the I2C device isn't detected | Verify `SDA` on `GP0`, `SCL` on `GP1`; confirm power/ground |
 | `roll,pitch,yaw` prints but never changes | Board isn't actually being moved, or a loose connection is producing a stuck reading | Physically tilt the board while watching output; reseat the STEMMA QT cable |
-| Orientation drifts noticeably even when the board sits still | `MAHONY_KI` or `MAHONY_KP` too low to correct drift | Raise both in small steps and re-test |
+| Roll or pitch drifts noticeably even when the board sits still | `MAHONY_KI` or `MAHONY_KP` too low to correct drift | Raise both in small steps and re-test |
+| Yaw spins away steadily while the board sits still | Still running Phase 1's code (no bias calibration), or the board moved during the 2 s startup calibration | Confirm `code.py` is Phase 3's version; press reset with the board lying still |
+| Yaw still creeps a degree or two over several minutes | Expected — calibration slows drift but can't remove it; only a magnetometer gives an absolute heading | Press reset (with the board still) to re-zero |
+| Very slow turns barely register in yaw | A turn slower than `STILL_GYRO` looks like bias and gets absorbed into it | Lower `STILL_GYRO` (e.g. `0.01`) and re-test |
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
-| 3D box moves on the wrong axis, or inverted | Axis-convention mismatch between physical mounting and the visualization's rotation matrix | Known rough edge — note it and move on, not worth debugging live |
-| `class-4-code-2.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console; confirm the correct COM port in Device Manager |
+| 3D box turns backwards or on the wrong axis | Board's +X end isn't where the `Front` label is, or one axis has a display sign mismatch | Line up +X with `Front` first; if one motion is still backwards, negate that angle in `rotation_matrix()` (roll already is) |
+| `wireframe.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console; confirm the correct COM port in Device Manager |
 | `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
-| Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-code-1.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
-| Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-code-3.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
+| Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
+| Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-phase-4-rover_server.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
 | Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP19`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
-## 8. Put It All Together
+## 9. Put It All Together
 
-This is the finished project in one place. Unlike Phases 1-2, where `code.py` and the laptop
+This is the finished project in one place. Unlike Phases 1-3, where `code.py` and the laptop
 viewer were the only pieces, this Class actually finishes with *two different things* `code.py`
-could be — the IMU-streaming/3D-viewer pair (Phases 1-2) or the extended rover status website
-(Phase 3) — since neither runs at the same time as the other (see Phase 3's "What this code does"
+could be — the IMU-streaming/3D-viewer pair (Phases 1-3) or the extended rover status website
+(Phase 4) — since neither runs at the same time as the other (see Phase 4's "What this code does"
 for why). Save whichever one you want running as `code.py`; swap between them by replacing that one
 file. Both are shown below so you have the complete, final version of each in one place.
 
@@ -568,13 +881,14 @@ file. Both are shown below so you have the complete, final version of each in on
 
 ### Complete code
 
-**Option A — `code.py` as the IMU streaming/3D viewer pair** (same as Phases 1-2, unchanged):
+**Option A — `code.py` as the IMU streaming/3D viewer pair** (Phase 3's Pico code + Phase 2's viewer, unchanged):
 
-**On the Pico**, save as `code.py` (unchanged from Phase 1 — this is already the complete,
-finished version):
+**On the Pico**, save as `code.py` (unchanged from Phase 3 — this is already the complete,
+finished version, gyro bias calibration included):
 
 ```python
-# class-4-code-1.py -- LSM9DS1 over I2C, Mahony-filtered roll/pitch/yaw over serial.
+# class-4-phase-3-code.py -- LSM9DS1 over I2C, gyro-bias-calibrated,
+# Mahony-filtered roll/pitch/yaw over serial.
 import time
 import math
 import board
@@ -585,11 +899,15 @@ i2c = busio.I2C(board.GP1, board.GP0)
 sensor = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
 MAHONY_KP = 2.0   # calibrate: drift-vs-jitter tradeoff
-MAHONY_KI = 0.05  # calibrate: corrects long-term gyro bias
+MAHONY_KI = 0.05  # calibrate: corrects long-term gyro bias (roll/pitch only)
+CAL_SAMPLES = 200  # startup gyro bias calibration: about 2 s of readings
+STILL_GYRO = 0.02  # rad/s: below this on every axis counts as "still"
+STILL_ACCEL = 0.3  # m/s^2: this close to 1 g counts as "still"
+BIAS_ALPHA = 0.01  # how fast the bias follows while the board is still
+GRAVITY = 9.81     # m/s^2
 
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
 integral_fbx = integral_fby = integral_fbz = 0.0
-last_time = time.monotonic()
 
 
 def mahony_update(ax, ay, az, gx, gy, gz, dt):
@@ -626,25 +944,55 @@ def quaternion_to_euler():
     return roll, pitch, yaw
 
 
+def calibrate_gyro_bias():
+    print("Calibrating gyro -- keep the board perfectly still...")
+    sum_x = sum_y = sum_z = 0.0
+    for _ in range(CAL_SAMPLES):
+        gx, gy, gz = sensor.gyro
+        sum_x += gx
+        sum_y += gy
+        sum_z += gz
+        time.sleep(0.01)
+    return sum_x / CAL_SAMPLES, sum_y / CAL_SAMPLES, sum_z / CAL_SAMPLES
+
+
+def is_still(ax, ay, az, gx, gy, gz):
+    accel_mag = (ax * ax + ay * ay + az * az) ** 0.5
+    return (
+        abs(gx) < STILL_GYRO
+        and abs(gy) < STILL_GYRO
+        and abs(gz) < STILL_GYRO
+        and abs(accel_mag - GRAVITY) < STILL_ACCEL
+    )
+
+
 print("Class 4 project running -- IMU orientation streaming.")
+bias_x, bias_y, bias_z = calibrate_gyro_bias()
+print("Gyro bias (deg/s): x={:.2f} y={:.2f} z={:.2f}".format(
+    math.degrees(bias_x), math.degrees(bias_y), math.degrees(bias_z)))
+last_time = time.monotonic()  # start the clock after calibrating
 
 while True:
     now = time.monotonic()
     dt = now - last_time
     last_time = now
     ax, ay, az = sensor.acceleration
-    gx, gy, gz = sensor.gyro
-    gx, gy, gz = math.radians(gx), math.radians(gy), math.radians(gz)
+    gx, gy, gz = sensor.gyro  # already radians/sec
+    gx, gy, gz = gx - bias_x, gy - bias_y, gz - bias_z
+    if is_still(ax, ay, az, gx, gy, gz):
+        bias_x += BIAS_ALPHA * gx
+        bias_y += BIAS_ALPHA * gy
+        bias_z += BIAS_ALPHA * gz
     mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll, pitch, yaw = quaternion_to_euler()
     print("{:.1f},{:.1f},{:.1f}".format(roll, pitch, yaw))
     time.sleep(0.02)
 ```
 
-**On your laptop**, run this with `python class-4-code-2.py <port>` (unchanged from Phase 2):
+**On your laptop**, save as `wireframe.py` and run it with `python wireframe.py <port>` (unchanged from Phase 2):
 
 ```python
-# class-4-code-2.py -- LAPTOP-side live 3D orientation display.
+# class-4-phase-2-wireframe.py -- save as wireframe.py; LAPTOP-side live 3D orientation display.
 import sys
 import serial
 import numpy as np
@@ -661,10 +1009,12 @@ box_vertices = np.array([
 ])
 edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4),
          (0, 4), (1, 5), (2, 6), (3, 7)]
+FRONT_FACE = [1, 2, 6, 5]  # small +X end of the box
+RIGHT_FACE = [0, 1, 5, 4]  # -Y long side (+Y points left)
 
 
 def rotation_matrix(roll, pitch, yaw):
-    r, p, y = np.radians([roll, pitch, yaw])
+    r, p, y = np.radians([-roll, pitch, yaw])  # roll negated to match physical board
     rx = np.array([[1, 0, 0], [0, np.cos(r), -np.sin(r)], [0, np.sin(r), np.cos(r)]])
     ry = np.array([[np.cos(p), 0, np.sin(p)], [0, 1, 0], [-np.sin(p), 0, np.cos(p)]])
     rz = np.array([[np.cos(y), -np.sin(y), 0], [np.sin(y), np.cos(y), 0], [0, 0, 1]])
@@ -674,9 +1024,22 @@ def rotation_matrix(roll, pitch, yaw):
 plt.ion()
 fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
+ax.set_xlim(-2, 2)
+ax.set_ylim(-2, 2)
+ax.set_zlim(-2, 2)
+ax.set_xlabel("X  (roll axis)")
+ax.set_ylabel("Y  (pitch axis)")
+ax.set_zlabel("Z  (yaw axis)")
+edge_lines = [ax.plot([], [], [], color="C0")[0] for _ in edges]
+front_label = ax.text(0, 0, 0, "Front", color="red", ha="center", va="center")
+right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
+plt.show(block=False)
 
 while True:
-    line = ser.readline().decode("utf-8", errors="ignore").strip()
+    raw = ser.readline()
+    while ser.in_waiting:  # skip stale lines -- draw only the newest
+        raw = ser.readline()
+    line = raw.decode("utf-8", errors="ignore").strip()
     if not line:
         continue
     try:
@@ -684,18 +1047,17 @@ while True:
     except ValueError:
         continue
     rotated = box_vertices @ rotation_matrix(roll, pitch, yaw).T
-    ax.cla()
-    ax.set_xlim(-2, 2)
-    ax.set_ylim(-2, 2)
-    ax.set_zlim(-2, 2)
-    for a, b in edges:
+    for edge_line, (a, b) in zip(edge_lines, edges):
         pts = rotated[[a, b]]
-        ax.plot(pts[:, 0], pts[:, 1], pts[:, 2], color="C0")
+        edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
+    front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
+    right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
     ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
-    plt.pause(0.01)
+    fig.canvas.draw_idle()
+    fig.canvas.flush_events()
 ```
 
-**Option B — `code.py` as the extended rover status website** (same as Phase 3, unchanged). You
+**Option B — `code.py` as the extended rover status website** (same as Phase 4, unchanged). You
 also need `motor_driver.py` and `wheel_odometry.py` still on `CIRCUITPY`, unchanged from Class 3:
 
 ```python
@@ -723,8 +1085,15 @@ server = Server(pool)
 i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
-MAHONY_KP = 2.0   # calibrate: same tuned value as class-4-code-1.py
-MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-code-1.py
+MAHONY_KP = 2.0   # calibrate: same tuned value as class-4-phase-3-code.py
+MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-phase-3-code.py
+
+# Gyro bias settings -- same values and meaning as class-4-phase-3-code.py.
+CAL_SAMPLES = 200  # startup calibration: about 2 seconds of readings
+STILL_GYRO = 0.02  # rad/s: below this on every axis counts as "still"
+STILL_ACCEL = 0.3  # m/s^2: total acceleration this close to 1 g counts as "still"
+BIAS_ALPHA = 0.01  # while still, move the bias 1% of the way toward each reading
+GRAVITY = 9.81     # m/s^2
 
 q0, q1, q2, q3 = 1.0, 0.0, 0.0, 0.0
 integral_fbx = integral_fby = integral_fbz = 0.0
@@ -758,18 +1127,53 @@ def _mahony_update(ax, ay, az, gx, gy, gz, dt):
     q0, q1, q2, q3 = q0 / norm, q1 / norm, q2 / norm, q3 / norm
 
 
+def _calibrate_gyro_bias():
+    """Same as class-4-phase-3-code.py: average the gyro while the rover sits still."""
+    print("Calibrating gyro -- keep the rover perfectly still...")
+    sum_x = sum_y = sum_z = 0.0
+    for _ in range(CAL_SAMPLES):
+        gx, gy, gz = imu.gyro  # already radians/sec
+        sum_x += gx
+        sum_y += gy
+        sum_z += gz
+        time.sleep(0.01)
+    return sum_x / CAL_SAMPLES, sum_y / CAL_SAMPLES, sum_z / CAL_SAMPLES
+
+
+def _is_still(ax, ay, az, gx, gy, gz):
+    """Same as class-4-phase-3-code.py: tiny rotation AND only gravity on the accelerometer."""
+    accel_mag = (ax * ax + ay * ay + az * az) ** 0.5
+    return (
+        abs(gx) < STILL_GYRO
+        and abs(gy) < STILL_GYRO
+        and abs(gz) < STILL_GYRO
+        and abs(accel_mag - GRAVITY) < STILL_ACCEL
+    )
+
+
 def _read_orientation():
-    global last_time
+    global last_time, bias_x, bias_y, bias_z
     now = time.monotonic()
     dt = now - last_time
     last_time = now
     ax, ay, az = imu.acceleration
-    gx, gy, gz = (math.radians(v) for v in imu.gyro)
+    gx, gy, gz = imu.gyro  # already radians/sec
+    gx, gy, gz = gx - bias_x, gy - bias_y, gz - bias_z  # remove the gyro bias
+    if _is_still(ax, ay, az, gx, gy, gz):  # still: leftover reading is bias -- refine it
+        bias_x += BIAS_ALPHA * gx
+        bias_y += BIAS_ALPHA * gy
+        bias_z += BIAS_ALPHA * gz
     _mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
     yaw = math.degrees(math.atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3)))
     return roll, pitch, yaw
+
+
+# Measure the gyro bias once at startup (the rover must sit still while it
+# boots), then start the filter's clock so the first dt isn't the 2 s wait.
+bias_x, bias_y, bias_z = _calibrate_gyro_bias()
+last_time = time.monotonic()
 
 
 STATUS_PAGE = """<!doctype html><html><body>
@@ -805,7 +1209,7 @@ def index(request: Request):
 
 server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
-print("Class 4, Phase 3 -- rover status website now serving orientation too...")
+print("Class 4, Phase 4 -- rover status website now serving orientation too...")
 while True:
     server.poll()
 ```
@@ -815,7 +1219,7 @@ rover status website), run Option A first to demo the 3D box, then swap in Optio
 webpage to show wheel speed and orientation updating together — the two don't need to run at the
 same instant to prove both work.
 
-## 9. What You Learned
+## 10. What You Learned
 
 You gave your board a sense of orientation and watched it come alive on screen in real time — and
 on the same website your car has been publishing to since Class 3. Specifically, you now know:
@@ -826,6 +1230,8 @@ on the same website your car has been publishing to since Class 3. Specifically,
     trusting the gyro for fast changes, correcting toward the accelerometer over time
 * How to tune a filter's proportional gain (`MAHONY_KP`) and feel the tradeoff between drift and
     jitter firsthand
+* What gyro *bias* is, why the accelerometer can correct it on roll and pitch but not on yaw, and
+    how to cancel it — measure it at startup, then keep refining it whenever the board sits still
 * How to stream sensor data from your Pico to a program running on your laptop over serial, and
     turn it into a live visualization
 * How to extend an already-running website instead of building a new one — adding fields to a JSON
@@ -840,7 +1246,7 @@ navigation problem — it takes a completely different approach, using the senso
 back in Class 2.
 
 ---
-## 10. Homework Assignment
+## 11. Homework Assignment
 
 No homework assignments have been written for this class yet. This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
@@ -855,7 +1261,7 @@ does, full commented code, and real-world examples).
     script
 * [9-DOF LSM9DS1 Breakout Board — Product Page][03] — the IMU used this project
 * [`adafruit_httpserver` — API Reference][04] — the `Server`/`Request`/`Response`/`JSONResponse` API
-    used to extend `rover_server.py` in Phase 3 (same API Class 3 introduced)
+    used to extend `rover_server.py` in Phase 4 (same API Class 3 introduced)
 
 ---
 
@@ -865,3 +1271,8 @@ does, full commented code, and real-world examples).
 [02]:https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html
 [03]:https://www.adafruit.com/product/4634
 [04]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
+
+[20]:https://pico2w.pinout.xyz/
+[21]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts
+[22]:https://www.adafruit.com/product/4399
+

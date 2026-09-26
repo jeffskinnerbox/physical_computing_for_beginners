@@ -1,6 +1,63 @@
 
 # Add This
 
+## Git & CircuitPython
+Wouldn't be nice if you had an easy way to use `git` with your CircuitPython project?
+In a normal git repository, the version history is stored inside the hidden `.git` folder.
+But these histories can take up a lot of space, which is a problem since CircuitPy devices only have a couple megabytes.
+As an added nuisance, each commit would be a write that triggers auto-reload.
+So we need a way to support `.git` but not on the `CIRCUITPY` drive.
+
+The safest way to manage code is to keep your Git repository in a standard local directory on your development computer,
+then copy your files over to the `CIRCUITPY` drive.
+
+Let's say you have a brand new git repository for your CircuitPython project.
+Perhaps you just made it and we call it `demo`.
+Inside, there is a `.git` folder.
+
+```bash
+# 1. Create a local project directory on your computer and initialize
+mkdir demo
+cd demo
+git init
+
+# 2. Create your code file
+touch code.py
+```
+
+Let's add a [Git worktree](https://git-scm.com/docs/git-worktree) with the command `git worktree add /media/jeff/CIRCUITPY`.
+Now there is a new folder inside the `.git` directory called `worktrees`,
+and inside that a folder named `CIRCUITPY` containing git metadata.
+
+```bash
+# FINISH THIS - NOT CORRECT YET
+
+git worktree add -b circuitypython-branch /media/jeff/CIRCUITPY
+git worktree list
+
+cd /media/jeff/CIRCUITPY
+# make changes
+
+# force a remove of a worktree branch
+git worktree remove /media/jeff/CIRCUITPY --force
+git worktree list
+
+# list the branches
+git branch
+
+# delete the branch
+git branch -d circuitypython-branch
+```
+
+Source:
+* [Git worktrees aren't the problem, it's your setup](https://www.youtube.com/watch?v=A2f3T1JELbo)
+* [Git Worktrees Explained Simply](https://www.youtube.com/watch?v=dtCgEwRpJl8)
+* [Git Worktrees Crash Course](https://www.youtube.com/playlist?list=PL4cUxeGkcC9iUtQh7Aja3TGfbdd7Z-K0W)
+* [Git and CircuitPython](https://mhece.com/posts/cpgit/)
+* [Developing for CircuitPython with git-worktree](https://mmm.s-ol.nu/blog/circuitpython_git_worktree/)
+
+---
+
 ## CircUp
 A tool to manage and update libraries (modules) on a CircuitPython device.
 
@@ -42,7 +99,7 @@ echo 'eval "$(pyenv init - bash)"' >> ~/.bashrc
 exec "$SHELL"     # reload your shell or alternatively you can restart your terminal
 
 
-# ---------------------- create your development environment with uv / pyenv -----------------------
+# ----------------------------- create your python version environment -----------------------------
 
 # determine the python version you want for your development
 pyenv install --list | grep -E ' 3\.([1-9][0-9]+)'
@@ -50,19 +107,44 @@ pyenv install --list | grep -E ' 3\.([1-9][0-9]+)'
 # enter your project directory
 cd <project-directory>
 
-# select the version of python you will use
-pyenv install 3.13.7                 # released on August 14, 2025
-pyenv local 3.13.7
+# install the stable base release
+pyenv install 3.14.0
+
+# install the latest security and bug fix patch
+pyenv install 3.14.?
+
+# set the local version
+pyenv local 3.14.0
+
+# confirm that the local directory is now using the correct version.
+cat .python-version
+python --version
+
+# ---------------------- create your development environment with uv / pyenv -----------------------
 
 # create your virtual environment for python development
 uv init                              # creates pyproject.toml and other starter files
 uv sync                              # creates .venv based on pyproject.toml
+
+# confirm that the local directory is now using uv
+$ ls -a
+.venv/  main.py  pyproject.toml  .python-version  README.md  uv.lock
 
 # activate virtual environment
 source .venv/bin/activate
 
 # install you standard development tools
 uv pip install flask ruff
+
+# ------------- create your development environment for circuitpython with uv / pyenv --------------
+
+# install the stubs for circuitpython libraries (this installs stubs for ALL boards)
+uv pip install circuitpython-stubs
+
+# -OR- if your reproducing an existing project
+uv pip install -r requirements.txt
+
+# ------------------------------ create your project with uv / pyenv -------------------------------
 
  # run your python code
  python code.py
@@ -71,14 +153,13 @@ uv pip install flask ruff
 # to deactivate your vertical environment session
 deactivate
 
-# install the stubs for circuitpython libraries (this installs stubs for ALL boards)
-uv pip install circuitpython-stubs
+# --------------------------------------------------------------------------------------------------
+uv pip install pyserial matplotlib numpy
+touch wireframe.py
+chmod u+x wireframe.py
+# --------------------------------------------------------------------------------------------------
 
-# -OR- if your reproducing an existing project
-uv pip install -r requirements.txt
-
-
-# ---------------------- typical development workflow when using uv / pyenv -----------------------
+# ---------------------- typical development workflow when using uv / pyenv ------------------------
 
 # supply all needed dependencies (vim & nvim not included)
 sudo apt install tio

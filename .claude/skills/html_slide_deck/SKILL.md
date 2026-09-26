@@ -42,7 +42,7 @@ Don't re-ask this on every slide or every run in the same conversation — ask o
 This is the fallback whenever no saved defaults file exists and the user doesn't customize.
 
 | Aspect | Default |
-|---|---|
+| --- | --- |
 | Canvas | 1920×1080 (16:9), scaled with `transform: scale()` to fit the viewport |
 | Headings/body font | IBM Plex Sans (400/500/600/700) |
 | Code/mono font | JetBrains Mono (400/500/600) |
@@ -134,7 +134,7 @@ Then map it to slides using these heuristics (adjust per the active template set
 Step 3D):
 
 | Markdown pattern | Slide template |
-|---|---|
+| --- | --- |
 | Document title / first `#` heading | Title/cover slide |
 | A short list of `##` section headings | Agenda slide (numbered list) |
 | Two things being weighed against each other | Two-panel comparison |

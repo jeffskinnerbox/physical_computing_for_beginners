@@ -126,12 +126,20 @@ PII, not course content; don't quote or propagate it into generated docs or else
 `explainers/` holds standalone explainer docs generated via the `/explainer` skill (e.g.
 microprocessor-vs-microcontroller, micropython-vs-circuitpython, what-is-the-random-rover); its
 `README.md` lists still-ungenerated topics under "Future Explainers Topics". `handouts/` has
-per-class handouts (`class-00-handout.md`, `class-03-handout.md`), `build-challenge.md`,
-`references-and-resources.md`, and standalone HTML handouts (`class-3-closing-the-loop.html`,
-`class-3-the-robotics-challenge.html`); its `README.md` is scratch notes and reference links (a
+per-class markdown handouts plus standalone single-file HTML handouts/slide decks (e.g. `class-03-summary.html`,
+built with `/html_slide_deck`); its `README.md` is scratch notes and reference links (a
 glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses/` holds
 purchase receipts (photos, a `receipts/` subdir) — no established doc conventions there yet, not
 course content.
+
+`src/` is a `uv` Python 3.14 project for **laptop-side** helper scripts — code that runs on the
+student's computer, not on the Pico (e.g. `wireframe.py`, the Class 4 live 3D orientation viewer
+that reads roll/pitch/yaw CSV over USB serial; its canonical copy is embedded in
+`lesson_scripts/class-04-lesson-script.md`, so keep the two in sync). `pyproject.toml` declares the
+wireframe deps (numpy, matplotlib, pyserial); flask and ruff sit in `src/.venv` undeclared, so
+`uv sync` will remove them — add new deps with `uv add`.
+Run with `cd src && uv run python wireframe.py /dev/ttyACM0` (`COM5`-style port on Windows);
+lint with `uv run ruff check`. Pico-side CircuitPython can't run here — it needs the board.
 
 `tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated
 install guides it has hand-maintained docs (`git-worktree-multitasking.md`,
