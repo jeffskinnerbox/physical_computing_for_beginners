@@ -14,7 +14,7 @@ budget picture, with no need to cross-reference the syllabus or lesson plans.
 builds a rover alongside the students, so all per-person hardware quantities below include the
 instructor. All math is shown so the numbers can be recalculated for a different class size.
 
-**Grand Total: $754.67 for the course (~$83.85 per person, 9 people)** — see the Cost Summary below
+**Grand Total: $760.37 for the course (~$84.49 per person, 9 people)** — see the Cost Summary below
 for the full breakdown.
 
 Adafruit prices in this document were confirmed against the live product pages. Amazon-sourced
@@ -46,7 +46,7 @@ the Cost Summary below.
 | SG90 9g Micro Servo Motor | 1 | $2.00 | [Amazon][04] | sold in 10-pack ($19.99); Class 2 servo, reused Class 5-6 |
 | KY-040 360 Degree Rotary Encoder Module | 1 | $2.89 | [Amazon][08] | sold in 8-packs ($12.99/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1 |
 | Momentary Push Button Tactile Switch | 2 | $0.02 | [Amazon][10] | sold in 500-pack ($9.99) [VERIFY PRICE]; Class 1 button + spare |
-| Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course |
+| Breadboard 830 Point Solderless Prototype PCB Board | 1 | $3.00 | [Amazon][11] | sold in 3-packs ($8.99); one board per person, kept for the whole course; mounted on the chassis (Blu Tack) from Class 3 with earlier circuits still on it |
 | I TYPE 9 Volt Battery Clip | 1 | $0.65 | [Amazon][12] | sold in 10-pack ($6.49); Class 3 motor power, reused Class 4-6 |
 | 9V Alkaline Battery | 1 | $1.59 | [Amazon][13] | sold in 8-packs ($12.69/pack); 9 needed requires 2 packs (16 units, 7 spare) — 1 pack alone is short by 1; Class 3 motor + Pico power (via buck converter), reused Class 4-6 |
 | 5V Buck Converter Module | 1 | $1.50 | [Amazon][16] | sold in 10-pack ($14.99); Class 3 onward — regulated 5V for the Pico's `VSYS` power input, reused Class 4-6 |
@@ -93,10 +93,10 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Dupont Wires - 120pcs 20cm Jumper Wire | 1 | $9.99 | [Amazon][18] | shared jumper wire stock for all classes |
 | Invisible Hold Mounting Tape | 1 | $11.99 | [Amazon][19] | mounts the Class 2 HC-SR04 onto the SG90 servo horn and helps with chassis assembly |
-| Blu Tack | 1 | $5.70 | [Amazon][17] | hold in place circuit boards, battery, etc to the mobile chassis |
+| Blu Tack | 1 | $5.70 | [Amazon][17] | holds the breadboard, battery, buck converter, and DRV8833 in place on the chassis, Class 3 onward |
 | Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
 
-Shared Supplies Cost = 9.99 + 11.99 + 0 = $21.98 total ÷ 9 people ≈ $2.44 per student
+Shared Supplies Cost = 9.99 + 11.99 + 5.70 + 0 = $27.68 total ÷ 9 people ≈ $3.08 per student
 
 ### Shipping
 
@@ -121,10 +121,10 @@ Per-Student Required (bulk-purchase total) = $72.00 (Pico) + $125.91 (chassis) +
     + $17.98 (optocoupler, 2× 10-packs)
     = $722.69 total (~$80.30 per person)
 
-Shared Supplies = $21.98 total (~$2.44 per person)
+Shared Supplies = $27.68 total (~$3.08 per person)
 Shipping = $10.00 total (~$1.11 per person)
 
-Grand Total = $722.69 + $21.98 + $10.00 = $754.67 for the course (~$83.85 per person, 9 people)
+Grand Total = $722.69 + $27.68 + $10.00 = $760.37 for the course (~$84.49 per person, 9 people)
 ```
 
 ---
@@ -149,20 +149,21 @@ All free — no paid software is required anywhere in this course.
 ## Code Blocks
 
 Pseudocode/reference implementations provided by the instructor, embedded inline in each class's
-lesson plan — no separate cost, but listed here for completeness.
+lesson plan and lesson script — no separate cost, but listed here for completeness.
 
 | Item | Quantity | Source | Notes |
 | :-----: | :-----: | :-----: | :--------: |
 | `class-0-code.py` | 1 | Instructor | blink onboard LED + serial heartbeat, Pre-Class |
-| `class-1-code-1.py` / `class-1-code-2.py` | 2 | Instructor | undebounced vs. debounced button + rotary encoder, Class 1 |
+| `class-1-code-1A.py` / `class-1-code-1B.py` / `class-1-code-2.py` | 3 | Instructor | encoder alone (`rotaryio`), undebounced vs. debounced button + rotary encoder, Class 1 |
 | `class-2-phase-1-code.py` / `class-2-phase-2-code.py` / `class-2-phase-3-code.py` | 3 | Instructor | HC-SR04 alone, SG90 alone, combined servo-swept sensor, Class 2 |
 | `class-3-phase-1-motor-driver.py` / `class-3-phase-2-code.py` | 2 | Instructor | motor driver library + calibrated square/circle test, Class 3 |
 | `class-3-phase-3-wheel_odometry.py` / `class-3-phase-4-rover_server.py` | 2 | Instructor | wheel-odometry library (speed + direction per wheel) + Pico-hosted rover status website, Class 3 |
+| `class-3-phase-1-code.py` / `class-3-phase-3-code.py` / `class-3-phase-4-code.py` / `class-3-phase-5-code.py` | 4 | Instructor | scratch tests for the motor driver and wheel odometry, the one-line `import rover_server` wrapper, and the open-loop vs. feedback straight-line comparison, each saved as `code.py`, Class 3 |
 | `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
 | `class-4-phase-1-code.py` / `class-4-phase-2-wireframe.py` / `class-4-phase-3-code.py` / `class-4-phase-4-rover_server.py` | 4 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + gyro bias calibration (Pico) + orientation on the Class 3 rover website, Class 4 |
 | `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
-| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website, TFT status display — Class 6 stretch goals |
+| `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website (saved as `history_chart.py`), TFT status display — Class 6 stretch goals |
 
 ---
 
@@ -174,6 +175,7 @@ Equipment needed during the course that is not part of the take-home hardware ki
 | :-----: | :-----: | :-----: | :--------: |
 | Windows 11 Laptop | 1 | Student | one per student, no sharing; all install guides and the Pre-Class assume Windows 11 specifically |
 | USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Shared Supplies) for a cable that fails, not as the primary source |
+| Soldering station (iron + stand, solder, safety glasses, fume extractor) | 2-3 | Makersmiths | Class 3 — students solder Dupont leads onto the chassis motors and on/off switch; stocked by the makerspace, $0 |
 
 ---
 

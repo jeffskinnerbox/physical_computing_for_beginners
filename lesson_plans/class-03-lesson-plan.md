@@ -882,8 +882,9 @@ one (it can hit `MAX_THROTTLE`), and predict what a larger `KI` will do before t
 
 ## 8. Assessment
 
-**Milestone Assignment (per syllabus, Phase 2 / Class 3):** Car reliably drives a 35 cm square and
-a 35 cm-diameter circle, with live wheel-speed telemetry visible on the terminal and on the Pico's
+**Milestone Assignment (per syllabus, Phase 2 / Class 3):** Car attempts a 35 cm square and a
+35 cm-diameter circle open-loop, tracing a recognizable (if drifting) shape, and the student names the
+specific causes of the drift; live wheel-speed telemetry is visible on the terminal and on the Pico's
 own status webpage.
 
 **What "complete" looks like:** The student can run `drive_square(35)` and `drive_circle(35)` on a

@@ -301,7 +301,7 @@ while True:
     if not button.value:
         press_count += 1
         button_led.value = True
-        print("RAW push count:", press_count)
+        print("RAW press_count:", press_count)
     else:
         button_led.value = False
 

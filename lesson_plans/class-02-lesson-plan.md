@@ -46,9 +46,9 @@ which way is safe to drive.
 * **Day of, before students arrive:**
   * Set out one HC-SR04 ultrasonic distance sensor, one SG90 micro servo motor, a resistor pair
         for the echo voltage divider, double-sided tape or a small mount, and continued access to
-        each workstation's existing breadboard. **[VERIFY]** — confirm the specific voltage-divider
-        resistor values (e.g. 1k/2k) and the mounting hardware/tape are itemized and stocked; both
-        are new to Class 2 and not part of the Class 1 kit.
+        each workstation's existing breadboard. Confirm the 1k/2k voltage-divider resistors (1k from
+        `ECHO` to `GP7`, 2k from `GP7` to `GND`) and the mounting tape are stocked; both are new to
+        Class 2 and not part of the Class 1 kit.
   * Pre-build one reference circuit (HC-SR04 + SG90, separately and combined) at the instructor
         bench and test `class-2-phase-1-code.py`, `class-2-phase-2-code.py`, and `class-2-phase-3-code.py` end-to-end.
         (~25 min)
@@ -70,7 +70,7 @@ quantities, and sourcing.
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
 | HC-SR04 Ultrasonic Distance Sensor | Measures distance via a timed sound echo |
 | SG90 Micro Servo Motor | Sweeps the distance sensor across an angle range via PWM |
-| Voltage-divider resistor pair **[VERIFY — exact values]** | Steps the HC-SR04's 5V ECHO signal down to a safe 3.3V for the Pico |
+| Voltage-divider resistor pair (1k + 2k ohm) | Steps the HC-SR04's 5V ECHO signal down to a safe 3.3V for the Pico |
 | Double-sided tape or small mount **[VERIFY — not itemized]** | Fastens the HC-SR04 to the SG90 shaft/horn for the combined sweep |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Class 1's circuit stays on it, untouched |
 | Dupont jumper wires (shared) | Point-to-point wiring |

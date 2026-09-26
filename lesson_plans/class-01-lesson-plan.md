@@ -38,14 +38,14 @@ control in Class 6's stretch goal).
 
 * **1-2 days before:** Confirm every student's Pico 2 W still boots to the CIRCUITPY drive and
   the serial console connects — spot-check the Pre-Class milestone didn't regress. (~15 min)
-* **1-2 days before:** Verify `adafruit_debouncer` is present in the Adafruit CircuitPython
+* **1-2 days before:** Verify `adafruit_debouncer` and `adafruit_ticks` are present in the Adafruit CircuitPython
   Library Bundle folder each student installed in the Pre-Class; have a few copies on a USB
   stick as backup. (~10 min)
 * **Day of, before students arrive:**
   * Set out one pushbutton switch, one KY-040 rotary encoder, two LEDs, two current-limiting
     resistors, and a breadboard at each workstation (see Materials & Components below).
   * Pre-build one reference circuit (button + encoder + 2 LEDs) at the instructor bench and test
-    both `class-1-code-1.py` (no debounce) and `class-1-code-2.py` (debounced) end-to-end.
+    `class-1-code-1A.py`, `class-1-code-1B.py` (no debounce), and `class-1-code-2.py` (debounced) end-to-end.
     (~20 min)
   * Project the instructor's serial console output so the whole class can see the bouncy vs.
     debounced comparison live. (~5 min)
@@ -170,45 +170,116 @@ rotary encoder is reused, unchanged, in Class 6's stretch goal as a live speed c
 table above out loud to a neighbor. Wiring mistakes found now save debugging time later.
 
 **Step 1 — no debouncing, see the problem.**
-Load `class-1-code-1.py` (save as `code.py`). This version reads the raw button and encoder
-state every loop and prints counts to the serial console with **no** debouncing at all.
+Load `class-1-code-1A.py` (save as `code.py`) — the encoder alone, read with the built-in
+`rotaryio` module, printing its position; pressing the knob (`SW` on `GP18`) resets the count.
+Have students turn the knob fast and slow and change the loop's `time.sleep()` to see what gets missed.
 
 ```python
-# class-1-code-1.py
-# No debouncing -- demonstrates raw switch/encoder bounce.
+# class-1-code-1A.py
+# Phase 1: read the rotary encoder and its push button with NO debouncing at all.
+# Goal: watch a single physical press/turn produce multiple, erratic readings.
+
+import time
+import board
+import digitalio
+import rotaryio
+
+# 1. Initialize the rotary encoder on adjacent pins
+# rotaryio automatically handles internal pull-up resistors for these two pins
+encoder = rotaryio.IncrementalEncoder(board.GP3, board.GP4)
+
+# 2. Initialize the built-in push button switch on the rotary encoder
+button = digitalio.DigitalInOut(board.GP18)
+button.direction = digitalio.Direction.INPUT
+button.pull = digitalio.Pull.UP
+
+# Track the last known state of the encoder position
+last_position = encoder.position
+
+print("Rotary Encoder Ready!")
+
+while True:
+    # Read the current position value
+    current_position = encoder.position
+
+    # If the encoder has been turned, print the new position
+    if current_position != last_position:
+        print(f"Position: {current_position}")
+        last_position = current_position
+
+    # Check if the button is pressed (it connects to GND, so it falls to False/0)
+    if not button.value:
+        print("Button Pressed! Resetting counter.")
+        encoder.position = 0  # You can manually rewrite or reset the position
+        last_position = 0
+        time.sleep(0.2)       # Debounce delay to prevent multiple triggers from one press
+
+    # Small delay to keep the loop breathing
+    # time.sleep(0.5)
+    # time.sleep(0.1)
+    time.sleep(0.001)
+```
+
+Then load `class-1-code-1B.py` (replaces 1A as `code.py`). This version reads the raw button and
+encoder state every loop with plain `digitalio` and prints counts to the serial console with **no**
+debouncing at all. Both programs use only built-in modules, so nothing goes into `/lib` yet.
+
+```python
+# class-1-code-1B.py
+# Phase 1: read the rotary encoder and its push button, plus momentary button with NO debouncing at all.
+# Goal: watch a single physical press/turn produce multiple, erratic readings.
+
 import time
 import board
 import digitalio
 import pwmio
 
-# Button input, active-low with internal pull-up
+# --- Button setup ---
+# digitalio.DigitalInOut turns a GPIO pin into a simple digital input or output.
 button = digitalio.DigitalInOut(board.GP2)
 button.direction = digitalio.Direction.INPUT
+# Pull.UP means the pin reads True when nothing is pressed, and False when
+# the button connects it to GND. This is "active-low" wiring.
 button.pull = digitalio.Pull.UP
 
-# Rotary encoder CLK/DT, both active-low with internal pull-up
+# --- Rotary Encoder setup ---
+# Both CLK and DT are wired the same way as the button: active-low with a pull-up.
 encoder_clk = digitalio.DigitalInOut(board.GP3)
 encoder_clk.direction = digitalio.Direction.INPUT
 encoder_clk.pull = digitalio.Pull.UP
+
 encoder_dt = digitalio.DigitalInOut(board.GP4)
 encoder_dt.direction = digitalio.Direction.INPUT
 encoder_dt.pull = digitalio.Pull.UP
 
-# Button LED, plain on/off
+# 2. Initialize the built-in push button switch on the rotay encoder
+button_encoder = digitalio.DigitalInOut(board.GP18)
+button_encoder.direction = digitalio.Direction.INPUT
+button_encoder.pull = digitalio.Pull.UP
+
+# --- Button LED setup ---
+# A plain digital output: fully on or fully off, no in-between.
 button_led = digitalio.DigitalInOut(board.GP15)
 button_led.direction = digitalio.Direction.OUTPUT
 
-# Encoder brightness LED, PWM so we can dim/brighten it
+# --- Rotary Encoder LED setup ---
+# pwmio.PWMOut lets us control brightness instead of just on/off.
+# frequency=5000 means the pin switches on/off 5000 times per second -- fast
+# enough that your eye only sees the average brightness, not any flicker.
+# duty_cycle starts at 0 (fully off) and ranges up to 65535 (fully on).
 encoder_led = pwmio.PWMOut(board.GP14, frequency=5000, duty_cycle=0)
 
+# Running totals we update as we detect changes.
 press_count = 0
 encoder_position = 0
+# We need to remember the encoder's last CLK reading so we can tell when it changes.
 last_clk_state = encoder_clk.value
 
-print("Class 1 -- raw (bouncy) readings starting...")
+print("Class 1, Phase 1 -- raw (bouncy) readings starting...")
+print("Press the button and turn the knob. Watch the counts jump around.")
 
 while True:
-    # --- Button: count every falling edge, no filtering ---
+    # --- Push Button: count every time the pin reads "pressed" (False) ---
     if not button.value:
         press_count += 1
         button_led.value = True
@@ -216,19 +287,33 @@ while True:
     else:
         button_led.value = False
 
-    # --- Encoder: naive quadrature read, no filtering ---
+    # --- Rotary Encoder: naive quadrature read ---
     clk_state = encoder_clk.value
     if clk_state != last_clk_state:
+        # If DT differs from the NEW clk_state, we turned one direction;
+        # if DT matches it, we turned the other direction.
         if encoder_dt.value != clk_state:
             encoder_position += 1
         else:
             encoder_position -= 1
+        # Clamp so duty_cycle math below never goes out of range.
         encoder_position = max(0, min(100, encoder_position))
+        # Convert our 0-100 position into a 0-65535 PWM duty cycle.
         encoder_led.duty_cycle = int(encoder_position / 100 * 65535)
         print("RAW encoder_position:", encoder_position)
     last_clk_state = clk_state
 
-    time.sleep(0.001)  # sample fast on purpose -- this is what exposes the bounce
+    # Check if the button is pressed (it connects to GND, so it falls to False/0)
+    if not button_encoder.value:
+        print("Rotary Encoder Button Pressed! Resetting counter.")
+        encoder_position = 0  # You can manually rewrite or reset the position
+        time.sleep(0.2)  # Debounce delay to prevent multiple triggers from one press
+
+    # Sample very fast on purpose -- this is what exposes the bounce.
+    # A slower loop would accidentally hide some of the bouncing.
+    # time.sleep(0.5)
+    # time.sleep(0.1)
+    time.sleep(0.001)
 ```
 
 **What to watch for:** This is the moment students should see `press_count` jump by 3, 7, even
@@ -238,12 +323,12 @@ console say?"
 
 **Step 2 — add debouncing, fix the problem.**
 Load `class-1-code-2.py`. This uses `adafruit_debouncer.Debouncer` on the button (requires
-`adafruit_debouncer` in `/lib` from the Library Bundle) and a minimum-step-interval software
+`adafruit_debouncer.mpy` **and** its helper `adafruit_ticks.mpy` in `/lib` from the Library Bundle) and a minimum-step-interval software
 debounce on the encoder.
 
 ```python
 # class-1-code-2.py
-# Debounced version -- same wiring as class-1-code-1.py.
+# Debounced version -- same wiring as class-1-code-1B.py.
 import time
 import board
 import digitalio
@@ -355,6 +440,7 @@ ahead.
 | Encoder counts backward from what's expected | `CLK`/`DT` wires swapped | Swap the two wires, or swap the `+1`/`-1` branches in code |
 | Encoder still jittery after debouncing | `MIN_STEP_INTERVAL` too small for this particular encoder | Raise it in small steps (e.g. `0.02` -> `0.03` -> `0.05`) and re-test |
 | `ImportError: no module named 'adafruit_debouncer'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_debouncer.mpy` file from the Library Bundle into `/lib` |
+| `ImportError: no module named 'adafruit_ticks'` | `adafruit_debouncer` imports `adafruit_ticks` internally, and it's missing from `/lib` | Copy `adafruit_ticks.mpy` from the Library Bundle into `/lib`, alongside `adafruit_debouncer.mpy` |
 | Serial console shows nothing at all | Wrong COM port selected, or board not in a data-capable USB port | Reselect the port in Mu/Thonny; try a different USB cable/port |
 | Button LED stays on permanently | Button wired active-high instead of active-low, code assumes active-low | Confirm `pull = digitalio.Pull.UP` and the switch's other leg goes to `GND`, not `3V3` |
 
@@ -363,11 +449,11 @@ ahead.
 **Younger students (12-14) and their parent/guardian:** Provide the pin table above pre-printed
 and laminated at the workstation so it's a lookup, not a memorization task. Pair a younger
 student's fine-wiring work with the parent/guardian's help holding components steady. Start from
-`class-1-code-1.py` already loaded as a starting point rather than typed from scratch, and have
+`class-1-code-1B.py` already loaded as a starting point rather than typed from scratch, and have
 them focus on reading and modifying it (e.g., changing `MIN_STEP_INTERVAL`) rather than writing
 it from a blank file.
 
-**Older students (15-18) and adults:** Have them type `class-1-code-1.py` themselves from the
+**Older students (15-18) and adults:** Have them type `class-1-code-1B.py` themselves from the
 wiring table and a description of the goal, rather than starting from the provided file. Once the
 milestone is met, challenge them to add a third state — e.g., print "double press" if two button
 presses land within 400ms of each other — as an extension of the debouncing logic they just
@@ -378,7 +464,7 @@ learned.
 **Milestone Assignment (per syllabus, Phase 1 / Class 1):** Side-by-side terminal output showing
 bouncy vs. debounced switch/encoder readings.
 
-**What "complete" looks like:** The student can run `class-1-code-1.py`, show a single button
+**What "complete" looks like:** The student can run `class-1-code-1B.py`, show a single button
 press or encoder click producing multiple/erratic console lines, then run `class-1-code-2.py` and
 show the same physical action producing exactly one clean console line. Both LEDs respond
 correctly to their respective input in the debounced version.
@@ -399,7 +485,7 @@ version to the start of Class 2 and note it in their build journal.
 * The "should we fix this in hardware or software?" discussion (Direct Teaching) tends to run
   long if you let it — cap it at 3-4 student answers and move on; it pays off more once students
   have seen the raw bounce with their own eyes in Guided Practice.
-* Keep both code files (`class-1-code-1.py`, `class-1-code-2.py`) on a shared drive/USB stick so
+* Keep all three code files (`class-1-code-1A.py`, `class-1-code-1B.py`, `class-1-code-2.py`) on a shared drive/USB stick so
   a student who breaks their working file can recover instantly instead of losing class time.
 * If a pair finishes early and both LEDs work, resist the urge to let them start full Chassis Kit
   assembly at their bench mid-Class — it's noisy and distracting for pairs still debugging. Point

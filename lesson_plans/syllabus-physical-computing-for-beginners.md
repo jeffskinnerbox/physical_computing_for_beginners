@@ -106,7 +106,7 @@ with N20 geared motors.
 * All CircuitPython and Python concepts needed for the projects, taught from scratch
 * Step-by-step install guides for every tool used (see the Pre-Class)
 * A course GitHub repository maintained by the instructor, containing handouts, install
-  instructions, build guides, and copy-paste-ready code so no student is never stuck without a
+  instructions, build guides, and copy-paste-ready code so no student is ever stuck without a
   starting point
 * All required electronic hardware, handed out each Class
 
@@ -142,6 +142,8 @@ with N20 geared motors.
 * [Thonny][03] — alternate editor, also used with the Pico
 * [Adafruit CircuitPython Library Bundle][04]
 * A free [GitHub][05] account, to access the course repository
+* Python 3 with `pyserial`, `matplotlib`, and `numpy` on the laptop (installed in the Pre-Class; the
+  packages in Class 4) — runs the Class 4 live 3D orientation display
 * A modern web browser (Chrome, Firefox, or Edge) — already on any Windows 11 laptop — to view the
   rover status website the Pico 2 W starts hosting in Class 3
 
@@ -197,7 +199,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Discuss what physical computing is and the sensor -> processor -> actuator model
 * Discuss the Raspberry Pi Pico 2 W, why CircuitPython instead of MicroPython or Arduino C++, and
   where to find help online (Instructables, GitHub, Adafruit Learn, SparkFun)
-* Install the Mu and Thonny editors and the Adafruit CircuitPython Library Bundle
+* Install the Mu and Thonny editors, the Adafruit CircuitPython Library Bundle, and Python 3 for the laptop
 * Flash CircuitPython onto the Pico 2 W and find the CIRCUITPY drive
 * Write, edit, and run a first small CircuitPython program that blinks the onboard LED and prints a
   heartbeat count to the serial console
@@ -250,8 +252,9 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * (Stretch) Tune the feedback loop: change the correction gain (`KI`) and the safety clamp (`MAX_TRIM`) one at
   a time, score each setting by sideways drift, settling time and jitter, and stop when improvements fall below
   the run-to-run noise
-* **Milestone:** Car reliably drives a 35 cm square and a 35 cm-diameter circle, with live
-  wheel-speed telemetry visible on the terminal and on the Pico's own status webpage
+* **Milestone:** Car attempts a 35 cm square and a 35 cm-diameter circle, tracing a recognizable
+  (if drifting) shape, and you can name what causes the drift; live wheel-speed telemetry is visible on
+  the terminal and on the Pico's own status webpage
 
 **Class 4 — Inertial Measurement Unit (IMU)**
 
@@ -262,8 +265,8 @@ another's — pairs work at whatever speed keeps both partners engaged.
   refined whenever the board is still) and compare the drift before and after
 * Discuss: does the on-screen orientation match the IMU's real physical orientation? Does IMU
   orientation data help solve the Class 3 square/circle challenge, or is something still missing?
-* Add orientation to the Class 3 rover status website — same site, same webpage, just one more
-  field alongside wheel speed and direction
+* Add orientation to the Class 3 rover status website — same site, same webpage, just three more
+  fields (`roll`, `pitch`, `yaw`) alongside wheel speed and direction
 * **Milestone:** Live 3D orientation display driven by the IMU, with orientation also visible on the
   rover status website
 
@@ -272,6 +275,8 @@ another's — pairs work at whatever speed keeps both partners engaged.
 **Class 5 — Build the Random Rover: Collision Avoidance**
 
 * Combine the servo-mounted ultrasonic sensor, motor driver, and Pico 2 W into one autonomous car
+* Add two fixed safety sensors — a limit switch as a front bumper and a forward-facing IR obstacle
+  sensor — that force an immediate stop-and-reverse, backing up the ultrasonic sweep
 * Sweep left-right on a timer (and immediately if something gets close) to find the clearest direction before steering
 * Drive at constant speed around the room, avoiding obstacles
 * Discuss: what does each component contribute to the collision-avoidance decision? How would you
@@ -397,7 +402,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 **Milestone Assignments**
 
 Each Class (see Lessons Breakdown above) ends with a hands-on milestone — a specific, observable
-result (e.g., "clean debounced switch readings on the terminal," "car drives a 35 cm square").
+result (e.g., "clean debounced switch readings on the terminal," "car attempts a 35 cm square").
 There's no written report due; the milestone is demonstrated live during the Closing / Wrap-up
 portion of the Class, or brought back working at the start of the following Class if it wasn't
 finished in time.
