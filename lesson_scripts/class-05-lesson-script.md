@@ -60,7 +60,7 @@ not just copying.
 | 9V battery clip and 9V battery (from Class 3) | 1 each | Powers the motors (raw, via `VM`) and, through the buck converter, your Pico's own logic power |
 | 5V Buck Converter Module (from Class 3) | 1 | Steps the 9V battery down to a regulated 5V for your Pico's `VSYS` power input — no rewiring needed today |
 | Breadboard (from prior classes) | 1 | No rewiring needed today |
-| USB cable or portable battery | 1 | Power for untethered floor runs |
+| USB cable | 1 | Saving code and reading the serial console — unplug it for floor runs; the rover runs on its 9V battery |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | (none — the Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the rover status website runs on the network your Pico creates itself (access point mode, from Class 3) — nothing new to set up |
 | Open floor area with soft obstacles | shared | Test space for autonomous driving runs |
@@ -70,8 +70,9 @@ for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
 
-There's no new hardware today — this class is about combining two circuits you've already built
-and tested separately. A quick recap of what each one contributes:
+The only new hardware today is the two small safety sensors — the limit switch and the IR obstacle
+sensor (wired in Phase 1 below). Mostly this class is about combining two circuits you've
+already built and tested separately. A quick recap of what each one contributes:
 
 **From Class 2: the sensor+servo "eyes."** Your HC-SR04, mounted on the SG90 servo, can sweep
 across a range of angles and report a distance at each one. Today, instead of sweeping
@@ -129,13 +130,21 @@ Class 3 optocoupler and Class 4 IMU pins below stay wired for the website but ar
 ### Wiring for this phase
 
 Reconnect (or simply confirm) Class 2's sensor+servo circuit and Class 3's motor driver circuit
-exactly as they were left wired, then add the two new safety sensors:
+exactly as they were left wired — except two power wires, below — then add the two new safety sensors:
+
+>**NOTE — move two power wires:** in Class 2 the HC-SR04 `VCC` and the servo's red `+` wire went to
+>`VBUS`, which only has power while a USB cable is plugged in. Today the rover drives untethered on
+>its 9V battery, so move both of those wires from `VBUS` to the `VSYS` rail (the buck converter's 5V
+>output). Same 5V, same signal pins — but now it's there with the USB cable unplugged. Skip this and
+>the rover drives off the laptop cable and immediately goes blind: every scan reads an error and the
+>servo stops moving.
 
 | Component | Pico 2 W Pin |
 | :---------- | :------------- |
 | HC-SR04 `TRIG` | `GP6` |
 | HC-SR04 `ECHO`, through voltage-divider resistors | `GP7` |
 | SG90 servo signal | `GP8` |
+| HC-SR04 `VCC` and SG90 `+` (red) | `VSYS` — buck converter 5V rail (**moved** from `VBUS`) |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
 | Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) |
@@ -538,6 +547,7 @@ are still updating too — they shouldn't have stopped just because you edited t
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
 | Rover doesn't drive at all | `motor_driver.py` missing from `CIRCUITPY`, or the 9V battery is dead | Confirm `motor_driver.py` is present alongside `code.py`; check battery voltage |
+| Works on the laptop cable, but unplugged every scan reads `None` and the servo stops moving | HC-SR04 and servo still powered from `VBUS`, which is dead without USB | Move HC-SR04 `VCC` and servo `+` from `VBUS` to the `VSYS` rail (buck converter 5V) |
 | Pico doesn't power on when running off battery (no USB) | Buck converter miswired, or its output isn't reaching `VSYS` | Verify buck converter IN from 9V battery, OUT to Pico `VSYS`/`GND`; confirm buck converter's output trimpot (if adjustable) is set to 5V |
 | Rover drives but never stops to scan | `SCAN_INTERVAL` too long, or `STOP_DISTANCE_CM` too small to ever trigger | Lower `SCAN_INTERVAL` and/or raise `STOP_DISTANCE_CM` and re-test |
 | Rover stops constantly, barely drives | `STOP_DISTANCE_CM` set too large, triggering on normal sensor noise | Lower `STOP_DISTANCE_CM` in small steps |
@@ -571,6 +581,7 @@ this Class, plus the (now-library) `rover_server.py` this Class refactored.
 | HC-SR04 `TRIG` | `GP6` |
 | HC-SR04 `ECHO`, through voltage-divider resistors | `GP7` |
 | SG90 servo signal | `GP8` |
+| HC-SR04 `VCC` and SG90 `+` (red) | `VSYS` (buck converter 5V rail) |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
 | Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) |

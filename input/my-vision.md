@@ -542,7 +542,8 @@ Tips for Students:
   input, fixed forward-facing). Both are carried forward unchanged into Class 6. Otherwise, reconnects
   exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`), the Class 3 motor driver circuit
   (`GP9`-`GP12`) and wheel-odometry circuit (`GP19`/`GP17`), and the Class 4 IMU circuit (`GP0`/`GP1`)
-  as they were left wired &mdash; nothing to move. The Class 1 circuit can stay on the breadboard unused
+  as they were left wired &mdash; no pin changes. The one power change: the HC-SR04 `VCC` and servo `+` move
+  from `VBUS` (dead without a USB cable) to the buck converter's `VSYS` rail, so the rover can scan untethered. The Class 1 circuit can stay on the breadboard unused
   or be set aside; it isn't needed for this build.
 * **Objective**: Create an autonomous car with wheel motors, operating at a constant speed,
   move around the room without hitting anything.

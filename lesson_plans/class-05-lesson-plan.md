@@ -224,8 +224,10 @@ students paste in the finished Step 2 code instead of walking every line, and mo
 
 Instructor builds along on the projector; students wire up and test in parallel.
 
-**Wiring — Class 2 and Class 3 circuits are reconnect-only, no changes.** The only *new* wiring this
-Class is the limit switch and IR sensor. Class 1's button/encoder circuit is not used today, but leave it in
+**Wiring — Class 2 and Class 3 circuits stay put, with one power change.** Move the HC-SR04 `VCC` and
+servo `+` wires from `VBUS` (dead without a USB cable) to the `VSYS` rail fed by the buck converter, so
+the sensor and servo keep working when the rover runs untethered. The only *new* parts this Class are
+the limit switch and IR sensor. Class 1's button/encoder circuit is not used today, but leave it in
 place — Class 6 reconnects it. Class 4's IMU circuit is not read today but must stay wired (see Prerequisites).
 
 | Component | Pico 2 W Pin | From Class |
@@ -233,6 +235,7 @@ place — Class 6 reconnects it. Class 4's IMU circuit is not read today but mus
 | HC-SR04 `TRIG` | `GP6` | Class 2 |
 | HC-SR04 `ECHO` (through voltage-divider) | `GP7` | Class 2 |
 | SG90 servo signal | `GP8` | Class 2 |
+| HC-SR04 `VCC` and SG90 `+` (red) | `VSYS` — buck converter 5V rail (**moved** from `VBUS`) | Class 2, re-powered |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` | Class 3 |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` | Class 3 |
 | Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) | New this Class |
@@ -614,6 +617,7 @@ references in the syllabus if they want to read ahead.
 | Rover works on the bench but behaves erratically on the floor | Wheels slipping on the test surface, or floor surface interfering with the ultrasonic beam (e.g. thick carpet edges) | Test on a harder, flatter surface; treat as a real-world limitation to discuss, not just a bug |
 | Bump switch never triggers even on a hard hit | Lever arm not mounted low/forward enough to actually contact obstacles, or `GP5` wiring loose | Reposition the switch so the lever leads the chassis edge; re-verify wiring with a multimeter continuity check |
 | Rover constantly emergency-stops with nothing nearby | IR sensor's onboard sensitivity potentiometer set too high, or aimed at a reflective floor | Turn the sensor's sensitivity trimmer down; re-aim slightly upward off the floor |
+| Works on the laptop cable, but unplugged every scan reads `None` and the servo stops moving | HC-SR04 and servo still powered from `VBUS`, which is dead without USB | Move HC-SR04 `VCC` and servo `+` from `VBUS` to the `VSYS` rail (buck converter 5V) |
 | Rover reverses into something behind it after a safety stop | Backoff time too long for the available clearance | Shorten the `0.3` s backoff in the main loop's emergency stop-and-reverse step |
 | Website's new fields (`scan_heading`/`drive_state`/`stop_reason`) never appear or never change | Old Class 4 `rover_server.py` still on CIRCUITPY, or its old `while True: server.poll()` loop wasn't removed | Confirm only one `rover_server.py` exists and it's the Class 5 version; confirm `class-5-code.py` calls `rover_server.server.poll()` itself |
 | Rover reacts late to the bump switch/IR sensor, or turns overshoot, only while the status page is open | Each `/data.json` request blocks about 0.25 s in `read_speed()` inside `server.poll()` (see the known-limitation note in Guided Practice Step 2) | Expected with the page open; close the browser tab for the quickest reflexes |

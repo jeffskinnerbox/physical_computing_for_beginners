@@ -59,8 +59,8 @@ you how to tune that fix, step by step, until it performs as well as your car ca
 | Soldering iron, solder, safety glasses (Makersmiths) | shared | Soldering Dupont leads onto the motors and on/off switch |
 | Masking tape and a tape measure | 1 (shared) | Phases 5-6: a straight start line, and measuring how far the car drifts sideways |
 
-**Additional components for the Homework Assignments** (Section 13) — no homework has been written
-for this class yet; this section will be filled in when that content is added.
+**Homework Assignment** (Section 9) — tuning the Phase 5 feedback loop's `KI` and `MAX_TRIM` (the
+Phase 6 procedure) needs no parts beyond today's car, tape line, and tape measure.
 
 ## 3. Meet the Hardware
 
@@ -342,7 +342,7 @@ print("both wheels reverse")
 motor_driver.drive(-0.5, -0.5)
 time.sleep(2)
 
-# left wheel A backward, right wheel B forward,both wheels half speed reverse for 2 seconds
+# left wheel A backward, right wheel B forward, both at half speed, for 2 seconds
 print("turn (left wheel A backward, right wheel B forward)")
 motor_driver.drive(-0.5, 0.5)
 time.sleep(2)
@@ -353,8 +353,8 @@ motor_driver.stop()
 
 ### Try it / what you should see
 
-You should see `forward` print, then both wheels spin the same direction at the same rate for one
-second. Then `reverse` prints and both wheels reverse. Then the turn command prints and the wheels
+You should see `both wheels forward` print, then both wheels spin the same direction at the same rate for two
+seconds. Then `both wheels reverse` prints and both wheels reverse. Then the turn command prints and the wheels
 spin opposite directions from each other. Then `stop` prints and both wheels stop immediately.
 
 If a motor spins the wrong direction, its two leads are almost certainly swapped at `AOUT1`/`AOUT2`
@@ -673,7 +673,7 @@ for _ in range(10):
     print(wheel_odometry.read_speed())
 
 # set motors to half speed, moving backward
-print("\n")  # skill a line
+print("\n")  # skip a line
 motor_driver.drive(-0.5, -0.5)
 for _ in range(10):
     print(wheel_odometry.read_speed())
@@ -715,8 +715,8 @@ measured speed and commanded direction combine into one reading.
 ### Wiring for this phase
 
 No new wiring — this phase is all software. Add `CIRCUITPY_WIFI_AP_SSID` and
-`CIRCUITPY_WIFI_AP_PASSWORD` to your `settings.toml` file if they aren't already filled in. Unlike
-Phases 1-3, these aren't your classroom's existing WiFi credentials — they're the name and password
+`CIRCUITPY_WIFI_AP_PASSWORD` to your `settings.toml` file if they aren't already filled in. These aren't
+your classroom's existing WiFi credentials — they're the name and password
 *you're choosing* for the Pico's own broadcast network (pick a name nobody else in the room is
 using, since everyone's Pico broadcasts at once; the password must be at least 8 characters for
 CircuitPython's `start_ap()` to accept it).
@@ -1271,7 +1271,7 @@ uses the accelerometer and gyroscope but not the magnetometer, and gravity can't
 which way is "north," so its yaw slowly drifts over time. That's fine for a straight run of a few
 seconds; it's the reason a long run would need something more.
 
-## 9.Homework Assignment — Tuning KI & MAX_TRIM for Optimal Performance
+## 9. Homework Assignment — Phase 6: Tuning KI & MAX_TRIM for Optimal Performance
 
 Complete Phase 5 first — this phase needs `straight_drive.py` and the open-loop vs. closed-loop
 `code.py` already working, and a car that visibly drives straighter with feedback than without.
@@ -1585,10 +1585,10 @@ You need `motor_driver.py` and `wheel_odometry.py` on your `CIRCUITPY` drive eit
 libraries, unchanged from Phases 1 and 3), plus either Option A's `code.py`, Option B's
 `rover_server.py` and a thin `code.py` wrapper, or the Phase 5's Option C (`straight_drive.py` plus
 its `code.py`). Unlike Phase 2, where `code.py` was the square/circle
-attempt outright, this Class actually finishes with *two different things* your car could be
-running — the square/circle attempt (Phase 2) or the rover status website (Phase 4) — since
-nothing here makes them run at the same time. Pick one to run and swap between them by replacing
-`code.py` (and, for Option B, `rover_server.py`). Both are shown below so you have the complete,
+attempt outright, this Class actually finishes with *three different things* your car could be
+running — the square/circle attempt (Phase 2), the rover status website (Phase 4), or the
+straight-drive comparison (Phase 5) — since nothing here makes them run at the same time. Pick one
+to run and swap between them by replacing `code.py` (and, for Option B, `rover_server.py`). All three are shown below so you have the complete,
 final version of each in one place.
 
 ```python

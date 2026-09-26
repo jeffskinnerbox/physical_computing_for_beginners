@@ -4,7 +4,7 @@ Go to this URL for links to the topic below:
 
 ## Class Documentation
 * [Location of all documentation & code][01] - all materials created for teaching this course
-* [Lesson Scripts][02] - the detail step-by-step lesson script used by the instructor for the classes
+* [Lesson Scripts][02] - the detailed, step-by-step build and code walkthrough for each class, written for students
 * [Explainers][03] - technical concepts explained in non-technical language using narrative storytelling framework
 
 ## Data for the Raspberry Pi Pico 2W
@@ -32,5 +32,5 @@ Go to this URL for links to the topic below:
 [07]:https://pip-assets.raspberrypi.com/categories/1214-rp2350/documents/RP-008280-DS-1-hardware-design-with-rp2350.pdf
 [08]:https://cdn-learn.adafruit.com/downloads/pdf/adafruit-1-14-240x135-color-newxie-tft-display.pdf
 [09]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
-[10]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/lesson_scripts/class-00-lesson-script.md/#references
+[10]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/handouts/references-and-resources.md
 

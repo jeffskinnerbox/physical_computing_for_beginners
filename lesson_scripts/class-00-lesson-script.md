@@ -65,7 +65,8 @@ class itself, only if you choose to do Homework 3 or Homework 4 at home:
 Homework 1 (internal chip temperature) and Homework 2 (WiFi captive portal) need no additional
 hardware beyond the Pico 2 W itself.
 
->**NOTE:** For those who do not have a computer at home, there is an alternative.
+>**NOTE:** If you don't have a Windows 11 laptop, Makersmiths can provide one for class — it has to
+>stay at the makerspace, though, so you won't be able to continue your project at home on it.
 
 ## 3. Meet the Hardware
 
@@ -625,7 +626,7 @@ responsive, not a fixed/fake number.
 
 **What this teaches:** The Pico 2W has a WiFi radio built in (that's what the "W" means), and
 CircuitPython can turn it into its own tiny WiFi network — an **access point** — instead of just
-joining someone else's. This exercise builds on the `blink.py`-style program from Section 4:
+joining someone else's. This exercise builds on the heartbeat program (`class-0-code.py`) from Section 4:
 instead of only blinking the LED, the board also runs a small web server that any phone or laptop
 can connect to and see the LED's current on/off status on a webpage, live, with no laptop cable
 required.
@@ -661,7 +662,7 @@ from adafruit_httpserver import Server, Request, Response
 ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
 ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 
-# --- Set up the onboard LED, same as blink.py ---
+# --- Set up the onboard LED, same as class-0-code.py ---
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
@@ -704,7 +705,7 @@ last_blink = time.monotonic()
 while True:
     server.poll()  # check if a browser is asking for the page; answer if so
 
-    # Blink once per second, without using time.sleep() (which would freeze the web server)
+    # Toggle the LED every half second, without using time.sleep() (which would freeze the web server)
     if time.monotonic() - last_blink >= 0.5:
         led_is_on = not led_is_on
         led.value = led_is_on
@@ -755,7 +756,7 @@ rewiring.
 | `GP27` | `MOSI` / `DA` | SPI data, Pico → display (there is no MISO line — the display never talks back) |
 | `GP20` | `CS` | Chip select (tells the display when the Pico is talking to *it*, not some other SPI device) |
 | `GP21` | `DC` | Data/Command select (tells the display whether an incoming byte is a drawing command or pixel data) |
-| `GP22` | `RST` / `BL` | Reset (lets CircuitPython force the display back to a known state on startup) |
+| `GP22` | `RST` | Reset (lets CircuitPython force the display back to a known state on startup) |
 
 > Double-check your specific TFT board's silkscreen labels against this table — some boards
 > label the reset pin `RESET` or `RST`, and the data/command pin `DC` or `A0`, but they're the
@@ -847,7 +848,7 @@ passes underneath, without ever disappearing off the side.
 > Adafruit CircuitPython Library Bundle. `terminalio`, used for the built-in font, ships with
 > CircuitPython already, so it needs no copying.
 >
->**NOTE:** This specific panel (Adafruit's 1.14" 240×135 ST7789, product 4383) has a controller with more RAM (240×320)
+>**NOTE:** This specific panel (Adafruit's 1.14" 240×135 ST7789 Newxie, product 6113) has a controller with more RAM (240×320)
 >than visible glass (240×135). The visible window doesn't start at RAM address (0,0) — it's offset within the buffer.
 >Without telling the driver that offset (rowstart/colstart, sometimes x_offset/y_offset depending on library version),
 >display.width/display.height still report 240×135 correctly, so your bounce math (x<=0, y<=0, etc.) is logically fine

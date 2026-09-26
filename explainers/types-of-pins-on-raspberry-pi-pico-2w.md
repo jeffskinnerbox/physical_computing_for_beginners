@@ -57,13 +57,15 @@ table for exactly this reason.
 ## VBUS 5V (Power)
 
 **What it's for:** `VBUS` carries the raw 5-volt power coming in from whatever is plugged into
-the Pico's USB-C port — your laptop, or a USB power bank/wall adapter. It's the Pico's main power
-*input* when running over USB, which is how this class has powered every board so far.
+the Pico's micro-USB port — your laptop, or a USB power bank/wall adapter. It's the Pico's main power
+*input* when running over USB, which is how every board in this course is powered through Class 2.
 
 **How it operates:** `VBUS` is only "live" when a USB cable is actually connected and supplying
 power. It's not regulated down to a lower voltage — it passes the USB port's 5V through more or
 less directly, which is why some power-hungry accessories (like a strip of several servo motors)
-are better fed from `VBUS` than from the board's other power pins.
+are better fed from `VBUS` than from the board's other power pins. The catch: with no USB cable
+plugged in, `VBUS` is dead — which is why the Class 5 rover moves its HC-SR04 and servo power off
+`VBUS` and onto the battery-fed `VSYS` rail before it drives untethered.
 
 **Accessing it:** No CircuitPython code — `VBUS` is a wiring pin, useful when a breadboard
 component needs 5V instead of the 3.3V most sensors in this course run on.
@@ -78,9 +80,10 @@ voltage regulator (see 3V3 Out, below).
 
 **How it operates:** `VSYS` accepts a range of input voltages (roughly 1.8V–5.5V), which is what
 makes it the pin to use for battery power instead of `VBUS` — a battery pack won't always supply
-a clean 5V the way USB does, and `VSYS` is designed to tolerate that. This course powers every
-board over USB, so `VSYS` doesn't come up in a lesson script's wiring table, but it's the pin
-you'd reach for the day you want to build a Random Rover that isn't tethered to a laptop.
+a clean 5V the way USB does, and `VSYS` is designed to tolerate that. That's exactly how this
+course's rover is powered from Class 3 on: a 9V battery feeds a 5V buck converter, and the buck
+converter's output goes to `VSYS`, so the Random Rover can run without being tethered to a laptop.
+(The Class 1 rotary encoder's `+` pin also sits on `VSYS`.)
 
 **Accessing it:** No CircuitPython code — `VSYS` is a wiring pin.
 
@@ -102,8 +105,9 @@ doesn't use it; every project stays powered on for the whole class.
 ## 3V3 Out (Power)
 
 **What it's for:** `3V3 OUT` is the Pico's regulated 3.3-volt power *output* — the pin nearly
-every sensor in this course actually draws its power from. Most breakout boards (the pushbutton
-pull-ups, the HC-SR04, the LSM9DS1) are designed to run on 3.3V, not the raw 5V from `VBUS`, so
+every sensor in this course actually draws its power from. Most breakout boards (the LSM9DS1, the
+wheel optocouplers, the IR obstacle sensor, the TFT) run happily on 3.3V — the HC-SR04 and SG90 servo
+are the 5V exceptions — so
 `3V3 OUT` is the "house power outlet" your breadboard plugs into for most of this class's
 circuits.
 

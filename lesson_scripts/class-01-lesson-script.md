@@ -23,7 +23,7 @@ you turn the knob.
 Here's the twist: you're going to build it *wrong* first, on purpose. You'll write code that reads
 the button and encoder in the simplest, most naive way possible, and you'll watch it produce
 garbage — a single button press registering as five, seven, twelve presses. That garbage has a
-name (**switch bounce**) and a fix (**debouncing**), and by the end of this script you'll hav
+name (**switch bounce**) and a fix (**debouncing**), and by the end of this script you'll have
 added that fix yourself and watched the same button press turn into exactly one clean reading.
 
 This circuit doesn't get torn down at the end of class — it stays on your breadboard for the rest
@@ -128,11 +128,11 @@ only the code does.
 | Encoder brightness LED anode, through resistor | `GP14` |
 | Encoder brightness LED cathode | `GND` |
 
->**NOTE:** Identifying an LED Anode** The positive anode is always the longer wire leg.
+>**NOTE: Identifying an LED Anode** — The positive anode is always the longer wire leg.
 >The short leg, near the flat notch on the plastic rim, is the negative cathode.
 >
 >```text
->Protect the LED from 5 volts by attaching current-limiting resistor (220-330 ohm)
+>Protect the LED from too much current with a current-limiting resistor (220-330 ohm) on the 3.3V GPIO pin
 >
 > Button LED      Encoder Brightness LED
 >
@@ -232,12 +232,12 @@ while True:
 ```
 
 ### Try it / what you should see
-Turn the know and you should see the position increment increase or decrease
-depending on which way you turn the knob.
-It you push the knob, the position count should go to zero.
+Turn the knob and you should see the position increase or decrease
+depending on which way you turn it.
+If you push the knob, the position count should go to zero.
 
-No push and hold the knob switch .. What happens?
-Change the sleep time form 0.001 to 0.1 to 0.5.  Turn the know fast ... What happens?
+Now push and hold the knob switch... What happens?
+Change the sleep time from 0.001 to 0.1 to 0.5. Turn the knob fast... What happens?
 
 ### The code - No Debouncing - Rotary Encoder + Momentary Button
 Save this as `code.py` on your `CIRCUITPY` drive.
@@ -270,7 +270,7 @@ encoder_dt = digitalio.DigitalInOut(board.GP4)
 encoder_dt.direction = digitalio.Direction.INPUT
 encoder_dt.pull = digitalio.Pull.UP
 
-# 2. Initialize the built-in push button switch on the rotay encoder
+# 2. Initialize the built-in push button switch on the rotary encoder
 button_encoder = digitalio.DigitalInOut(board.GP18)
 button_encoder.direction = digitalio.Direction.INPUT
 button_encoder.pull = digitalio.Pull.UP
@@ -1059,7 +1059,7 @@ behind any on-screen analog gauge: read a live value, then re-render the display
 | `GP27` | `MOSI` / `DA` | SPI data, Pico → display |
 | `GP20` | `CS` | Chip select |
 | `GP21` | `DC` | Data/Command select |
-| `GP22` | `RST` / `BL` | Reset |
+| `GP22` | `RST` | Reset |
 
 ```python
 # class-1-homework-6.py - draw a live bar gauge on the TFT display,

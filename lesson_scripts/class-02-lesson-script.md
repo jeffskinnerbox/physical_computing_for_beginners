@@ -383,7 +383,7 @@ This is the finished project in one place — build straight to the combined sen
 without going through the individual phases above.
 
 ### Complete wiring
-(Class 1's button/encoder circuit can stay untouched on the breadboard alongside this.
+(Class 1's button/encoder circuit can stay untouched on the breadboard alongside this.)
 
 * [Raspberry Pi Pico 2w Pinout][20]
 * [SG90 Servo Pinout][38]
@@ -405,7 +405,7 @@ Save as `code.py`.
 Mount the HC-SR04 onto the servo horn/shaft with double-sided tape before running this.
 
 ```python
-# class-2-all-code-3.py -- complete sweep-and-report project: HC-SR04 mounted on SG90.
+# class-2-complete-code.py -- complete sweep-and-report project: HC-SR04 mounted on SG90.
 
 import time
 import board
@@ -685,11 +685,11 @@ sensor+servo circuit.
 | SG90 servo `+` / `5V` (red) | `5V` / `VBUS` | |
 | SG90 `GND` (brown) | `GND` | |
 
->**NOTE:** Identifying an LED Anode** The positive anode is always the longer wire leg.
+>**NOTE: Identifying an LED Anode** — The positive anode is always the longer wire leg.
 >The short leg, near the flat notch on the plastic rim, is the negative cathode.
 >
 >```text
->Protect the LED from 5 volts by attaching current-limiting resistor (220-330 ohm)
+>Protect the LED from too much current with a current-limiting resistor (220-330 ohm) on the 3.3V GPIO pin
 >
 > Button LED
 >
@@ -817,7 +817,7 @@ bounce animation (Pre-Class homework) or a value set once and left alone.
 | `GP27` | `MOSI` / `DA` | SPI data, Pico → display |
 | `GP20` | `CS` | Chip select |
 | `GP21` | `DC` | Data/Command select |
-| `GP22` | `RST` / `BL` | Reset |
+| `GP22` | `RST` | Reset |
 
 ### Complete code
 
@@ -853,7 +853,7 @@ display = ST7789(display_bus, width=240, height=135, rotation=270, rowstart=40, 
 main_group = displayio.Group()
 display.root_group = main_group
 
-# --- Numeric label above the bar ---
+# --- Angle/distance readout at the top of the screen ---
 readout = label.Label(terminalio.FONT, text="Class 2, HW4", color=0xFFFFFF)
 readout.scale = 2
 readout.anchor_point = (0.5, 0.0)

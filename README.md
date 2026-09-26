@@ -25,7 +25,7 @@ the way.
 | **Audience** | Middle/high schoolers; no prior Python/CircuitPython experience required |
 | **Format** | 1 Pre-Class + 6 Classes, 2 hours each, at Makersmiths' Electronics room |
 | **Capstone project** | The Random Rover — an obstacle-avoiding robot car |
-| **Hardware** | Raspberry Pi Pico 2 W, HC-SR04 ultrasonic sensor, SG90 servo, DRV8833 dual H-bridge driver, IR optocoupler wheel-speed sensors, LSM9DS1 IMU |
+| **Hardware** | Raspberry Pi Pico 2 W, pushbutton + KY-040 rotary encoder, HC-SR04 ultrasonic sensor, SG90 servo, DRV8833 dual H-bridge driver, 9V battery + 5V buck converter, IR optocoupler wheel-speed sensors, LSM9DS1 IMU, limit switch + IR obstacle sensor, 1.14" ST7789 TFT display |
 | **Software** | CircuitPython |
 
 

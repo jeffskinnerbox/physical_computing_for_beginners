@@ -22,8 +22,8 @@ class at a time, stopping for review, rather than all six at once.
 No build process — this directory holds static markdown source files plus the CircuitPython code
 they walk through inline as fenced code blocks (no standalone `.py` files). Per this user's
 file-change convention, editing a script here also writes/updates a matching `.md.bak` mechanical
-backup (e.g. `class-00-lesson-script.md.bak`); none currently exist because these files haven't
-been hand-edited since being generated.
+backup (e.g. `class-00-lesson-script.md.bak`) alongside it; the `.bak` files are throwaway and
+gitignored.
 
 
 ## Contents

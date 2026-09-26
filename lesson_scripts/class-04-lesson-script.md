@@ -1,7 +1,5 @@
 # Lesson Script: Class 4 — Inertial Measurement Unit (IMU)
 
-* [Getting Started With Inertial Measurement Units | Exploring Degrees Of Freedom](https://core-electronics.com.au/guides/getting-started-with-inertial-measurement-units-exploring-degrees-of-freedom/#bonus)
-
 * **Class:** 4 of 6 (plus Pre-Class)
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
@@ -38,7 +36,7 @@ Class 3's square-and-circle problem on its own.
 | Component | Quantity | Purpose This Project |
 | :---------- | :--------: | :---------------------- |
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
-| 9V battery, clip, and 5V buck converter (from Class 3) | 1 each | Powers your Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
+| 9V battery, clip, and 5V buck converter (from Class 3) | 1 each | Powers your Pico's logic (via `VSYS`) all Class — carried forward unchanged from Class 3, no new wiring today |
 | LSM9DS1 9-DOF IMU breakout board (STEMMA) | 1 | Measures acceleration and rotation rate |
 | STEMMA QT/Qwiic to male-header cable (or Dupont jumpers) | 1 | I2C connection between the Pico and the IMU |
 | Breadboard (from Classes 1-3) | 1 | Your existing circuits stay on it, untouched |
@@ -97,7 +95,7 @@ built.
 | `3V3` | LSM9DS1 `VIN`/power |
 | `GND` | LSM9DS1 `GND` |
 
-## 4. Build It: Phase 1 — Read, Fuse, and Print Orientation (on the Pico) - DONE
+## 4. Build It: Phase 1 — Read, Fuse, and Print Orientation (on the Pico)
 
 ### Wiring for this phase
 
@@ -255,7 +253,7 @@ it drifts — Phase 3 fixes most of it.
 Confirm three changing numbers scroll by in the console, and that tilting the board by hand
 produces sensible roll/pitch changes you can visually correlate to the motion you just made.
 
-## 5. Build It: Phase 2 — Live 3D Visualization (on Your Laptop) - DONE
+## 5. Build It: Phase 2 — Live 3D Visualization (on Your Laptop)
 
 ### Wiring for this phase
 
@@ -427,7 +425,7 @@ same way roll is flipped (e.g. `-pitch`) — it's a display fix, not a filter bu
 Tilt the board along one axis at a time and confirm the on-screen box responds — roll, pitch, and
 yaw should each visibly correspond to a specific physical motion.
 
-## 6. Build It: Phase 3 — Stop the Yaw Drift: Gyro Bias Calibration (on the Pico) - DONE
+## 6. Build It: Phase 3 — Stop the Yaw Drift: Gyro Bias Calibration (on the Pico)
 
 ### Wiring for this phase
 
@@ -696,7 +694,7 @@ Write down how many degrees yaw drifted in one minute with Phase 1's code, and h
 3's. Be able to explain in one sentence why the accelerometer can correct roll and pitch but not
 yaw.
 
-## 7. Build It: Phase 4 — Extend the Rover Status Website - DONE
+## 7. Build It: Phase 4 — Extend the Rover Status Website
 
 ### Wiring for this phase
 
@@ -1457,6 +1455,8 @@ does, full commented code, and real-world examples).
 * [9-DOF LSM9DS1 Breakout Board — Product Page][03] — the IMU used this project
 * [`adafruit_httpserver` — API Reference][04] — the `Server`/`Request`/`Response`/`JSONResponse` API
     used to extend `rover_server.py` in Phase 4 (same API Class 3 introduced)
+* [Getting Started With Inertial Measurement Units | Exploring Degrees Of Freedom][05] — a friendly
+    introduction to accelerometers, gyroscopes, and degrees of freedom
 
 ---
 
@@ -1466,6 +1466,7 @@ does, full commented code, and real-world examples).
 [02]:https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html
 [03]:https://www.adafruit.com/product/4634
 [04]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
+[05]:https://core-electronics.com.au/guides/getting-started-with-inertial-measurement-units-exploring-degrees-of-freedom/
 
 [20]:https://pico2w.pinout.xyz/
 [21]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts

@@ -305,9 +305,9 @@ moment, to save battery. In a light **sleep**, the CPU pauses but most of the ch
 peripherals stay powered, so it wakes up quickly and picks up close to where it left off. In
 **deep sleep**, far more of the chip is powered down — sometimes even most of RAM — trading a much
 lower power draw for a slower, more limited wake-up (often closer to a fresh restart than a
-resume). This course runs every board plugged into USB power, so battery-saving sleep modes never
-come up in a lesson script, but they're the reason a battery-powered project (like an
-untethered Random Rover) can run for hours or days instead of minutes: the chip spends most of its
+resume). This course's rover runs on a 9V battery from Class 3 on, but only for a class session at a
+time, so battery-saving sleep modes never come up in a lesson script. They're the reason a
+battery-powered project that has to last (a field sensor, a wearable) can run for hours or days instead of minutes: the chip spends most of its
 time asleep, waking only briefly to check a sensor or run one control loop.
 
 [01]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers/spi-i2c-uart-serial-communications.md

@@ -46,7 +46,7 @@ their working rover to the group.
 | 1.14" 240x135 color TFT display | 1 | Stretch 3: on-board status display (new wiring) |
 | Breadboard (from prior classes) | 1 | All prior circuits stay on it |
 | Dupont jumper wires | as needed | New wiring for stretch 3 only |
-| USB cable or portable battery | 1 | Power, or untethered floor runs |
+| USB cable | 1 | Saving code and reading the serial console — unplug it for floor runs; the rover runs on its 9V battery |
 | Laptop with Mu or Thonny | 1 | Where you write/save code |
 | Laptop with a web browser | 1 | Views the stretch 2 rolling-history chart on the already-running rover website |
 
@@ -418,6 +418,7 @@ in one place, so you can build straight to whichever combination you want.
 | HC-SR04 `TRIG` | `GP6` | Core rover |
 | HC-SR04 `ECHO`, through voltage-divider | `GP7` | Core rover |
 | SG90 servo signal | `GP8` | Core rover |
+| HC-SR04 `VCC` and SG90 `+` | `VSYS` (buck converter 5V rail, moved from `VBUS` in Class 5) | Core rover |
 | DRV8833 `AIN1`/`AIN2` | `GP9`/`GP10` | Core rover |
 | DRV8833 `BIN1`/`BIN2` | `GP11`/`GP12` | Core rover |
 | Limit switch `NO` / `COM` | `GP5` (internal pull-up) / `GND` | Core rover |
