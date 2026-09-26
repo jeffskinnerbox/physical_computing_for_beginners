@@ -505,7 +505,7 @@ def base(request: Request):
     """
     return Response(request, html, content_type="text/html")
 
-server.start(str(wifi.radio.ipv4_address_ap))
+server.start(str(wifi.radio.ipv4_address_ap), port=80)
 
 # --- Main loop: blink the LED AND keep answering webpage requests ---
 last_blink = time.monotonic()
