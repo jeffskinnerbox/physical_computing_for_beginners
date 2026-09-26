@@ -221,10 +221,11 @@ increment in real time. Then try typing a line directly at the REPL prompt (e.g.
 to see code execute interactively, separate from the saved `code.py` file.
 
 **Step 6 — install Python 3 on the laptop.**
-In a regular (non-admin) Windows Terminal, run `winget install --scope user -e --id Python.Python.3.13`
+In a regular (non-admin) Windows Terminal, run `winget install -e --id Python.Python.3.14 --scope user --custom "InstallLauncherAllUsers=0"`
 (or use the staged installer), then open a new terminal and run `py --version`. Nothing uses it
 tonight — Class 4's laptop-side 3D display does — but installing it now keeps Class 4's time for the
-IMU. If `python` opens the Microsoft Store, tell students `py` works the same way.
+IMU. If `python` opens the Microsoft Store, tell students `py` works the same way. The full guide, with a
+package test, is `tech_setup_check/install-python-on-windows-11.md`.
 
 **What "done" looks like for this segment:** Every student can point at their own onboard LED
 blinking and, on the same screen, watch a live-incrementing `heartbeat:` count in the serial

@@ -281,16 +281,18 @@ you're already installing things.
 
     ```powershell
     # --scope user installs Python just for your account -- no admin password needed
-    winget install --scope user -e --id Python.Python.3.13
+    winget install -e --id Python.Python.3.14 --scope user --accept-source-agreements --accept-package-agreements --custom "InstallLauncherAllUsers=0"
     ```
 
 1. Close the terminal and open a new one, so it picks up the newly installed commands.
 
 **Test it:** In the new terminal, run `py --version` and then `py -m pip --version`. You should
-see something like `Python 3.13.x` and a `pip ...` version line. If `py` isn't found, rerun the
+see something like `Python 3.14.x` and a `pip ...` version line. If `py` isn't found, rerun the
 `winget` command and check it finished without errors. (Later classes write commands as
 `python ...` and `pip install ...`; if `python` opens the Microsoft Store instead, use `py` and
-`py -m pip install ...` — they do the same thing.)
+`py -m pip install ...` — they do the same thing.) For the full walkthrough — including a test that
+installs Class 4's packages into a throwaway folder and draws a chart — see
+[Install Python 3 on a Windows 11 Laptop][38].
 
 ### What this code does
 
@@ -538,7 +540,7 @@ sitting in `Downloads` — this step is purely cosmetic.
 #### Step 6 — Uninstall Python 3
 
 1. Open a regular (non-admin) Windows Terminal and run
-    `winget uninstall --scope user -e --id Python.Python.3.13`.
+    `winget uninstall --scope user -e --id Python.Python.3.14`.
 
 **Test it:** Open a new terminal and run `py --version` — it should report that `py` isn't
 recognized.
@@ -549,7 +551,7 @@ Confirm all of the following to be sure the uninstall was complete and correct:
 
 * [ ] **Start → type `Thonny`** shows no matching app.
 * [ ] **Start → type `Mu`** shows no matching app.
-* [ ] **Settings → Apps → Installed apps** no longer lists Thonny, Mu, or Python 3.13.
+* [ ] **Settings → Apps → Installed apps** no longer lists Thonny, Mu, or Python 3.14.
 * [ ] `py --version` in a new terminal is no longer recognized.
 * [ ] Pico 2 W plugged in normally (no BOOTSEL) shows **no** `CIRCUITPY` drive.
 * [ ] Pico 2 W plugged in while holding BOOTSEL shows `INFO_UF2.TXT` on **RPI-RP2**, confirming
@@ -1021,4 +1023,5 @@ See the "References & Resources" document in <https://github.com/jeffskinnerbox/
 [35]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/explainers
 [36]:https://code.circuitpython.org/
 [37]:https://www.python.org/downloads/windows/
+[38]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/tech_setup_check/install-python-on-windows-11.md
 

@@ -13,7 +13,7 @@ just a bookmark to an external source, kept for whoever's setting up a laptop to
 .
 ├── check-for-windows-11-and-wsl.md                  # confirm the laptop is Windows 11 and WSL-capable
 ├── install-wsl-on-windows-11.md                     # full WSL install walkthrough
-├── install-python-on-windows-11-and-linux.md         # link out to a Python install guide
+├── install-python-on-windows-11.md                  # full Python 3 install for Windows 11 (used from Class 4)
 ├── install-circuitpython-dev-env-on-windows-11.md    # full CircuitPython dev environment setup (editor, libraries, board)
 ├── python-virtual-environments.md                    # venv reference notes
 ├── set-up-ssh-key-authentication.md                  # link out to an SSH key setup guide
@@ -26,8 +26,9 @@ just a bookmark to an external source, kept for whoever's setting up a laptop to
 
 This is the `/teen-install-instructions`-generated output location per the root [README][01]'s
 generation table — the install guides a student works through before
-Pre-Class so class time goes to building, not troubleshooting a broken toolchain. The two fuller
-guides (`install-wsl-on-windows-11.md`, `install-circuitpython-dev-env-on-windows-11.md`) are the
+Pre-Class so class time goes to building, not troubleshooting a broken toolchain. The three fuller
+guides (`install-wsl-on-windows-11.md`, `install-circuitpython-dev-env-on-windows-11.md`,
+`install-python-on-windows-11.md`) are the
 actual generated walkthroughs; the shorter files are reference links kept alongside them for
 convenience rather than full guides in their own right.
 
@@ -48,8 +49,7 @@ than once.
 
 ## Notes
 
-- `install-python-on-windows-11-and-linux.md`, `set-up-ssh-key-authentication.md`, and
-  `git-worktree-multitasking.md` are single external links, not full guides — treat them as
+- `set-up-ssh-key-authentication.md` and `git-worktree-multitasking.md` are single external links, not full guides — treat them as
   bookmarks, not as `/teen-install-instructions` output.
 - See the root [README][01] for how install instructions fit into the course's overall generation
   pipeline.
