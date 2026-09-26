@@ -826,6 +826,16 @@ Place the presentation you create in @handouts and call it class-03-summary.html
 
 ----
 
+## My 34th Prompt - Add "Software for this phase" After "Wiring for this phase"
+For all the @lesson_scripts files, create a new section titled "Software for this phase" After "Wiring for this phase".
+This new section will have a quick introduction and summarize the software changes in a table format.
+In the table list (table column 1) software components used in the phase,
+(table column 2) is this software new, modification of existing code including stating what its class-xx-phase-x-??.py identifier,
+or unchanged including stating what its class-xx-phase-x-??.py identifier,
+(table column 3) stating what they do in at most two sentences.
+
+----
+
 
 
 
