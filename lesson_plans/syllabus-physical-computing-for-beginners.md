@@ -142,7 +142,7 @@ with N20 geared motors.
 * [Thonny][03] — alternate editor, also used with the Pico
 * [Adafruit CircuitPython Library Bundle][04]
 * A free [GitHub][05] account, to access the course repository
-* Python 3 with `pyserial`, `matplotlib`, and `numpy` on the laptop (installed in the Pre-Class; the
+* Python 3.14 with `pyserial`, `matplotlib`, and `numpy` on the laptop (installed in the Pre-Class; the
   packages in Class 4) — runs the Class 4 live 3D orientation display
 * A modern web browser (Chrome, Firefox, or Edge) — already on any Windows 11 laptop — to view the
   rover status website the Pico 2 W starts hosting in Class 3
@@ -199,7 +199,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Discuss what physical computing is and the sensor -> processor -> actuator model
 * Discuss the Raspberry Pi Pico 2 W, why CircuitPython instead of MicroPython or Arduino C++, and
   where to find help online (Instructables, GitHub, Adafruit Learn, SparkFun)
-* Install the Mu and Thonny editors, the Adafruit CircuitPython Library Bundle, and Python 3 for the laptop
+* Install the Mu and Thonny editors, the Adafruit CircuitPython Library Bundle, and Python 3.14 for the laptop
 * Flash CircuitPython onto the Pico 2 W and find the CIRCUITPY drive
 * Write, edit, and run a first small CircuitPython program that blinks the onboard LED and prints a
   heartbeat count to the serial console

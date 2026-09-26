@@ -140,7 +140,7 @@ All free — no paid software is required anywhere in this course.
 | Thonny | [Setup Guide][22] | alternate editor, installed in the Pre-Class |
 | Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
-| Python 3 + `pyserial`, `matplotlib`, `numpy` | `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-phase-2-wireframe.py` (saved as `wireframe.py`), the live 3D orientation display |
+| Python 3.14 + `pyserial`, `matplotlib`, `numpy` | `winget install -e --id Python.Python.3.14 --scope user` (Pre-Class), then `pip install pyserial matplotlib numpy` (Class 4) | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-phase-2-wireframe.py` (saved as `wireframe.py`), the live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-phase-4-rover_server.py`) that carries forward and grows through Class 6 |
 | (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 

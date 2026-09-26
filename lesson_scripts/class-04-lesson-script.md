@@ -6,7 +6,7 @@
 * **Before You Start:** Your Class 1-3 circuits (button/encoder, sensor/servo sweep, motor driver)
     should still be working and stay exactly as they are on your breadboard — including the Class 3
     buck converter, which keeps powering your Pico's own `VSYS` all Class. You should also have
-    Python 3 installed on your laptop from the Pre-Class — this class is the first one that runs
+    Python 3.14 installed on your laptop from the Pre-Class — this class is the first one that runs
     code on your laptop as well as your Pico. Your Class 3 rover status website (`rover_server.py`)
     should still broadcast its own WiFi network and serve `/data.json` once your laptop joins it — a
     quick spot-check, not a rebuild, since today's website work is a small edit to that same file.
@@ -283,6 +283,10 @@ First, install the needed packages once, in a terminal on your laptop:
 ```bash
 pip install pyserial matplotlib numpy
 ```
+
+>**If `pip` or `python` isn't recognized** (or `python` opens the Microsoft Store), use the Python
+>Launcher instead — it does the same thing: `py -m pip install pyserial matplotlib numpy` and
+>`py wireframe.py COM5`. See [Install Python 3 on a Windows 11 Laptop][23] if Python itself is missing.
 
 Then save this file anywhere on your laptop (not the `CIRCUITPY` drive) as `wireframe.py`:
 
@@ -993,7 +997,7 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
 | 3D box turns backwards or on the wrong axis | Board's +X end isn't where the `Front` label is, or one axis has a display sign mismatch | Line up +X with `Front` first; if one motion is still backwards, negate that angle in `rotation_matrix()` (roll already is) |
 | `wireframe.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console; confirm the correct COM port in Device Manager |
-| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
+| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` (or `py -m pip install ...`) in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
@@ -1471,4 +1475,5 @@ does, full commented code, and real-world examples).
 [20]:https://pico2w.pinout.xyz/
 [21]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts
 [22]:https://www.adafruit.com/product/4399
+[23]:../tech_setup_check/install-python-on-windows-11.md
 

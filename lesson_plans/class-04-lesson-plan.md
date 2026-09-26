@@ -117,7 +117,7 @@ quantities, and sourcing.
 | Dupont jumper wires (shared) | Point-to-point wiring, if not using STEMMA QT directly |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |
 | Windows 11 laptop with Mu or Thonny (student-supplied) | Edit and run CircuitPython code |
-| Windows 11 laptop with Python 3 installed (student-supplied) | Runs `wireframe.py` to display the live 3D box |
+| Windows 11 laptop with Python 3.14 installed in the Pre-Class (student-supplied) | Runs `wireframe.py` to display the live 3D box |
 | (no classroom WiFi needed) | The Pico 2 W broadcasts its own network (access point mode) for the rover status website, as set up in Class 3; nothing new to set up |
 | Emo Smart Robot Car Chassis Kit | Optional: continue assembly if time remains |
 
@@ -348,7 +348,8 @@ the board is tilted by hand — roll and pitch changing with tilt, yaw following
 also drifting slowly on its own. Have them keep an eye on that drift: Step 3 fixes it.
 
 **Step 2 — live 3D visualization on the laptop.**
-On the laptop (not the Pico), install dependencies once: `pip install pyserial matplotlib numpy`.
+On the laptop (not the Pico), install dependencies once: `pip install pyserial matplotlib numpy`
+(if `pip`/`python` isn't recognized, `py -m pip install ...` and `py wireframe.py <port>` do the same).
 Save `class-4-phase-2-wireframe.py` as `wireframe.py` and run `python wireframe.py <port>`,
 substituting the student's actual serial port (e.g. `COM5` on Windows — visible in Mu's/Thonny's
 device list or Device Manager — or `/dev/ttyACM0` on Linux). The script draws only the newest line
@@ -938,7 +939,7 @@ students to the Class 5 references in the syllabus if they want to read ahead.
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
 | 3D box turns backwards or on the wrong axis | Board's +X end isn't where the `Front` label is, or one axis has a display sign mismatch | Line up +X with `Front` first; if one motion is still backwards, negate that angle in `rotation_matrix()` (roll already is) |
 | `wireframe.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console first; confirm the correct COM port in Device Manager |
-| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on the laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
+| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on the laptop | Run `pip install pyserial matplotlib numpy` (or `py -m pip install ...`) in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_lsm9ds1.mpy` file from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
