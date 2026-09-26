@@ -420,8 +420,10 @@ in one place, so you can build straight to whichever combination you want.
 | SG90 servo signal | `GP8` | Core rover |
 | DRV8833 `AIN1`/`AIN2` | `GP9`/`GP10` | Core rover |
 | DRV8833 `BIN1`/`BIN2` | `GP11`/`GP12` | Core rover |
-| Limit switch (internal pull-up) | `GP5` | Core rover |
+| Limit switch `NO` / `COM` | `GP5` (internal pull-up) / `GND` | Core rover |
 | IR obstacle sensor `OUT` | `GP13` | Core rover |
+| IR obstacle sensor `VCC` / `GND` | `3V3` / `GND` | Core rover |
+| Wheel-odometry optocouplers (website) | `GP19`/`GP17` | Core rover |
 | Rotary encoder `CLK`/`DT` | `GP3`/`GP4` | Stretch 1 |
 | LSM9DS1 `SDA`/`SCL` | `GP0`/`GP1` | Stretch 2 |
 | TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP26`/`GP27`/`GP20`-`GP22` | Stretch 3 |

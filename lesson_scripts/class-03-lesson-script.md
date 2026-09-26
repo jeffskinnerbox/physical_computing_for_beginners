@@ -5,7 +5,8 @@
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
 * **Before You Start:** Your Class 1 (button/encoder, `GP2`-`GP4`, `GP14`-`GP15`) and Class 2
     (sensor/servo sweep, `GP6`-`GP8`) circuits should still be working and stay exactly as they are
-    on your breadboard — you're building next to them today, not replacing anything.
+    on your breadboard — you're building next to them today, not replacing anything. Today that
+    breadboard moves onto the car chassis, with those circuits still on it.
 
 ---
 
@@ -49,12 +50,13 @@ you how to tune that fix, step by step, until it performs as well as your car ca
 | 5V Buck Converter Module | 1 | Steps the 9V battery down to a regulated 5V for your Pico's `VSYS` power input |
 | 1000uF electrolytic capacitor | 1 | optional to reduce current spike from motors |
 | Slot Type IR Optocoupler for Motor Speed | 2 | Reads each driven wheel's built-in encoder disc for wheel-odometry tick counting |
-| Breadboard (from Classes 1-2) | 1 | Your existing circuits stay on it, untouched |
+| Breadboard (from Classes 1-2) | 1 | Your existing circuits stay on it, untouched — today it gets mounted on the chassis |
 | Dupont jumper wires | ~10 | Point-to-point connections |
 | USB cable | 1 | Powers the Pico and carries the serial console |
 | Laptop with Mu or Thonny | 1 | Where you write/save code and read the serial console |
 | Marked 35 cm square / 35 cm-diameter circle test track | 1 (shared) | Your target for the calibration exercise |
-| Blu Tack | 1 (shared) | hold in place circuit boards, battery, etc. to the mobile chassis |
+| Blu Tack | 1 (shared) | Holds the breadboard, battery, buck converter, and DRV8833 in place on the chassis |
+| Soldering iron, solder, safety glasses (Makersmiths) | shared | Soldering Dupont leads onto the motors and on/off switch |
 | Masking tape and a tape measure | 1 (shared) | Phases 5-6: a straight start line, and measuring how far the car drifts sideways |
 
 **Additional components for the Homework Assignments** (Section 13) — no homework has been written
@@ -182,17 +184,22 @@ watch live wheel telemetry with no serial cable at all.
 ## 4. Build It: Phase 1 — Motor Driver Library and Basic Test
 
 ### Wiring for this phase
->**NOTE:** Very first thing is to do on the Emo Smart Robot Car Chassis Kit:
+>**NOTE:** Very first thing to do on the Emo Smart Robot Car Chassis Kit:
 > 1. solder long male Dupont wires to the motors.
-> 2. solder shorter female Dupont wires to the switch.
+> 2. solder shorter female Dupont wires to the chassis kit's on/off switch.
+>
+>**Soldering safety:** the iron's tip is around 350°C — always return it to its stand, never
+>touch the metal barrel, solder with the fume extractor or a window fan pulling smoke away from your
+>face, wear safety glasses, and wash your hands afterward. Ask the instructor to check your first joint.
+
+Next, mount your breadboard — with the Class 1 and Class 2 circuits still on it, untouched — on top
+of the chassis with Blu Tack, alongside the Pico, DRV8833, buck converter, and 9V battery. From here on
+the breadboard rides on the car; nothing already on it gets rewired.
 
 This is the complete wiring for the whole Class 03 project.
-**DO NOT** use the wire the wiring from previous classes, start with a blank breadboard.
 You can wire the optocouplers now,
 but leave them unmounted at each wheel until Phase 3, once you've counted each disc's slots.
 * [Raspberry Pi Pico 2w Pinout][20]
-* [SG90 Servo Pinout][38]
-* [HC-SR04 Pinout][37]
 * [Adafruit DRV8833 DC/Stepper Motor Driver Pinout][39]
 * [Slot Type IR Optocoupler][40]
 
@@ -204,14 +211,14 @@ but leave them unmounted at each wheel until Phase 3, once you've counted each d
 | DRV8833 `AIN2` (Motor A) | `GP10` | |
 | DRV8833 `BIN1` (Motor B) | `GP11` | |
 | DRV8833 `BIN2` (Motor B) | `GP12` | |
-| DRV8833 `SLP` | Pico `3V3` or `5V` | must be tied HIGH, see Adafruit documentation |
+| DRV8833 `SLP` | Pico `3V3` | must be tied HIGH, see Adafruit documentation |
 | DRV8833 `VM` (motor power, `+` green post) | 9V battery `+` | |
 | DRV8833 `GND` (motor power, `-` green post) | 9V battery `-` **and** Pico `GND` | make sure this is a common `GND` |
 | DRV8833 `AOUT1`/`AOUT2` | Motor A leads | |
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads | |
 | Optocoupler Motor A wheel `DO` | `GP19` | |
 | Optocoupler Motor B wheel `DO` | `GP17` | |
-| Both Slot Type IR Optocoupler `VCC` | Pico `3V3` or `VSYS 5V` | |
+| Both Slot Type IR Optocoupler `VCC` | Pico `3V3` | 3.3V keeps the `DO` signal at a safe level for the Pico |
 | Both Slot Type IR Optocoupler `GND` | Pico `GND` | make sure this is a common `GND` |
 | 1000uF electrolytic capacitor `+` on DRV8833 `VM` | does not apply | optional to reduce current spike from motors |
 | same capacitor `-` on `GND` | does not apply | make sure this is a common `GND` |
@@ -1569,7 +1576,8 @@ odometry, and your own rover status website, without going through the individua
 | Both optocouplers `VCC` | Pico `3V3` |
 | Both optocouplers `GND` | Pico `GND` |
 
-(Classes 1-2's circuits stay untouched on the breadboard alongside this.)
+(Classes 1-2's circuits stay untouched on the breadboard alongside this — the breadboard itself now
+rides on the chassis.)
 
 ### Complete code
 
@@ -1929,8 +1937,6 @@ website.
 [08]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
 
 [20]:https://pico2w.pinout.xyz/
-[37]:https://howtomechatronics.com/tutorials/arduino/ultrasonic-sensor-hc-sr04/
-[38]:https://www.hackster.io/chip-pk/sg90-servo-motor-interfacing-with-arduino-complete-beginner-849eef
 [39]:https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board/pinouts
 [40]:https://www.handsontec.com/dataspecs/sensor/Slot%20IR%20Detector.pdf
 

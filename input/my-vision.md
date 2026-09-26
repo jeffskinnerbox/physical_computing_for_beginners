@@ -337,7 +337,9 @@ Tips for Students:
   feeding the Pico's own `VSYS` power, the DRV8833's `nSLEEP` pin jumpered to `3V3` (the Adafruit breakout has no
   onboard pull-up), and `GP19`/`GP17` for the two wheel optocouplers &mdash; `GP19` on the Motor A wheel, `GP17` on
   the Motor B wheel; any two free GPIOs would work, since `wheel_odometry.py` polls them as plain digital inputs
-  through `adafruit_debouncer`) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
+  through `adafruit_debouncer`) &mdash; Classes 1 and 2's circuits stay in place, untouched. The breadboard itself,
+  with those circuits still on it, is mounted on the chassis with Blu Tack this class (alongside the Pico, DRV8833,
+  buck converter, and 9V battery), and students solder Dupont leads onto the motors and the chassis on/off switch. The motor driver and both optocouplers, along with the WiFi web
   server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
   and make the car drive in a 35 cm square and a 35 cm diameter circle.

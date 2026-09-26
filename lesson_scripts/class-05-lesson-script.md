@@ -138,8 +138,10 @@ exactly as they were left wired, then add the two new safety sensors:
 | SG90 servo signal | `GP8` |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
-| Limit switch (common + normally-open, to `GND`) | `GP5` (internal pull-up) |
+| Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) |
+| Limit switch `COM` (common) terminal | `GND` |
 | IR obstacle sensor `OUT` | `GP13` |
+| IR obstacle sensor `VCC` / `GND` | `3V3` / `GND` (3.3V keeps `OUT` safe for the Pico) |
 
 Mount the limit switch as a physical bumper on the chassis front (lever arm leading, so any contact
 presses it), and the IR sensor fixed and forward-facing, low on the chassis, aimed at ground-level
@@ -571,8 +573,10 @@ this Class, plus the (now-library) `rover_server.py` this Class refactored.
 | SG90 servo signal | `GP8` |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` |
-| Limit switch (internal pull-up) | `GP5` |
+| Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) |
+| Limit switch `COM` (common) terminal | `GND` |
 | IR obstacle sensor `OUT` | `GP13` |
+| IR obstacle sensor `VCC` / `GND` | `3V3` / `GND` (3.3V keeps `OUT` safe for the Pico) |
 | Wheel-odometry optocouplers (website only, unchanged from Class 3) | `GP19`/`GP17` |
 | LSM9DS1 IMU `SDA`/`SCL` (website only, unchanged from Class 4) | `GP0`/`GP1` |
 

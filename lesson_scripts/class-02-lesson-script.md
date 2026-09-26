@@ -24,8 +24,8 @@ obstacles starting in Class 5.
 
 Outside of class, Homework 1 (Section 11) has you start assembling the Random Rover chassis kit at
 home — the mechanical platform tonight's sensor+servo rig, and everything after it, will eventually
-ride on. It stays unwired until Class 5, so there's nothing to bring together with tonight's
-breadboard build yet.
+ride on. It stays unwired until Class 3, when the motors get their leads and your breadboard gets
+mounted on top, so there's nothing to bring together with tonight's breadboard build yet.
 
 ## 2. What You'll Need
 
@@ -46,7 +46,7 @@ class itself, only if you choose to do Homework 1, Homework 4, or Homework 5 at 
 
 | Component | Quantity | Purpose (Homework #) |
 | :---------- | :--------: | :---------------------- |
-| Emo Smart Robot Car Chassis Kit | 1 | Random Rover chassis assembly, unwired for now (Homework 1) — wired up starting in Class 5 |
+| Emo Smart Robot Car Chassis Kit | 1 | Random Rover chassis assembly, unwired for now (Homework 1) — motors wired in Class 3, sensor/servo added in Class 5 |
 | 1.14" 240x135 Color TFT Display (ST7789) | 1 | Live angle/distance readout (Homework 4) — also used in the Pre-Class and Class 1 homework and Class 6's stretch goal |
 | IR Obstacle Avoidance Sensor | 1 | Fixed, forward-facing cross-check against the sweeping HC-SR04 (Homework 5) — also used on the Random Rover in Class 5 |
 
@@ -457,8 +457,8 @@ This exact circuit — sensor riding on the servo, sweeping and reporting — is
 stand-in for something later; it's the unchanged "look around" behavior your Random Rover uses
 starting in Class 5. Next class, you add the piece that's still missing: a motor driver that can
 actually act on what the sensor sees. If you build the chassis for Homework 1, that's the third and
-final piece — sensor, motor driver, and now a rolling platform to carry them — all coming together
-starting in Class 5.
+final piece — sensor, motor driver, and now a rolling platform to carry them. The motors get wired
+in Class 3, and everything comes together as the Random Rover in Class 5.
 
 ---
 
@@ -477,7 +477,7 @@ circuit — see [Section 2](#2-what-youll-need).
 **What this teaches:** This is the one homework in the course that's mechanical, not code — you're
 assembling the physical chassis the Random Rover will eventually drive around on, following the
 same "read the instructions, adapt as you go" habit called out in the Pre-Class as how real makers
-build things. Getting the chassis built now, ahead of Class 5, means class time later goes to
+build things. Getting the chassis built now, ahead of Class 3, means class time later goes to
 wiring and code instead of screws and standoffs.
 
 Assemble the Emo Smart Robot Car Chassis Kit by following the included instruction sheet (there are
@@ -493,7 +493,7 @@ Assembly Videos:
 #### What You Observe
 **Test it:** When you're done, confirm the chassis rolls freely on a flat surface when pushed by
 hand (both wheels turn, nothing binds or drags), and that no wiring or battery holder is attached
-yet — those get added together in Class 5, once the motor driver and sensors are ready to go on.
+yet — the motor wiring gets added together in Class 3, when the motor driver goes on.
 
 #### Real World Examples
 
@@ -915,7 +915,7 @@ sensors starting in Class 5.
 
 | Pico 2 W Pin | Sensor Pin | Signal / Function |
 | :------------- | :----------- | :-------------------- |
-| `3V3 Out` (or `VBUS 5V`) | `VCC` | Power (most of these modules accept 3.3-5V) |
+| `3V3 OUT` | `VCC` | Power — 3.3V keeps the `OUT` signal at a safe level for the Pico |
 | `GND` | `GND` | Common ground |
 | `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
 

@@ -845,7 +845,7 @@ Class 1 and for this exact sensor again in Class 5, just wired to a different pi
 
 | Pico 2W Pin | Sensor Pin | Signal / Function |
 | ------------- | ------------- | -------------------- |
-| `3V3(OUT)` or `VBUS` | `VCC` | Power (most of these modules accept 3.3-5V) |
+| `3V3 OUT` | `VCC` | Power — 3.3V keeps the `OUT` signal at a safe level for the Pico |
 | `GND` | `GND` | Common ground |
 | `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
 

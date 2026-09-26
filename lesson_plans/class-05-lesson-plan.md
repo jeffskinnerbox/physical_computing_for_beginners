@@ -235,8 +235,10 @@ place — Class 6 reconnects it. Class 4's IMU circuit is not read today but mus
 | SG90 servo signal | `GP8` | Class 2 |
 | DRV8833 `AIN1`/`AIN2` (Motor A) | `GP9`/`GP10` | Class 3 |
 | DRV8833 `BIN1`/`BIN2` (Motor B) | `GP11`/`GP12` | Class 3 |
-| Limit switch (common + normally-open, to `GND`) | `GP5` (internal pull-up) | New this Class |
+| Limit switch `NO` (normally-open) terminal | `GP5` (internal pull-up) | New this Class |
+| Limit switch `COM` (common) terminal | `GND` | New this Class |
 | IR obstacle sensor `OUT` | `GP13` | New this Class |
+| IR obstacle sensor `VCC` / `GND` | `3V3` / `GND` (3.3V keeps `OUT` safe for the Pico) | New this Class |
 
 Mount the limit switch as a physical bumper on the chassis front (lever arm facing forward, so any
 contact presses it), and the IR sensor fixed and forward-facing, low on the chassis, aimed at

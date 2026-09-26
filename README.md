@@ -116,8 +116,12 @@ export via pandoc, etc.) that apply when regenerating any of these.
 
 Class 3 onward puts a 9V battery on the breadboard, feeding motors through the DRV8833. Check
 polarity before you connect it, and pull the battery any time you're rewiring — a live H-bridge
-is not something you want to probe with a screwdriver. There's no soldering anywhere in this
-course; everything lives on a breadboard.
+is not something you want to probe with a screwdriver.
+
+Class 3 is the one soldering step: students solder Dupont leads onto the chassis motors and on/off
+switch, supervised, at Makersmiths' soldering stations — iron back in its stand, safety glasses on,
+fume extractor running. Every other connection in the course lives on the breadboard, which rides
+on the chassis from Class 3 on.
 
 
 ## Credits and License

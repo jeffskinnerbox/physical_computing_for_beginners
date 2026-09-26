@@ -860,7 +860,7 @@ same sensor, same pin, and same read pattern you'll reuse on the Random Rover in
 
 | Pico 2 W Pin | Sensor Pin | Signal / Function |
 | :------------- | :----------- | :-------------------- |
-| `3V3 Out` (or `VBUS 5V`) | `VCC` | Power (most of these modules accept 3.3-5V) |
+| `3V3 OUT` | `VCC` | Power — 3.3V keeps the `OUT` signal at a safe level for the Pico |
 | `GND` | `GND` | Common ground |
 | `GP13` | `OUT` | Digital output — LOW when an obstacle is detected |
 

@@ -99,7 +99,9 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
 * **Day of, before students arrive:**
   * Set out one DRV8833 breakout board, one 9V battery with clip, one 5V buck converter module,
         two Slot Type IR Optocoupler modules, and continued access to each workstation's existing
-        breadboard and chassis kit at each workstation.
+        breadboard and chassis kit at each workstation, plus shared Blu Tack.
+  * Set up 2-3 soldering stations (iron + stand, solder, safety glasses, fume extractor) —
+        students solder Dupont leads onto their motors and on/off switch first thing. (~10 min)
   * Pre-fill each student's `settings.toml` with their unique Pico network name and password
         (`CIRCUITPY_WIFI_AP_SSID`, `CIRCUITPY_WIFI_AP_PASSWORD`, password at least 8 characters)
         ahead of time, or write them on the board — don't spend Class time on credential typos.
@@ -308,6 +310,12 @@ design problem Classes 5-6 build toward.
 ### 5d. Guided Practice — ~60 min
 
 Instructor builds along on the projector; students wire up and test in parallel.
+
+**Before wiring — solder, then mount.** Students first solder long male Dupont leads onto both
+motors and short female leads onto the chassis kit's on/off switch (supervise every first joint:
+iron back in its stand, safety glasses, fume extractor running). Then they mount the breadboard —
+Class 1 and 2 circuits still on it — on the chassis with Blu Tack, alongside the Pico, DRV8833,
+buck converter, and 9V battery. The breadboard rides on the car from now on.
 
 **Wiring — third circuit of the course, alongside (not replacing) Class 1 and 2's.** Leave both
 prior circuits exactly as-is on the breadboard; today's wiring uses entirely new pins, plus a 9V
