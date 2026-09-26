@@ -81,8 +81,9 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
   student's Library Bundle folder; no new library is required for the DRV8833 itself since
   `motor_driver.py` is course-provided source, not a separate PyPI/Bundle package. (~5 min)
 * **1-2 days before:** Verify `adafruit_httpserver` is present in each student's Library Bundle
-  folder — this is new starting this Class. `wheel_odometry.py`'s tick counting uses only the
-  built-in `countio` module, so it needs no separate library. (~5 min)
+  folder — this is new starting this Class. `wheel_odometry.py` reuses `adafruit_debouncer.mpy` and
+  `adafruit_ticks.mpy` from Class 1, so it needs nothing new — just confirm both are still in each
+  student's `/lib`. (~5 min)
 * **1-2 days before:** Confirm every Pico 2 W is running the CircuitPython build made for
   "Raspberry Pi Pico 2 W" — the plain "Pico 2" build has no `wifi` module, and `rover_server.py`
   fails with `ImportError: no module named 'wifi'`. Also confirm the `adafruit_httpserver` library
@@ -114,7 +115,7 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
         (`rover_server.py`) end-to-end, including a rough calibration pass on `SPEED`,
         `SECONDS_PER_CM`, `SECONDS_PER_90_DEGREES`, and `SLOTS_PER_REV` so you know what a
         realistic first attempt — and a realistic wheel-speed reading — look like. Join a laptop to
-        the reference Pico's own network and load `http://192.168.4.1/data.json` in a browser to
+        the reference Pico's own network and load `http://192.168.4.1:5000/data.json` in a browser to
         confirm the website actually works before Class. (~30 min)
   * Have spare DRV8833 boards, motor leads, optocoupler modules, and 9V batteries on hand — a dead
         or weak 9V battery is the single most common "my motors barely move" complaint in this Class.
@@ -248,14 +249,16 @@ Each optocoupler module is a small IR LED and phototransistor facing each other 
 plus an onboard LM393 comparator. The chassis kit's wheel has an encoder disc with alternating
 slots and teeth molded around its rim; as the wheel spins, each tooth interrupts the LED-to-
 phototransistor beam once per slot. The LM393 comparator turns that raw analog interruption into a
-clean digital HIGH/LOW pulse — no debouncing needed the way the Class 1 switch/encoder needed it,
-since this is a much faster, cleaner signal straight off a comparator chip, not a noisy mechanical
-contact.
+digital HIGH/LOW pulse — but "clean" is relative. At the slow wheel speeds this project runs, the
+comparator's own transition still bounces enough at each edge to register as several ticks for one
+real slot passage: the same underlying problem as the Class 1 switch/encoder. So
+`wheel_odometry.py` polls each optocoupler as an ordinary digital input through the same
+`adafruit_debouncer.Debouncer` Class 1 used, counting one tick per debounced falling edge, rather
+than counting raw pulses.
 
-*Pin-choice gotcha:* `countio.Counter` on the RP2040/RP2350 is built on the chip's PWM hardware,
-which only counts on a PWM **Channel B** pin — the odd-numbered GPIOs. `GP16` is Channel A and
-raises `RuntimeError: Pin must be on PWM Channel B`, which is why the optocouplers use `GP17` and
-`GP19`, not the "obvious" `GP16`/`GP17` pair.
+*Pin choice:* the optocouplers use `GP19` and `GP17` simply because nothing else in Classes 1-3 uses
+them — since the sensors are polled as plain digital inputs, not counted by special hardware, any
+two free GPIOs would work.
 
 *Step-by-step decomposition of one speed reading:*
 
@@ -291,8 +294,10 @@ all in the student's hand. `rover_server.py` serves two things at that address: 
 (the current wheel speed/direction, as machine-readable JSON) and a simple HTML page that polls
 `/data.json` every fraction of a second and displays it — so any laptop joined to the Pico's
 network can watch live wheel telemetry with no serial cable at all. Two details to point out: the
-server must be started on port 80 explicitly (the library's default is 5000, which a browser typing
-a bare IP won't reach), and while joined to the Pico's network the laptop loses normal internet.
+server runs on port 5000, not the usual web port 80, because CircuitPython's Web Workflow may
+already be using port 80 — so students must open `http://192.168.4.1:5000`, typing both the
+`http://` and the `:5000` (a bare IP goes to port 80, or gets switched to `https://`, and is refused);
+and while joined to the Pico's network the laptop loses normal internet.
 
 **The mission of this phase.** Spinning a wheel by hand only proves the plumbing works. The real
 goal is a website that reports what the rover does *on its own* — once code is driving the motors,
@@ -321,7 +326,7 @@ battery that (through a buck converter) now also powers the Pico itself.
 | DRV8833 `BOUT1`/`BOUT2` | Motor B leads |
 | Buck converter IN+/IN− | 9V battery `+`/`−` |
 | Buck converter OUT+/OUT− | Pico `VSYS` / `GND` (common ground) |
-| Optocoupler A signal out (Motor A wheel) | `GP19` (must be a PWM Channel B / odd-numbered pin) |
+| Optocoupler A signal out (Motor A wheel) | `GP19` |
 | Optocoupler B signal out (Motor B wheel) | `GP17` |
 | Both optocouplers `VCC` | Pico `3V3` |
 | Both optocouplers `GND` | Pico `GND` |
@@ -498,39 +503,82 @@ messages printing to the console for each move.
 **Step 3 — wheel odometry: mount the optocouplers and read wheel speed.**
 Mount each optocoupler so its slotted fork straddles the wheel's encoder disc without rubbing, and
 count the disc's slots by hand (turn the wheel slowly and count) to set `SLOTS_PER_REV`. Load
-`class-3-phase-3-wheel_odometry.py` (save as `wheel_odometry.py`).
+`class-3-phase-3-wheel_odometry.py` (save as `wheel_odometry.py`). It needs `adafruit_debouncer.mpy`
+and `adafruit_ticks.mpy` in `/lib` — the same two files Class 1 used. Its `read_speed()` also takes
+an optional `while_sampling` function that Class 3 never uses; Class 4's website passes its IMU
+filter update there so orientation keeps updating during the 0.25 s sampling window.
 
 ```python
-# class-3-phase-3-wheel_odometry.py  (save as wheel_odometry.py)
-# Wheel-speed odometry via slot IR optocouplers -- tick RATE from GP19/GP17,
-# direction borrowed from motor_driver's last-commanded state (see Concept 6).
+# class-3-phase-3-wheel_odometry.py -- save as wheel_odometry.py
+# Wheel-speed odometry via slot IR optocouplers -- debounced tick RATE from
+# GP19/GP17, direction borrowed from motor_driver's last-commanded state.
+
 import time
 import board
-import countio
-import motor_driver
+import digitalio
+from adafruit_debouncer import Debouncer  # same debounce library Class 1 used
+import motor_driver       # imports the file you created in phase 1
 
-WHEEL_DIAMETER_MM = 67
-SLOTS_PER_REV = 20  # [VERIFY] -- count the encoder disc's slots on your wheel
-WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
-SAMPLE_SECONDS = 0.25  # sampling window for one speed reading
+WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
+SLOTS_PER_REV = 20        # count your own wheel's encoder disc slots by hand and set this
+SAMPLE_SECONDS = 0.25     # sampling window for one speed reading
+CALLBACK_SECONDS = 0.02   # how often read_speed() calls its optional while_sampling function
+WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05
+WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05
+CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted tick = 4.21
 
-counter_a = countio.Counter(board.GP19)  # Motor A wheel -- must be a PWM Channel B pin
-counter_b = countio.Counter(board.GP17)  # Motor B wheel
+sensor_a = digitalio.DigitalInOut(board.GP19)  # slot sensor for Motor A wheel
+sensor_a.direction = digitalio.Direction.INPUT
+sensor_b = digitalio.DigitalInOut(board.GP17)  # slot sensor for Motor B wheel
+sensor_b.direction = digitalio.Direction.INPUT
 
+# Debouncer filters each sensor's raw HIGH/LOW the same way Class 1's button
+# and rotary encoder needed it -- the LM393 comparator's edge still bounces
+# enough at slow wheel speeds to register several ticks for one real slot.
+debounced_a = Debouncer(sensor_a)
+debounced_b = Debouncer(sensor_b)
 
+# Derivation of Formula
+# revolutions = ticks / SLOTS_PER_REV
+# ticks_to_cms = (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+#              = ((ticks / SLOTS_PER_REV) * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+#              = ticks * (WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV) / SAMPLE_SECONDS
 def _ticks_to_cms(ticks):
+    """Convert a wheel's tick count, taken over SAMPLE_SECONDS, to a speed in cm/s."""
     revolutions = ticks / SLOTS_PER_REV
     return (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
+    # return ticks * CMS_PER_TICK
 
 
-def read_speed():
-    """Sample both optocouplers over SAMPLE_SECONDS; return
-    (speed_left_cms, dir_left, speed_right_cms, dir_right)."""
-    counter_a.count = 0
-    counter_b.count = 0
-    time.sleep(SAMPLE_SECONDS)
-    speed_left = _ticks_to_cms(counter_a.count)
-    speed_right = _ticks_to_cms(counter_b.count)
+def read_speed(while_sampling=None):
+    """Poll both sensors for SAMPLE_SECONDS, counting debounced ticks; return
+    (speed_left_cms, dir_left, speed_right_cms, dir_right).
+
+    while_sampling is optional: a function (no arguments) to call about every
+    CALLBACK_SECONDS while sampling, so other work that can't pause for
+    SAMPLE_SECONDS keeps running. Class 3 never passes one; Class 4's
+    rover_server.py passes its IMU filter update."""
+
+    ticks_a = 0
+    ticks_b = 0
+
+    # poll and debounce for SAMPLE_SECONDS -- one tick per debounced falling edge
+    end_time = time.monotonic() + SAMPLE_SECONDS
+    next_callback = time.monotonic()
+    while time.monotonic() < end_time:
+        debounced_a.update()
+        debounced_b.update()
+        if debounced_a.fell:
+            ticks_a += 1
+        if debounced_b.fell:
+            ticks_b += 1
+        if while_sampling is not None and time.monotonic() >= next_callback:
+            while_sampling()  # e.g. Class 4's IMU filter update
+            next_callback = time.monotonic() + CALLBACK_SECONDS
+
+    # convert the debounced counts to centimeters per second (speed)
+    speed_left = _ticks_to_cms(ticks_a)
+    speed_right = _ticks_to_cms(ticks_b)
     return (speed_left, motor_driver.last_direction_a,
             speed_right, motor_driver.last_direction_b)
 ```
@@ -579,11 +627,13 @@ import socketpool
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
+PORT = 5000  # not 80 -- CircuitPython's Web Workflow may already be using port 80
+
 wifi.radio.start_ap(
     os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 )
 print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+print("rover server -- listening at http://{}:{}".format(wifi.radio.ipv4_address_ap, PORT))
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -615,7 +665,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=PORT)
 
 print("Class 3, Phase 4 -- rover status website starting...")
 while True:
@@ -625,8 +675,9 @@ while True:
 **What to watch for:** The laptop must first join the Pico's network (named by
 `CIRCUITPY_WIFI_AP_SSID`) in its WiFi settings *before* the browser can reach the printed IP address
 — and will lose normal internet while joined. If the server never starts, check the password is at
-least 8 characters. If the browser reports "site can't be reached" but `ping` to the Pico works,
-the server is on the wrong port — confirm `server.start(..., port=80)`. If the page loads but never
+least 8 characters. If the browser reports "site can't be reached" or "refused to connect" but
+`ping` to the Pico works, the browser is on the wrong port or scheme — open exactly
+`http://192.168.4.1:5000`, the address the serial console prints. If the page loads but never
 updates, the fetch loop is running but the browser may be caching — a hard refresh usually fixes it.
 
 **What "done" looks like for this segment:** Every pair can join their Pico's network, open a
@@ -785,13 +836,14 @@ Class 4 references in the syllabus if they want to read ahead.
 | Stretch: car snakes left and right, and `trim` jumps around | `KI` too large — the code chases one-tick measurement noise (about 4 cm/s) | Lower `KI` (try `0.003`), or raise `SAMPLE_SECONDS` in `wheel_odometry.py` to `0.5` |
 | Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — optocouplers/motors swapped relative to left/right | Confirm Motor A's optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-phase-1-motor-driver.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-phase-1-motor-driver.py` |
-| `RuntimeError: Pin must be on PWM Channel B` when `wheel_odometry.py` loads | `countio.Counter` only works on PWM Channel B (odd-numbered) pins; `GP16` is Channel A | Use `GP19` (odd) for the Motor A optocoupler, in both wiring and code |
+| `ImportError: no module named 'adafruit_debouncer'` (or `'adafruit_ticks'`) when `wheel_odometry.py` runs | `adafruit_debouncer.mpy` or its helper `adafruit_ticks.mpy` isn't in `/lib` | Copy both files from the Library Bundle into `CIRCUITPY/lib/` (the same files Class 1 used) |
+| Tick count climbs faster than slots actually passing, turning by hand | Comparator edge bounce beats `Debouncer`'s default interval | Raise the `interval` in `Debouncer(sensor_a, interval=0.02)` (and `sensor_b`) in `wheel_odometry.py` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | Code is reading a stale `motor_driver.last_direction_a`/`_b` value, or `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on the CIRCUITPY drive includes the `last_direction_a`/`_b` tracking shown in `class-3-phase-1-motor-driver.py` |
 | `ImportError: no module named 'wifi'` | Board is running the plain "Raspberry Pi Pico 2" CircuitPython build, which has no `wifi` module | Flash the "Raspberry Pi Pico 2 W" `.uf2` (hold `BOOTSEL` while plugging in), then re-copy the code, `settings.toml`, and `lib/` |
 | `wifi.radio.start_ap()` raises an error or the network never appears | `CIRCUITPY_WIFI_AP_PASSWORD` is shorter than 8 characters | Use a password of at least 8 characters |
-| Website never loads, but the Pico prints an IP address | Laptop hasn't joined the Pico's own network, or the server is on the wrong port | Join the `CIRCUITPY_WIFI_AP_SSID` network; if `ping` works but the browser fails, use `server.start(..., port=80)` (default is 5000) |
+| Website never loads, but the Pico prints an IP address | Laptop hasn't joined the Pico's own network, or the browser is on the wrong port/scheme | Join the `CIRCUITPY_WIFI_AP_SSID` network, then open exactly `http://192.168.4.1:5000` (port 5000, plain `http://`) |
 | Website loads once but never updates | `server.poll()` not being called every loop, or browser is caching the page | Confirm the `while True: server.poll()` loop is running; try a hard refresh |
 
 ## 7. Age Differentiation Notes

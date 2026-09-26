@@ -1138,7 +1138,7 @@ my_servo = servo.Servo(pwm, min_pulse=500, max_pulse=2500)
 
 wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
 print("Access point started. Connect to:", ap_ssid)
-print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
+print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + ":5000/ in a browser")
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool, "/static", debug=True)
@@ -1167,7 +1167,7 @@ def base(request: Request):
     """
     return Response(request, html, content_type="text/html")
 
-server.start(str(wifi.radio.ipv4_address_ap))
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80
 
 SETTLE_TIME = 0.15
 print("Class 2 Homework 7 -- sweeping and publishing results to the dashboard.")
@@ -1253,7 +1253,7 @@ my_servo.angle = current_angle
 
 wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
 print("Access point started. Connect to:", ap_ssid)
-print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
+print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + ":5000/ in a browser")
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool, "/static", debug=True)
@@ -1290,7 +1290,7 @@ def set_angle(request: Request):
     my_servo.angle = current_angle
     return base(request)
 
-server.start(str(wifi.radio.ipv4_address_ap))
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80
 
 print("Class 2 Homework 8 -- open the printed address and drag the slider to aim.")
 

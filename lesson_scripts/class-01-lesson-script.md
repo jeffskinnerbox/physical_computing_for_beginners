@@ -1183,7 +1183,7 @@ brightness_percent = 0  # 0-100, whatever the webpage last set
 
 wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
 print("Access point started. Connect to:", ap_ssid)
-print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
+print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + ":5000/ in a browser")
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool, "/static", debug=True)
@@ -1214,7 +1214,7 @@ def set_brightness(request: Request):
     print("brightness set to:", brightness_percent)
     return base(request)
 
-server.start(str(wifi.radio.ipv4_address_ap))
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80
 
 while True:
     server.poll()

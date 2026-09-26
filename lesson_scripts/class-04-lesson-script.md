@@ -427,7 +427,7 @@ same way roll is flipped (e.g. `-pitch`) — it's a display fix, not a filter bu
 Tilt the board along one axis at a time and confirm the on-screen box responds — roll, pitch, and
 yaw should each visibly correspond to a specific physical motion.
 
-## 6. Build It: Phase 3 — Stop the Yaw Drift: Gyro Bias Calibration (on the Pico)
+## 6. Build It: Phase 3 — Stop the Yaw Drift: Gyro Bias Calibration (on the Pico) - DONE
 
 ### Wiring for this phase
 
@@ -440,7 +440,7 @@ One file changes: the Pico's `code.py` gains gyro bias calibration. Its output f
 
 | Software component | New, modified, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
-| `code.py` | **Modified** — `class-4-phase-3-code.py`, replaces `class-4-phase-1-code.py` | Phase 1's program plus a 2-second startup gyro bias measurement and continuous bias refinement whenever the board is still. Yaw holds steady instead of drifting. |
+| `code.py` | **Modified** — `class-4-phase-3-code.py`, replaces `class-4-phase-1-code.py` | Phase 1's program plus a 2-second startup gyro bias measurement, and bias refinement plus a filter integral reset whenever the board is still. Yaw holds steady instead of drifting. |
 | `wireframe.py` (laptop) | **Unchanged** — `class-4-phase-2-wireframe.py` | Draws the same CSV stream; it skips the new calibration message lines automatically. |
 | `adafruit_lsm9ds1.mpy` (in `/lib`) | **Unchanged** — from Phase 1 | Reads the accelerometer and gyroscope, including the readings averaged during calibration. |
 
@@ -485,13 +485,52 @@ LSM9DS1's third sensor, the magnetometer (a compass), is for. That's a stretch g
 ### What this code does
 
 It's Phase 1's program with three additions: a `calibrate_gyro_bias()` function that averages the
-gyro for about 2 seconds at startup, an `is_still()` check, and two lines in the main loop — one
-subtracting the bias from every gyro reading, one refining the bias whenever `is_still()` is true.
-The filter math and the CSV output are unchanged, so the Phase 2 display keeps working.
+gyro for about 2 seconds at startup, an `is_still()` check, and a few lines in the main loop — one
+subtracting the bias from every gyro reading, and, whenever `is_still()` is true, refining the bias
+and clearing the filter's integral term (the next subsection explains why). The filter math and the
+CSV output are unchanged, so the Phase 2 display keeps working.
 
 One subtle detail: the loop's clock (`last_time`) is started *after* calibration. If it started
 before, the first loop would see a 2-second `dt` and integrate a huge bogus rotation on its very
 first step.
+
+### One more leak: the filter's integral term (Fix 1 or Fix 2?)
+
+Bias calibration alone leaves one hole, and you'll find it by shaking the board hard for a while,
+then setting it down: yaw starts drifting again — sometimes 20-40° a minute — and keeps going no
+matter how long the board sits still. The gyro bias isn't the problem this time; the filter's own
+**integral term** is.
+
+Look back at `mahony_update()`. Every loop, `MAHONY_KI` adds a little of the accelerometer's
+"which way is down" error into `integral_fbx`, `integral_fby`, and `integral_fbz`, and those totals
+are added to the gyro rates from then on. At rest that's helpful: it slowly learns and cancels a
+steady gyro bias on roll and pitch. But while you're shaking the board, the accelerometer feels your
+hand's pushes as well as gravity, so its "down" is wrong, the errors are big, and the integral totals
+pile up (engineers call this *windup*). When the board comes to rest, roll and pitch errors shrink
+and unwind `integral_fbx`/`integral_fby` — but `integral_fbz` is fed only by the yaw error, and the
+accelerometer can't see yaw, so that error stays near zero. Nothing ever unwinds `integral_fbz`, and
+it keeps adding a fake rotation rate to Z: a brand-new bias, created by the filter itself, that
+Phase 3's bias calibration can't touch (it corrects the raw gyro, not the filter's internals).
+
+There are two fixes:
+
+| | Fix 1: set `MAHONY_KI = 0.0` | Fix 2: clear `integral_fbx/y/z` whenever `is_still()` is true |
+| :--- | :--- | :--- |
+| Change | One number | One line inside the `is_still()` branch |
+| Windup after motion | Can't happen — the integral term is off | Wiped out the moment the board comes to rest |
+| While the board keeps moving | Roll/pitch rely on `MAHONY_KP` alone, so a leftover bias can leave a small steady tilt offset | `MAHONY_KI` still trims leftover roll/pitch bias; `integral_fbz` can still wind up, so yaw may wander *during* long motion until the next stop |
+| What you give up | `MAHONY_KI` stops doing anything, so there's nothing left to tune | Whatever `MAHONY_KI` learned is thrown away at every stop (fine — the bias estimate takes over at rest) |
+
+In a simulation of 15 seconds of hard shaking followed by rest, both fixes cut the post-motion yaw
+drift from 20-40°/min to under 0.5°/min, with the same roll and pitch. This code uses **Fix 2**: it
+keeps `MAHONY_KI` doing useful work whenever the board is moving, and hands the job to the bias
+estimate the moment it's still — each tool covers the situation it's good at. Fix 1 is the
+simpler choice if you'd rather have one less moving part.
+
+One thing neither fix does: put yaw *back*. Any heading error built up while the board was moving
+stays as a fixed offset — nothing on the board knows which way it was originally facing (that would
+take the magnetometer). What the fix guarantees is that once the board is still, yaw *stops
+changing* within a couple of seconds, instead of drifting on forever.
 
 ### The code
 
@@ -502,6 +541,8 @@ Save this as `code.py` on your `CIRCUITPY` drive, replacing Phase 1's version.
 # Phase 3: Phase 1's IMU + Mahony filter, plus gyro bias calibration:
 #   1. at startup, measure the gyro's bias while the board sits still
 #   2. while running, keep refining that bias whenever the board is still
+#   3. whenever the board is still, clear the filter's integral term (see
+#      "Fix 1 or Fix 2?" above) so motion can't leave yaw drifting afterward
 # Still prints roll,pitch,yaw as CSV, so Phase 2's wireframe.py works unchanged.
 
 import time
@@ -618,10 +659,14 @@ while True:
         bias_x += BIAS_ALPHA * gx
         bias_y += BIAS_ALPHA * gy
         bias_z += BIAS_ALPHA * gz
+        # Part 3 (Fix 2): the bias estimate now handles gyro error at rest, so
+        # throw away whatever the filter's integral term piled up during motion
+        # -- on yaw, nothing else would ever unwind it.
+        integral_fbx = integral_fby = integral_fbz = 0.0
 
     mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll, pitch, yaw = quaternion_to_euler()
-    print("{:.1f},{:.1f},{:.1f}".format(roll, pitch, yaw))
+    print("{:.1f}, {:.1f}, {:.1f}".format(roll, pitch, yaw))
 
     time.sleep(0.02)
 ```
@@ -638,6 +683,10 @@ watch yaw in the window title: it should now hold within a degree or so, instead
 the way it did in Phase 2. Turn the board flat by 90° and back — yaw should follow the turn and
 return close to where it started.
 
+Now stress it: shake and spin the board hard for 10-15 seconds, then set it flat and let go. Within
+a couple of seconds yaw should stop changing — probably at a new number rather than where it
+started (see "Fix 1 or Fix 2?" above for why it can't return on its own).
+
 If yaw drifts badly from the very start, the board probably moved during those 2 seconds of
 calibration: press reset with the board lying still and try again.
 
@@ -647,7 +696,7 @@ Write down how many degrees yaw drifted in one minute with Phase 1's code, and h
 3's. Be able to explain in one sentence why the accelerometer can correct roll and pitch but not
 yaw.
 
-## 7. Build It: Phase 4 — Extend the Rover Status Website
+## 7. Build It: Phase 4 — Extend the Rover Status Website - DONE
 
 ### Wiring for this phase
 
@@ -658,12 +707,12 @@ Class 3 `rover_server.py`, not `class-4-phase-3-code.py`.
 
 The Class 3 website file gets three new fields and Phase 3's calibrated IMU code. Every other file it relies on comes from Class 3 unchanged.
 
-| Software component | New, modified, or unchanged | What it does |
+| Software component | New, modified, reuse, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
 | `rover_server.py` | **Modified** — `class-4-phase-4-rover_server.py`, edits `class-3-phase-4-rover_server.py` | Same WiFi network, server, and webpage, now also reading and fusing the IMU. `/data.json` gains `roll`, `pitch`, and `yaw` next to the wheel fields. |
-| `code.py` | **Unchanged** — `class-3-phase-4-code.py` | The one-line `import rover_server` that starts the website. It goes back in place of Phase 3's IMU program, since only one program runs at a time. |
-| `wheel_odometry.py` | **Unchanged** — `class-3-phase-3-wheel_odometry.py` | Still supplies the wheel speed and direction fields. |
-| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Imported by `wheel_odometry` for each wheel's direction. |
+| `code.py` | **Reuse** — `class-3-phase-4-code.py` | The one-line `import rover_server` that starts the website. It goes back in place of Phase 3's IMU program, since only one program runs at a time. |
+| `wheel_odometry.py` | **Reuse** — `class-3-phase-3-wheel_odometry.py` | Still supplies the wheel speed and direction fields. Its optional `while_sampling` argument keeps the IMU filter running during its 0.25 s sampling window. |
+| `motor_driver.py` | **Reuse** — `class-3-phase-1-motor-driver.py` | Imported by `wheel_odometry` for each wheel's direction. |
 | `adafruit_lsm9ds1.mpy`, `adafruit_httpserver` (in `/lib`) | **Unchanged** — from Phase 1 and Class 3 | The IMU driver and the web server library the website needs. |
 | `settings.toml` | **Unchanged** — from Class 3 | Same network name and password for the Pico's WiFi network. |
 
@@ -675,6 +724,18 @@ Recall `rover_server.py`'s `/data.json` route from Class 3: it returns a small d
 with no HTML/JavaScript changes needed. Today's edit only touches the Pico side: add the
 sensor-read-and-fuse code from `class-4-phase-3-code.py` (including Phase 3's gyro bias
 calibration) into `rover_server.py`, and add three keys to the returned dict.
+
+**Keep the filter running.** There's one catch in moving the filter into a website. In Phases 1
+and 3, the filter updated every pass of the loop, about 40 times a second. If `/data.json` ran the
+filter itself, it would update only when the browser asks — twice a second — and each update would
+treat one gyro reading as the rotation rate for the whole half-second, so any turn that speeds up,
+slows down, or reverses in between is lost. Worse, `wheel_odometry.read_speed()` blocks for 0.25 s
+while it counts wheel ticks. So this version runs the filter in two places: the main loop calls
+`_update_orientation()` every pass, and the route passes the same function into
+`read_speed(while_sampling=...)`, which calls it about every 20 ms while it samples. The route then
+just reports `latest_orientation`. In simulation, running the filter per request left yaw 35-125°
+wrong after 15 s of hand-held turning; this version stays within about 15°, close to Phase 3's
+standalone program.
 
 This file duplicates rather than imports `class-4-phase-3-code.py`'s Mahony filter code, and that's
 deliberate, not sloppy: `class-4-phase-3-code.py` ends in its own blocking `while True:` loop that prints
@@ -713,14 +774,22 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.start_ap(
-    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
-)
-print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+# Configure your Access Point credentials
+ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
+ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")   # Minimum 8 characters (or leave as "" for an open network)
 
+print("Starting Wi-Fi Access Point...")
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+
+# The default IP address for a CircuitPython AP is typically 192.168.4.1
+ap_ip = wifi.radio.ipv4_address_ap
+print(f"AP Active! Connect to SSID: '{ap_ssid}'")
+print(f"Server IP Address: {ap_ip}")
+
+# Set up socket pool and HTTP server
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
+#server = Server(pool, debug=True)
 
 i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-phase-3-code.py
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
@@ -796,6 +865,7 @@ def _is_still(ax, ay, az, gx, gy, gz):
 def _read_orientation():
     """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
     global last_time, bias_x, bias_y, bias_z
+    global integral_fbx, integral_fby, integral_fbz
     now = time.monotonic()
     dt = now - last_time
     last_time = now
@@ -806,6 +876,7 @@ def _read_orientation():
         bias_x += BIAS_ALPHA * gx
         bias_y += BIAS_ALPHA * gy
         bias_z += BIAS_ALPHA * gz
+        integral_fbx = integral_fby = integral_fbz = 0.0  # Fix 2: clear integral windup
     _mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
@@ -817,6 +888,17 @@ def _read_orientation():
 # boots), then start the filter's clock so the first dt isn't the 2 s wait.
 bias_x, bias_y, bias_z = _calibrate_gyro_bias()
 last_time = time.monotonic()
+
+# The filter has to run continuously -- about every 20 ms, like Phase 3 -- not
+# just when the browser asks for data (only twice a second). The main loop and
+# read_speed() both call this; /data.json just reports the latest result.
+latest_orientation = (0.0, 0.0, 0.0)
+
+
+def _update_orientation():
+    """Advance the filter one step and remember the result for /data.json."""
+    global latest_orientation
+    latest_orientation = _read_orientation()
 
 
 STATUS_PAGE = """<!doctype html><html><body>
@@ -832,8 +914,11 @@ setInterval(() => fetch('/data.json').then(r => r.json())
 
 @server.route("/data.json")
 def data_json(request: Request):
-    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
-    roll, pitch, yaw = _read_orientation()  # the only new work this route does
+    # read_speed() spends 0.25 s counting wheel ticks; passing the filter update
+    # keeps orientation tracking running during that window instead of pausing it.
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed(
+        while_sampling=_update_orientation)
+    roll, pitch, yaw = latest_orientation  # kept current by the main loop
     return JSONResponse(request, {
         "speed_left_cms": speed_left,
         "dir_left": dir_left,
@@ -845,25 +930,39 @@ def data_json(request: Request):
     })
 
 
+# Define the website route for the homepage
 @server.route("/")
 def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+# Start the server on port 5000
+# Port 5000 is used to avoid conflicts with CircuitPython's Web Workflow on port 80
+server.start(str(ap_ip), port=5000)
+print(f"HTTP Server running at http://{ap_ip}:5000")
+print("Class 4, Phase 4 -- rover status website now serving data ...")
 
-print("Class 4, Phase 4 -- rover status website now serving orientation too...")
+# Main loop: keep the orientation filter running, and answer web requests
 while True:
-    server.poll()
+    _update_orientation()  # every pass, whether or not a browser is asking
+    time.sleep(0.02)       # same ~40 Hz pace as Phase 3
+    try:
+        server.poll()
+    except Exception as e:
+        print(f"Server error: {e}")
+
 ```
 
 ### Try it / what you should see
 
-Watch the serial console for the same `rover server -- broadcasting WiFi network: ...` and
-`rover server -- listening at ...` lines from Class 3, then the new `Calibrating gyro` line — leave
-the rover untouched for those 2 seconds, since it measures the gyro bias exactly as Phase 3 does. Join your Pico's own WiFi network from your
+Watch the serial console for `Starting Wi-Fi Access Point...`, `AP Active! Connect to SSID: ...`,
+and `Server IP Address: ...`, then the `Calibrating gyro` line — leave the rover untouched for those
+2 seconds, since it measures the gyro bias exactly as Phase 3 does — and finally
+`HTTP Server running at http://192.168.4.1:5000`. Join your Pico's own WiFi network from your
 laptop (same network name and password as Class 3 — `settings.toml` carries over unchanged), then
-open its status webpage in a browser — you should now see seven fields updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
+open `http://192.168.4.1:5000` in a browser. Type the `http://` and the `:5000`: this version
+serves on port 5000 because CircuitPython's Web Workflow can already be using port 80, and a
+browser that quietly switches to `https://` will report "refused to connect." You should now see seven fields updating live: `speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`, `roll`, `pitch`, `yaw`.
 Spin a wheel by hand and watch the speed fields jump; tilt the board and watch `roll`/`pitch`/`yaw`
 change — all on the one page, with no separate display.
 
@@ -890,6 +989,7 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | `roll,pitch,yaw` prints but never changes | Board isn't actually being moved, or a loose connection is producing a stuck reading | Physically tilt the board while watching output; reseat the STEMMA QT cable |
 | Roll or pitch drifts noticeably even when the board sits still | `MAHONY_KI` or `MAHONY_KP` too low to correct drift | Raise both in small steps and re-test |
 | Yaw spins away steadily while the board sits still | Still running Phase 1's code (no bias calibration), or the board moved during the 2 s startup calibration | Confirm `code.py` is Phase 3's version; press reset with the board lying still |
+| Yaw drifts again after heavy motion, and keeps drifting once set down | The filter's integral term wound up during motion (`integral_fbz` can't unwind on its own) | Confirm the `is_still()` branch clears `integral_fbx`/`integral_fby`/`integral_fbz` (Fix 2), or set `MAHONY_KI = 0.0` (Fix 1) |
 | Yaw still creeps a degree or two over several minutes | Expected — calibration slows drift but can't remove it; only a magnetometer gives an absolute heading | Press reset (with the board still) to re-zero |
 | Very slow turns barely register in yaw | A turn slower than `STILL_GYRO` looks like bias and gets absorbed into it | Lower `STILL_GYRO` (e.g. `0.01`) and re-test |
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
@@ -898,6 +998,9 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` in the same Python environment used to run the script |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
+| Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
+| `TypeError: ... unexpected keyword argument 'while_sampling'` | `wheel_odometry.py` on `CIRCUITPY` is an older copy without the optional argument | Update `read_speed()` to the Class 3 Phase 3 version, which accepts `while_sampling` |
+| Browser says "refused to connect" at `192.168.4.1` | Wrong port (this version uses `5000`) or the browser switched to `https://` | Open exactly `http://192.168.4.1:5000` |
 | Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-phase-4-rover_server.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
 | Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP19`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
 
@@ -1025,6 +1128,7 @@ while True:
         bias_x += BIAS_ALPHA * gx
         bias_y += BIAS_ALPHA * gy
         bias_z += BIAS_ALPHA * gz
+        integral_fbx = integral_fby = integral_fbz = 0.0  # Fix 2: clear integral windup
     mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll, pitch, yaw = quaternion_to_euler()
     print("{:.1f},{:.1f},{:.1f}".format(roll, pitch, yaw))
@@ -1104,6 +1208,10 @@ also need `motor_driver.py` and `wheel_odometry.py` still on `CIRCUITPY`, unchan
 
 ```python
 # code.py -- complete project, option B: rover status website with orientation.
+# Extends the Class 3 rover status website with IMU orientation. Same server,
+# same /data.json route -- just three new keys. Reuses the Mahony filter code
+# from class-4-phase-3-code.py rather than reinventing it (but as a copy, not an
+# import -- see "What this code does" above for why).
 import os
 import math
 import time
@@ -1115,19 +1223,27 @@ import adafruit_lsm9ds1
 from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
-wifi.radio.start_ap(
-    os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
-)
-print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+# Configure your Access Point credentials
+ap_ssid = os.getenv("CIRCUITPY_WIFI_AP_SSID")
+ap_password = os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")   # Minimum 8 characters (or leave as "" for an open network)
 
+print("Starting Wi-Fi Access Point...")
+wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
+
+# The default IP address for a CircuitPython AP is typically 192.168.4.1
+ap_ip = wifi.radio.ipv4_address_ap
+print(f"AP Active! Connect to SSID: '{ap_ssid}'")
+print(f"Server IP Address: {ap_ip}")
+
+# Set up socket pool and HTTP server
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
+#server = Server(pool, debug=True)
 
-i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA
+i2c = busio.I2C(board.GP1, board.GP0)  # SCL, SDA -- same wiring as class-4-phase-3-code.py
 imu = adafruit_lsm9ds1.LSM9DS1_I2C(i2c)
 
-MAHONY_KP = 2.0   # calibrate: same tuned value as class-4-phase-3-code.py
+MAHONY_KP = 2.0  # calibrate: same tuned value as class-4-phase-3-code.py
 MAHONY_KI = 0.05  # calibrate: same tuned value as class-4-phase-3-code.py
 
 # Gyro bias settings -- same values and meaning as class-4-phase-3-code.py.
@@ -1143,6 +1259,8 @@ last_time = time.monotonic()
 
 
 def _mahony_update(ax, ay, az, gx, gy, gz, dt):
+    # Identical math to class-4-phase-3-code.py's mahony_update() -- see Section 3's
+    # "Mahony filter" explanation for why fusing accel+gyro this way works.
     global q0, q1, q2, q3, integral_fbx, integral_fby, integral_fbz
     norm = (ax * ax + ay * ay + az * az) ** 0.5
     if norm == 0:
@@ -1194,7 +1312,9 @@ def _is_still(ax, ay, az, gx, gy, gz):
 
 
 def _read_orientation():
+    """Advance the Mahony filter one step and return (roll, pitch, yaw)."""
     global last_time, bias_x, bias_y, bias_z
+    global integral_fbx, integral_fby, integral_fbz
     now = time.monotonic()
     dt = now - last_time
     last_time = now
@@ -1205,6 +1325,7 @@ def _read_orientation():
         bias_x += BIAS_ALPHA * gx
         bias_y += BIAS_ALPHA * gy
         bias_z += BIAS_ALPHA * gz
+        integral_fbx = integral_fby = integral_fbz = 0.0  # Fix 2: clear integral windup
     _mahony_update(ax, ay, az, gx, gy, gz, dt)
     roll = math.degrees(math.atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, 2 * (q0 * q2 - q3 * q1)))))
@@ -1216,6 +1337,17 @@ def _read_orientation():
 # boots), then start the filter's clock so the first dt isn't the 2 s wait.
 bias_x, bias_y, bias_z = _calibrate_gyro_bias()
 last_time = time.monotonic()
+
+# The filter has to run continuously -- about every 20 ms, like Phase 3 -- not
+# just when the browser asks for data (only twice a second). The main loop and
+# read_speed() both call this; /data.json just reports the latest result.
+latest_orientation = (0.0, 0.0, 0.0)
+
+
+def _update_orientation():
+    """Advance the filter one step and remember the result for /data.json."""
+    global latest_orientation
+    latest_orientation = _read_orientation()
 
 
 STATUS_PAGE = """<!doctype html><html><body>
@@ -1231,8 +1363,11 @@ setInterval(() => fetch('/data.json').then(r => r.json())
 
 @server.route("/data.json")
 def data_json(request: Request):
-    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed()
-    roll, pitch, yaw = _read_orientation()
+    # read_speed() spends 0.25 s counting wheel ticks; passing the filter update
+    # keeps orientation tracking running during that window instead of pausing it.
+    speed_left, dir_left, speed_right, dir_right = wheel_odometry.read_speed(
+        while_sampling=_update_orientation)
+    roll, pitch, yaw = latest_orientation  # kept current by the main loop
     return JSONResponse(request, {
         "speed_left_cms": speed_left,
         "dir_left": dir_left,
@@ -1244,16 +1379,27 @@ def data_json(request: Request):
     })
 
 
+# Define the website route for the homepage
 @server.route("/")
 def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+# Start the server on port 5000
+# Port 5000 is used to avoid conflicts with CircuitPython's Web Workflow on port 80
+server.start(str(ap_ip), port=5000)
+print(f"HTTP Server running at http://{ap_ip}:5000")
+print("Class 4, Phase 4 -- rover status website now serving data ...")
 
-print("Class 4, Phase 4 -- rover status website now serving orientation too...")
+# Main loop: keep the orientation filter running, and answer web requests
 while True:
-    server.poll()
+    _update_orientation()  # every pass, whether or not a browser is asking
+    time.sleep(0.02)       # same ~40 Hz pace as Phase 3
+    try:
+        server.poll()
+    except Exception as e:
+        print(f"Server error: {e}")
+
 ```
 
 To satisfy this Class's milestone (a live 3D orientation display *and* orientation visible on the

@@ -561,6 +561,11 @@ You'll need `adafruit_debouncer.mpy` **and** `adafruit_ticks.mpy` (its internal 
 `CIRCUITPY/lib/` for this — the same two files you already copied there for Class 1's button/encoder,
 so nothing new to download if that circuit is still working.
 
+`read_speed()` also accepts an optional `while_sampling` function. Class 3 never uses it, so you
+can ignore it for now. It's there for Class 4: the rover website there must keep updating the
+IMU's orientation filter during the 0.25 s `read_speed()` spends counting ticks, so it passes that
+update in, and `read_speed()` calls it about every 20 ms (`CALLBACK_SECONDS`) while it samples.
+
 Before this will read correctly, set `SLOTS_PER_REV` below to the number of slots you counted by
 hand on your own wheel's disc — the value shown is a placeholder, not a measurement.
 
@@ -583,6 +588,7 @@ import motor_driver       # imports the file you created in phase 1
 WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
 SLOTS_PER_REV = 20        # count your own wheel's encoder disc slots by hand and set this
 SAMPLE_SECONDS = 0.25     # sampling window for one speed reading
+CALLBACK_SECONDS = 0.02   # how often read_speed() calls its optional while_sampling function
 WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05
 WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05
 CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted tick = 4.21
@@ -610,15 +616,21 @@ def _ticks_to_cms(ticks):
     # return ticks * CMS_PER_TICK
 
 
-def read_speed():
+def read_speed(while_sampling=None):
     """Poll both sensors for SAMPLE_SECONDS, counting debounced ticks; return
-    (speed_left_cms, dir_left, speed_right_cms, dir_right)."""
+    (speed_left_cms, dir_left, speed_right_cms, dir_right).
+
+    while_sampling is optional: a function (no arguments) to call about every
+    CALLBACK_SECONDS while sampling, so other work that can't pause for
+    SAMPLE_SECONDS keeps running. Class 3 never passes one; Class 4's
+    rover_server.py passes its IMU filter update."""
 
     ticks_a = 0
     ticks_b = 0
 
     # poll and debounce for SAMPLE_SECONDS -- one tick per debounced falling edge
     end_time = time.monotonic() + SAMPLE_SECONDS
+    next_callback = time.monotonic()
     while time.monotonic() < end_time:
         debounced_a.update()
         debounced_b.update()
@@ -626,6 +638,9 @@ def read_speed():
             ticks_a += 1
         if debounced_b.fell:
             ticks_b += 1
+        if while_sampling is not None and time.monotonic() >= next_callback:
+            while_sampling()  # e.g. Class 4's IMU filter update
+            next_callback = time.monotonic() + CALLBACK_SECONDS
 
     # convert the debounced counts to centimeters per second (speed)
     speed_left = _ticks_to_cms(ticks_a)
@@ -756,11 +771,13 @@ from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
 # AP_PASSWORD must be at least 8 characters -- start_ap() rejects shorter ones.
+PORT = 5000  # not 80 -- CircuitPython's Web Workflow may already be using port 80
+
 wifi.radio.start_ap(
     os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 )
 print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+print("rover server -- listening at http://{}:{}".format(wifi.radio.ipv4_address_ap, PORT))
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -796,7 +813,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=PORT)
 
 print("Class 3, Phase 4 -- rover status website starting...")
 while True:
@@ -816,11 +833,14 @@ import rover_server
 ### Try it / what you should see
 
 Watch the serial console for a line like `rover server -- broadcasting WiFi network: <your-name>`
-followed by `rover server -- listening at 192.168.4.1`. On your laptop, open its WiFi settings and
+followed by `rover server -- listening at http://192.168.4.1:5000`. On your laptop, open its WiFi settings and
 connect to that same network name (`CIRCUITPY_WIFI_AP_SSID` from `settings.toml`) using the password you set —
 this is a normal WiFi join, just to the Pico's network instead of the classroom's. Once connected,
-open a browser and go to the printed IP address (typically `192.168.4.1`) — you should see
-`Rover Status` and a block of JSON that updates itself twice a second.
+open a browser and go to the printed address, `http://192.168.4.1:5000`. Type both the `http://`
+and the `:5000`: the server uses port 5000 because CircuitPython's Web Workflow may already be using
+port 80, and a bare IP address sends the browser to port 80 (or quietly switches it to `https://`),
+where nothing is listening. You should see `Rover Status` and a block of JSON that updates itself
+twice a second.
 
 #### Step 1 — verify the plumbing (manual check)
 Spin a wheel by hand and watch that wheel's
@@ -1517,7 +1537,7 @@ for.
 | Wheel speed reading is wildly too high or too low, but raw ticks match a hand-turned revolution correctly | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
 | `ImportError: no module named 'wifi'` | The board is running the non-WiFi build of CircuitPython — `wifi` is only compiled into the build made for "Raspberry Pi Pico 2 W", not the plain "Raspberry Pi Pico 2" build, even on genuine Pico 2 W hardware | Download the correct `.uf2` for "Raspberry Pi Pico 2 W" from circuitpython.org, hold `BOOTSEL` while plugging in USB to mount `RPI-RP2`, drag the `.uf2` on to reflash, then re-copy `motor_driver.py`, `wheel_odometry.py`, `rover_server.py`, `code.py`, `settings.toml`, and `lib/` (including `adafruit_httpserver`) back onto `CIRCUITPY` |
-| Browser shows "This site can't be reached" / `curl` says "failed to connect" to the Pico's IP, even though the laptop is joined to the Pico's WiFi network and can `ping` it | `adafruit_httpserver`'s `Server.start()` defaults to port 5000 (visible if you add `debug=True` to `Server(pool, debug=True)`, which prints `Started development server on http://<ip>:5000`), but a browser typing a bare IP address assumes port 80 | Pass `port=80` explicitly: `server.start(str(wifi.radio.ipv4_address_ap), port=80)` |
+| Browser says "can't be reached" or "refused to connect" at the Pico's IP, though the laptop is on its network | Browser went to port 80 (bare IP) or `https://`; the server is plain HTTP on port 5000 | Open exactly `http://192.168.4.1:5000` (the address the serial console prints) |
 | `ImportError: no module named 'rover_server'` | The website code was saved as `code.py` directly instead of `rover_server.py`, so `code.py`'s `import rover_server` fails | Confirm the website code is saved as exactly `rover_server.py`, and `code.py` is only the one-line `import rover_server` wrapper |
 | `wifi.radio.start_ap()` raises an error or the network never appears | `CIRCUITPY_WIFI_AP_PASSWORD` in `settings.toml` is shorter than 8 characters — CircuitPython's `start_ap()` requires it | Set `CIRCUITPY_WIFI_AP_PASSWORD` to at least 8 characters in `settings.toml` |
 | Website never loads in the browser, but the Pico prints an IP address | Your laptop hasn't joined the Pico's own broadcast WiFi network yet | In your laptop's WiFi settings, connect to the network named by `CIRCUITPY_WIFI_AP_SSID` (not your classroom's network) before opening the browser |
@@ -1622,6 +1642,7 @@ import motor_driver
 WHEEL_DIAMETER_MM = 67
 SLOTS_PER_REV = 20  # count your own wheel's encoder disc slots by hand and set this
 SAMPLE_SECONDS = 0.25
+CALLBACK_SECONDS = 0.02
 WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159
 WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV
 CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS   # cm/s of speed per counted tick
@@ -1640,10 +1661,11 @@ def _ticks_to_cms(ticks):
     return (revolutions * WHEEL_CIRCUMFERENCE_CM) / SAMPLE_SECONDS
 
 
-def read_speed():
+def read_speed(while_sampling=None):
     ticks_a = 0
     ticks_b = 0
     end_time = time.monotonic() + SAMPLE_SECONDS
+    next_callback = time.monotonic()
     while time.monotonic() < end_time:
         debounced_a.update()
         debounced_b.update()
@@ -1651,6 +1673,9 @@ def read_speed():
             ticks_a += 1
         if debounced_b.fell:
             ticks_b += 1
+        if while_sampling is not None and time.monotonic() >= next_callback:
+            while_sampling()  # optional -- used by Class 4's rover_server.py
+            next_callback = time.monotonic() + CALLBACK_SECONDS
     speed_left = _ticks_to_cms(ticks_a)
     speed_right = _ticks_to_cms(ticks_b)
     return (speed_left, motor_driver.last_direction_a,
@@ -1723,11 +1748,13 @@ from adafruit_httpserver import Server, Request, Response, JSONResponse
 import wheel_odometry
 
 # AP_PASSWORD must be at least 8 characters -- start_ap() rejects shorter ones.
+PORT = 5000  # not 80 -- CircuitPython's Web Workflow may already be using port 80
+
 wifi.radio.start_ap(
     os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 )
 print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+print("rover server -- listening at http://{}:{}".format(wifi.radio.ipv4_address_ap, PORT))
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -1759,7 +1786,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=PORT)
 
 print("Class 3, Phase 4 -- rover status website starting...")
 while True:
@@ -1846,7 +1873,8 @@ know:
     no wheel/heading feedback to check against, battery voltage sag over time, and wheel slip or
     friction differences between the two motors
 * How a slot IR optocoupler and its onboard LM393 comparator turn a spinning encoder disc into a
-    clean digital pulse train your Pico can count directly, with no debouncing needed
+    digital pulse train — one whose edges still bounce at slow wheel speeds, so it needs the same
+    `Debouncer` Class 1 used before your Pico can count it
 * How to turn a tick count into a real wheel speed in cm/s, and why a single optocoupler per wheel
     can't tell you direction — and why borrowing the last-commanded direction from
     `motor_driver.py` is a reasonable, if imperfect, stand-in

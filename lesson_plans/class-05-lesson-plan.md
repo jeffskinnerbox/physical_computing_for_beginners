@@ -429,7 +429,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
 # NOTE: the old "while True: server.poll()" loop is gone from this file --
 # class-5-code.py's own main loop polls it now (see below). [VERIFY]
 ```
@@ -502,7 +502,8 @@ while True:
 website hang, not the rover). If `scan_heading`/`drive_state`/`stop_reason` show up but never update,
 confirm `class-5-code.py` is importing the edited `rover_server.py`, not a leftover Class 4 copy.
 
-**Checkpoint 3:** Every pair should be able to open their Pico's status webpage and see all ten
+**Checkpoint 3:** Every pair should be able to open their Pico's status webpage
+(`http://192.168.4.1:5000` — type the `http://` and the `:5000`) and see all ten
 fields — the seven from Classes 3-4 plus `scan_heading`, `drive_state`, `stop_reason` — update live,
 with `drive_state` flipping between `"driving"` and `"scanning"` as the rover cycles and `stop_reason`
 naming whichever safety signal last fired.

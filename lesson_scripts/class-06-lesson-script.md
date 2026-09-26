@@ -290,7 +290,8 @@ def index(request: Request):
 
 ### Try it / what you should see
 
-Open your Pico's status webpage in a browser on your Pico's own WiFi network, the same page you've had
+Open your Pico's status webpage (`http://192.168.4.1:5000` — type the `http://` and the `:5000`) in a browser on your Pico's own WiFi network, the
+same page you've had
 running since Class 3 — you should now see the same wheel-speed/orientation/scan-state numbers as
 before, plus a new "Recent History" chart below them that scrolls as the rover drives: an orange
 line for roll, a blue line for pitch, and a green line for left wheel speed.

@@ -336,8 +336,8 @@ Tips for Students:
 * **Wiring Continuity**: All-new pins (`GP9`-`GP12` motor driver, plus the 9V battery for `VM`, a 5V buck converter
   feeding the Pico's own `VSYS` power, the DRV8833's `nSLEEP` pin jumpered to `3V3` (the Adafruit breakout has no
   onboard pull-up), and `GP19`/`GP17` for the two wheel optocouplers &mdash; `GP19` on the Motor A wheel, `GP17` on
-  the Motor B wheel; both must be odd-numbered PWM Channel B pins because `countio.Counter` on the RP2040/RP2350
-  only counts on Channel B, so `GP16` cannot be used) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
+  the Motor B wheel; any two free GPIOs would work, since `wheel_odometry.py` polls them as plain digital inputs
+  through `adafruit_debouncer`) &mdash; Classes 1 and 2's circuits stay in place, untouched. The motor driver and both optocouplers, along with the WiFi web
   server they feed, are carried forward unchanged into Classes 4, 5, and 6, and into Class 5's rover build.
 * **Objective**: The student is to understand the use of the dual H-bridge motor driver,
   and make the car drive in a 35 cm square and a 35 cm diameter circle.
@@ -382,15 +382,16 @@ Tips for Students:
     yet). `SPEED`, `SECONDS_PER_CM`, and `SECONDS_PER_90_DEGREES` must be measured/calibrated per robot;
     the resulting drift is the built-in prompt for the "what is missing?" discussion.
   * `class-3-phase-3-wheel_odometry.py` &mdash; wheel-odometry library (save as `wheel_odometry.py`), reused
-    unchanged through Class 6. Optocoupler A on `GP19`, optocoupler B on `GP17`, both digital inputs counted
-    via interrupt/counter. `WHEEL_DIAMETER_MM = 67`, `SLOTS_PER_REV` must be measured/calibrated per robot
+    unchanged through Class 6. Optocoupler A on `GP19`, optocoupler B on `GP17`, both polled as digital inputs
+    through `adafruit_debouncer.Debouncer` (the LM393's edges still bounce at slow wheel speeds) and counted over a
+    0.25 s window; an optional `while_sampling` callback lets Class 4 keep its IMU filter running while it samples. `WHEEL_DIAMETER_MM = 67`, `SLOTS_PER_REV` must be measured/calibrated per robot
     (count the encoder disc's slots). Exposes `read_speed()` returning `(speed_left_cms, dir_left,
     speed_right_cms, dir_right)`; direction for each wheel comes from the last direction argument passed to
     `motor_driver.drive()` for that channel, not from the optocoupler alone (see Talking Points).
   * `class-3-phase-4-rover_server.py` &mdash; Pico-hosted rover status website (save as `rover_server.py`).
     Pico 2 W broadcasts its own WiFi network in access-point mode (`wifi.radio.start_ap()`; network name/password
     in `settings.toml` as `CIRCUITPY_WIFI_AP_SSID`/`CIRCUITPY_WIFI_AP_PASSWORD`, password at least 8 characters)
-    and runs an `adafruit_httpserver` server (started explicitly on port 80) serving
+    and runs an `adafruit_httpserver` server (on port 5000, since CircuitPython's Web Workflow may hold port 80) serving
     `/data.json` (currently just `wheel_odometry.read_speed()`'s fields) and a minimal HTML page that polls
     it. Imports `wheel_odometry`; prints the same data to the serial console each loop. Designed to be
     edited in place across later Classes rather than rewritten from scratch: Class 4's

@@ -637,7 +637,7 @@ led.direction = digitalio.Direction.OUTPUT
 # Anyone nearby can now see and join "<your-name>" like any other WiFi network.
 wifi.radio.start_ap(ssid=ap_ssid, password=ap_password)
 print("Access point started. Connect to:", ap_ssid)
-print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + "/ in a browser")
+print("Then visit http://" + str(wifi.radio.ipv4_address_ap) + ":5000/ in a browser")
 
 # --- Start a tiny web server on the Pico itself ---
 pool = socketpool.SocketPool(wifi.radio)
@@ -665,7 +665,7 @@ def base(request: Request):
     """
     return Response(request, html, content_type="text/html")
 
-server.start(str(wifi.radio.ipv4_address_ap))
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80
 
 # --- Main loop: blink the LED AND keep answering webpage requests ---
 last_blink = time.monotonic()
@@ -683,7 +683,7 @@ while True:
 **Test it:** Save this as `code.py` on CIRCUITPY, wait for it to reboot, then on your phone or
 laptop open WiFi settings and connect to the `<your-name>` network using the password from
 `settings.toml`. Open a browser and go to the address printed in the serial console (something like
-`http://192.168.4.1/`) — the page should show ON/OFF and flip once a second, matching the physical
+`http://192.168.4.1:5000/`) — the page should show ON/OFF and flip once a second, matching the physical
 LED on the board.
 
 #### Real World Examples

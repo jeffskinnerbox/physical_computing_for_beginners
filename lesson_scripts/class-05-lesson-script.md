@@ -407,7 +407,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
 # NOTE: the old "while True: server.poll()" loop is gone from this file --
 # class-5-code.py's own main loop polls it now (see below).
 ```
@@ -479,7 +479,8 @@ while True:
 
 ### Try it / what you should see
 
-Open your Pico's status webpage in a browser on your Pico's own WiFi network — you should now see ten
+Open your Pico's status webpage (`http://192.168.4.1:5000` — type the `http://` and the `:5000`) in a browser on your Pico's own WiFi network — you should
+now see ten
 fields: the seven from Classes 3-4 (`speed_left_cms`, `dir_left`, `speed_right_cms`, `dir_right`,
 `roll`, `pitch`, `yaw`) plus today's three (`scan_heading`, `drive_state`, `stop_reason`). Set your
 rover driving and watch `drive_state` flip between `"driving"` and `"scanning"` as it cycles, and
@@ -569,7 +570,7 @@ wifi.radio.start_ap(
     os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 )
 print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at", wifi.radio.ipv4_address_ap)
+print("rover server -- listening at http://{}:5000".format(wifi.radio.ipv4_address_ap))
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -671,7 +672,7 @@ def index(request: Request):
     return Response(request, STATUS_PAGE, content_type="text/html")
 
 
-server.start(str(wifi.radio.ipv4_address_ap), port=80)
+server.start(str(wifi.radio.ipv4_address_ap), port=5000)  # port 5000, not 80 -- CircuitPython's Web Workflow may already be using port 80 (same as Class 4)
 # NOTE: no "while True: server.poll()" loop here anymore -- code.py's own
 # main loop polls it now, once per cycle, so it can also keep driving.
 ```
