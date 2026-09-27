@@ -451,7 +451,7 @@ import motor_driver
 # will not be correct as-is. Time a measured straight run and a measured
 # 90-degree turn on your own car, then adjust these until your car's actual
 # movement matches what you told it to do.
-SPEED = 0.5                    # throttle used for all moves
+SPEED = 0.6                    # throttle used for all moves
 SECONDS_PER_CM = 0.035        # calibrate: time a measured straight run, divide by cm
 SECONDS_PER_90_DEGREES = 0.4   # calibrate: time a measured 90-degree turn
 
@@ -590,19 +590,22 @@ import time
 import board
 import digitalio
 from adafruit_debouncer import Debouncer  # same debounce library Class 1 used
-import motor_driver       # imports the file you created in phase 1
+import motor_driver                       # imports the file you created in phase 1
 
 WHEEL_DIAMETER_MM = 67    # 67 millimetres measure this with calipers
 SLOTS_PER_REV = 20        # count your own wheel's encoder disc slots by hand and set this
 SAMPLE_SECONDS = 0.25     # sampling window for one speed reading
 CALLBACK_SECONDS = 0.02   # how often read_speed() calls its optional while_sampling function
-WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05
-WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05
-CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted tick = 4.21
+WHEEL_CIRCUMFERENCE_CM = (WHEEL_DIAMETER_MM / 10) * 3.14159            # wheel circumference in centimeters = 21.05   # fmt: skip
+WHEEL_CIRCUMFERENCE_PER_SLOT = WHEEL_CIRCUMFERENCE_CM / SLOTS_PER_REV  # centimeters of wheel travel per slot = 1.05  # fmt: skip
+CMS_PER_TICK = WHEEL_CIRCUMFERENCE_PER_SLOT / SAMPLE_SECONDS           # cm/s of speed per counted ticks/sec = 4.21   # fmt: skip
 
-sensor_a = digitalio.DigitalInOut(board.GP19)  # slot sensor for Motor A wheel
+# slot sensor for Motor A wheel
+sensor_a = digitalio.DigitalInOut(board.GP19)
 sensor_a.direction = digitalio.Direction.INPUT
-sensor_b = digitalio.DigitalInOut(board.GP17)  # slot sensor for Motor B wheel
+
+# slot sensor for Motor B wheel
+sensor_b = digitalio.DigitalInOut(board.GP17)
 sensor_b.direction = digitalio.Direction.INPUT
 
 # Debouncer filters each sensor's raw HIGH/LOW the same way Class 1's button
@@ -665,7 +668,7 @@ Test it with a short scratch `code.py` that drives forward and prints `read_spee
 import motor_driver
 import wheel_odometry
 
-print("Output format:\n( left_wheel_cm_per_sec,  left_wheel_dir,  right_wheel_cm_per_sec,  right_wheel_dir )")
+print("Output format:\n( left_wheel_cm_per_sec,  left_wheel_dir,  right_wheel_cm_per_sec,  right_wheel_dir )")  # fmt: skip
 
 # set motors to half speed, moving forward
 motor_driver.drive(0.5, 0.5)
@@ -783,8 +786,8 @@ PORT = 5000  # not 80 -- CircuitPython's Web Workflow may already be using port 
 wifi.radio.start_ap(
     os.getenv("CIRCUITPY_WIFI_AP_SSID"), os.getenv("CIRCUITPY_WIFI_AP_PASSWORD")
 )
-print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))
-print("rover server -- listening at http://{}:{}".format(wifi.radio.ipv4_address_ap, PORT))
+print("rover server -- broadcasting WiFi network:", os.getenv("CIRCUITPY_WIFI_AP_SSID"))     # fmt: skip
+print("rover server -- listening at http://{}:{}".format(wifi.radio.ipv4_address_ap, PORT))  # fmt: skip
 
 pool = socketpool.SocketPool(wifi.radio)
 server = Server(pool)
@@ -870,7 +873,7 @@ replace `code.py` with:
 import motor_driver
 
 # sets the PWM and returns; the motors keep spinning on their own
-motor_driver.drive(0.5, 0.5)
+motor_driver.drive(0.6, 0.6)
 
 # blocks in server.poll() forever -- the motors keep running
 import rover_server
@@ -1129,7 +1132,7 @@ import time
 import motor_driver
 import wheel_odometry
 
-BASE_THROTTLE = 0.5   # throttle both wheels start at
+BASE_THROTTLE = 0.6   # throttle both wheels start at
 KI = 0.005            # [VERIFY] nudge per cm/s of speed difference -- tune on your own car
 MAX_TRIM = 0.2        # [VERIFY] never slow a wheel by more than this, so a bad reading can't stall it
 
@@ -1699,7 +1702,7 @@ import time
 import math
 import motor_driver
 
-SPEED = 0.5                    # calibrate per robot
+SPEED = 0.6                    # calibrate per robot
 SECONDS_PER_CM = 0.035        # calibrate per robot
 SECONDS_PER_90_DEGREES = 0.4   # calibrate per robot
 

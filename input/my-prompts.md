@@ -839,6 +839,19 @@ or unchanged including stating what its class-xx-phase-x-??.py identifier,
 
 ----
 
+## My 35th Prompt - Add a Phase 5 to class-04-lesson_script.md
+In @lesson_scripts/class-03-lesson-script.md, add a Phase 5 section titled "## 8. Build It: Phase 5 — TBD".
+The style of writing for this new section should be consistent with @lesson_scripts/class-03-lesson-script.md.
+
+This code should do the following:
+1. Use the Phase 4 code as its starting point.
+1. The random rover should move continuously in square pattern, where the sides of the square are 60 centimeters.
+   Code should be reused from previous classes as needed.
+1. The random rover should supply near real time data simultaneously to the @src/wire_frame.py program and the rover_server.py web server.
+1. Data sent to @src/wire_frame.py program and rover_server.py web server is the same format but displayed differently
+
+----
+
 
 
 

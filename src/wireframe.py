@@ -115,6 +115,7 @@ while True:
     front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
     ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
+
     # Redraw the window and let it handle events (resize, close, etc.).
     fig.canvas.draw_idle()
     fig.canvas.flush_events()

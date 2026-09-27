@@ -215,7 +215,7 @@ ir_sensor.direction = digitalio.Direction.INPUT
 
 # Tune these for your specific robot -- start conservative and adjust
 # during Independent Work.
-DRIVE_SPEED = 0.4                     # lower than Class 3's test speed -- safer for autonomous runs
+DRIVE_SPEED = 0.6                     # lower than Class 3's test speed -- safer for autonomous runs
 SCAN_ANGLES = [30, 60, 90, 120, 150]  # degrees, left to right
 SETTLE_TIME = 0.15                    # seconds -- let the servo stop moving before trusting a reading
 STOP_DISTANCE_CM = 25                 # distance that triggers an immediate rescan
@@ -827,7 +827,7 @@ bump_switch.pull = digitalio.Pull.UP
 ir_sensor = digitalio.DigitalInOut(board.GP13)
 ir_sensor.direction = digitalio.Direction.INPUT
 
-DRIVE_SPEED = 0.4
+DRIVE_SPEED = 0.6
 SCAN_ANGLES = [30, 60, 90, 120, 150]
 SETTLE_TIME = 0.15
 STOP_DISTANCE_CM = 25
