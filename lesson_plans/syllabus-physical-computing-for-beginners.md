@@ -294,10 +294,12 @@ another's — pairs work at whatever speed keeps both partners engaged.
 **Class 6 — Finish the Random Rover + Stretch Goals**
 
 * Finish and tune the Random Rover from Class 5
+* Check that the Class 5 magnetometer calibration still holds (quick heading check; recalibrate if
+  anything near the IMU moved) and retune compass-steered turns
 * Optional stretch goals: reconnect the Class 1 rotary encoder for live speed control, add a
-  scrolling history chart to the rover status website that has been running since Class 3 (no new
-  web server built — just a chart layered on top of the existing site), add the TFT display for
-  real-time distance/heading/speed status on the rover itself
+  scrolling history chart of tilt, compass heading, and wheel speed to the rover status website that
+  has been running since Class 3 (no new web server built — just a chart layered on top of the
+  existing site), add the TFT display for real-time distance/heading/speed status on the rover itself
 * Discuss: looking back across the course's "what's missing?" questions, which single improvement
   would most help the rover's real-world reliability?
 * End-of-course showcase: each student demonstrates their working Random Rover to the group

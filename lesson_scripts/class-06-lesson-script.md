@@ -5,14 +5,13 @@
 * **Duration:** ~2 hours
 * **What You'll Need:** see [Section 2](#2-what-youll-need)
 * **Before You Start:** Your Class 5 Random Rover should be working, even if imperfectly —
-    Class 2's sensor+servo circuit (`GP6`-`GP8`), Class 3's motor driver circuit (`GP9`-`GP12`), and
-    Class 5's limit switch/IR sensor (`GP5`/`GP13`) combined into `class-5-code.py`'s stop-look-go
-    loop, with `motor_driver.py` present on your `CIRCUITPY` drive. Class 1's encoder circuit should
-    still be intact on your breadboard, even though unused since Class 1 — you'll reconnect it today
-    if you attempt Stretch 1. Class 4's IMU circuit should also still be intact, but it's not
-    actually idle: `rover_server.py` has kept reading it continuously since Class 4, since the
-    website has carried orientation data all along — Stretch 2 below just adds a history chart on
-    top of readings the site is already serving.
+    Class 2's sensor+servo circuit (`GP6`-`GP8`), Class 3's motor driver circuit (`GP9`-`GP12`),
+    Class 4's IMU (`GP0`/`GP1`) with the magnetometer you calibrated in Class 5, and Class 5's limit
+    switch/IR sensor (`GP5`/`GP13`), all running `class-5-code.py`'s stop-look-go loop with
+    compass-steered turns. Your `CIRCUITPY` drive should have `motor_driver.py`, `wheel_odometry.py`,
+    and your Class 5 `rover_server.py` (with your own `MAG_OFFSET` pasted in). Keep
+    `class-5-mag-calibration.py` handy in case you need to recalibrate. Class 1's encoder circuit
+    should still be intact on your breadboard — you'll reconnect it today if you attempt Stretch 1.
 
 ---
 
@@ -27,7 +26,8 @@ already built in an earlier class rather than introducing new hardware:
 * **Stretch 1** — bring back your Class 1 rotary encoder to control the rover's drive speed live,
     while it's driving.
 * **Stretch 2** — add a rolling-history chart to the rover status website that's been running since
-    Class 3, so recent trends in tilt and wheel speed scroll by instead of only the current instant.
+    Class 3, so recent trends in tilt, compass heading, and wheel speed scroll by instead of only the
+    current instant.
 * **Stretch 3** — add a small screen right on the robot showing its distance/heading/speed status,
     readable without a laptop attached at all.
 
@@ -42,35 +42,43 @@ their working rover to the group.
 | Raspberry Pi Pico 2 W (with header) | 1 | Runs your CircuitPython code |
 | Complete Class 5 rover circuit (incl. 9V battery + buck converter) | 1 | The rover you're finishing and tuning — the buck converter still powers your Pico's `VSYS` from the same 9V battery |
 | KY-040 rotary encoder (from Class 1, already wired) | 1 | Stretch 1: live speed control |
-| LSM9DS1 9-DOF IMU (from Class 4, already wired) | 1 | Stretch 2: source of the roll/pitch history plotted on the already-running rover website |
+| LSM9DS1 9-DOF IMU (from Class 4, magnetometer calibrated in Class 5) | 1 | Core rover: compass heading for every turn; Stretch 2 and 3: source of the tilt and heading you display |
 | 1.14" 240x135 color TFT display | 1 | Stretch 3: on-board status display (new wiring) |
 | Breadboard (from prior classes) | 1 | All prior circuits stay on it |
 | Dupont jumper wires | as needed | New wiring for stretch 3 only |
 | USB cable | 1 | Saving code and reading the serial console — unplug it for floor runs; the rover runs on its 9V battery |
 | Laptop with Mu or Thonny | 1 | Where you write/save code |
-| Laptop with a web browser | 1 | Views the stretch 2 rolling-history chart on the already-running rover website |
+| Laptop with a web browser | 1 | Views the rover website — the warm-up heading check and the stretch 2 rolling-history chart |
+| Phone with a compass app | shared | Checking your rover's `heading` is still healthy |
 
 **Additional components for the Homework Assignments** (Section 11) — no homework has been written
 for this class yet; this section will be filled in when that content is added.
 
 ## 3. Meet the Hardware
 
-**Core rover:** no new hardware — you're tuning the exact circuit from Class 5.
+**Core rover:** no new hardware — you're tuning the exact circuit from Class 5. One thing to keep an
+eye on: your magnetometer calibration. It's only correct as long as nothing magnetic has moved
+relative to the IMU since you calibrated. Remount the IMU, swap the battery position, or tighten a
+steel bracket next to it, and your `heading` quietly goes wrong — so today starts with a quick
+heading check.
 
 **Stretch 1 — rotary encoder (recap from Class 1).** No new wiring at all. The same debounced
 `CLK`/`DT` reading technique from Class 1 now feeds a live `current_speed` value into
 `motor_driver.drive()` instead of a fixed constant — this is a change to the *control loop*, not a
 new input concept. Driving slower doesn't make the rover's scan-and-choose decisions any smarter;
 it just gives the decision loop more distance-per-scan margin, which can make a fixed
-`SCAN_INTERVAL` behave more safely without touching the scanning code itself.
+`SCAN_INTERVAL` behave more safely without touching the scanning code itself. Notice what you
+*don't* have to change: turns. Class 5's turns are closed-loop — they spin at their own `TURN_SPEED`
+until the compass says they've arrived — so changing the drive speed doesn't break them. With Class
+3's timed turns, every new speed would have meant recalibrating.
 
 **Stretch 2 — growing the same website again, not building a new one.** The rover status website
 has been running continuously since Class 3: that class gave it live wheel speed/direction and the
 first version of `rover_server.py`, Class 4 added IMU orientation, and Class 5 refactored it into a
-library and added the collision-avoidance decision. All three edited the *same* file and the *same*
+library and added the compass heading and the collision-avoidance decision. All three edited the *same* file and the *same*
 `/data.json` route — nothing was ever rebuilt from scratch. Today's stretch does the same thing
 again: it `import`s `rover_server` (Class 5's library version), adds a rolling history buffer (the
-last ~150 readings of roll/pitch and wheel speed) to the page that's already running, and draws a
+last ~150 readings of roll/pitch, heading, and wheel speed) to the page that's already running, and draws a
 hand-drawn HTML5 canvas chart of it. No new WiFi join, no new web server, no new `settings.toml` —
 that plumbing has been live since Class 3.
 
@@ -85,7 +93,7 @@ dedicated protocol for pushing pixel data to a screen.
 | Pin | What we use it for | Status |
 | :---- | :--------------------- | :------- |
 | `GP3`/`GP4` | Rotary encoder `CLK`/`DT` | Reused from Class 1 |
-| `GP0`/`GP1` | LSM9DS1 `SDA`/`SCL` | Reused from Class 4 |
+| `GP0`/`GP1` | LSM9DS1 `SDA`/`SCL` — core rover compass, and Stretches 2-3 | Reused from Class 4 |
 | `GP26` | TFT `SCK` | New |
 | `GP27` | TFT `MOSI` | New |
 | `GP20` | TFT `CS` | New |
@@ -97,8 +105,8 @@ dedicated protocol for pushing pixel data to a screen.
 ### Wiring for this phase
 
 No wiring changes. Confirm your Class 5 rover circuit is intact — if it regressed (loose sensor
-mount, dead 9V battery, failed buck converter, a missing `motor_driver.py`), restore it to a
-known-working Class 5 state before attempting any stretch goal.
+mount, dead 9V battery, failed buck converter, a missing `motor_driver.py`, a bumped IMU), restore it
+to a known-working Class 5 state before attempting any stretch goal.
 
 ### Software for this phase
 
@@ -107,23 +115,38 @@ No new code — you tune the program you finished in Class 5. Everything else st
 | Software component | New, modified, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
 | `code.py` | **Modified** (constants only) — `class-5-code.py` | The Random Rover's stop-look-go program. You adjust `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, `TURN_SPEED`, and `HEADING_TOLERANCE_DEG` until it avoids obstacles reliably. |
-| `rover_server.py` | **Unchanged** — Class 5 library version | Keeps publishing the rover's status to its webpage while you tune. |
+| `rover_server.py` | **Unchanged** — Class 5 library version (only `MAG_OFFSET` changes, if you recalibrate) | Runs the 9-DOF filter that supplies the compass heading, and keeps publishing the rover's status to its webpage while you tune. |
+| `class-5-mag-calibration.py` | **Unchanged** — from Class 5, only if needed | Rerun as `code.py` if the heading check fails, then put `class-5-code.py` back. |
 | `motor_driver.py`, `wheel_odometry.py` | **Unchanged** — `class-3-phase-1-motor-driver.py`, `class-3-phase-3-wheel_odometry.py` | Drive the rover and report wheel speed, as in Class 5. |
 
 ### What to do
 
-Revisit `class-5-code.py`'s constants — `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`,
+**First, the heading check (~2 minutes).** Boot the rover sitting still and flat, open the rover
+website, and check `heading`:
+
+1. Turn the rover clockwise by hand about a quarter turn: `heading` should go up by about 90.
+2. Leave it still for a minute: `heading` should hold within a few degrees.
+3. Hold a phone compass next to it: if the IMU's X arrow points along the rover's nose, `heading`
+    should roughly match.
+
+If any check fails and you've moved the IMU, battery, or motors since Class 5, rerun
+`class-5-mag-calibration.py` (as `code.py`), paste the new `MAG_OFFSET` into `rover_server.py`, and
+put `class-5-code.py` back as `code.py`.
+
+**Then tune.** Revisit `class-5-code.py`'s constants — `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`,
 `SCAN_ANGLES`, `TURN_SPEED`, `HEADING_TOLERANCE_DEG` — and adjust them based on what you observed in
-Class 5. If you remounted the IMU or moved the battery or motors since Class 5, rerun
-`class-5-mag-calibration.py` first and paste the new `MAG_OFFSET` into `rover_server.py`.
+Class 5. If turns overshoot, fall short, or print `turn timed out`, rerun Class 5's turn test:
+temporarily set `SCAN_ANGLES = [150]` so every turn is 60° right, then adjust `TURN_SPEED` and
+`HEADING_TOLERANCE_DEG` until each `drive: heading now ...` lands within about 5 of its target.
 This is debugging and tuning, not new code: treat it as a continuation of Class 5's Independent
 Work. Aim for a rover that reliably completes a full stop-look-go cycle and avoids at least one
 obstacle without you touching it.
 
 ### Checkpoint
 
-Run your rover on the open floor area and confirm it drives, stops to scan, turns toward open
-space, and resumes — repeatedly, without intervention — before moving on to any stretch goal.
+Your heading check passes, and your rover drives, stops to scan, turns toward open space with each
+`heading now` close to its target, and resumes — repeatedly, without intervention — before you move
+on to any stretch goal.
 
 ## 5. Stretch Goal 1 — Live Encoder Speed Control
 
@@ -162,12 +185,12 @@ encoder_dt = digitalio.DigitalInOut(board.GP4)
 encoder_dt.direction = digitalio.Direction.INPUT
 encoder_dt.pull = digitalio.Pull.UP
 
-MIN_SPEED = 0.2
-MAX_SPEED = 0.6
+MIN_SPEED = 0.3
+MAX_SPEED = 0.9
 SPEED_STEP = 0.05
 MIN_STEP_INTERVAL = 0.02  # seconds -- same debounce technique as Class 1
 
-current_speed = 0.4  # starting value, matches class-5-code.py's DRIVE_SPEED
+current_speed = 0.6  # starting value, matches class-5-code.py's DRIVE_SPEED
 last_clk_state = encoder_clk.value
 last_step_time = 0.0
 
@@ -201,7 +224,10 @@ Turn the knob one direction and watch `current_speed` climb in steps of `0.05`, 
 Running this file standalone only demonstrates the pattern. To actually use it, merge it into
 `class-5-code.py`: replace the `DRIVE_SPEED` constant with a `current_speed` variable that this
 encoder-reading code updates inside the main drive loop, and use `current_speed` everywhere
-`class-5-code.py` currently uses `DRIVE_SPEED` in its `motor_driver.drive()` calls.
+`class-5-code.py` currently uses `DRIVE_SPEED` in its `motor_driver.drive()` calls. Leave
+`TURN_SPEED` alone — turns are compass-steered and don't care how fast you drive between them. At the
+top of the speed range, watch `heading` on the website as the motors start: more motor current means
+a bigger magnetic jump, and if turns start landing off target, lower `MAX_SPEED`.
 
 ## 6. Stretch Goal 2 — Rover Website History Chart
 
@@ -217,8 +243,9 @@ This does **not** join WiFi or start a server — it `import`s the already-runni
 module (the same file since `class-3-phase-4-rover_server.py`, extended in Classes 4-5) and edits it in place: a
 rolling ~150-sample history buffer, plus a hand-drawn HTML5 canvas chart added to the existing
 status page, polling the existing `/data.json` route every 200ms and plotting `roll`/`pitch`
-(already in the response since Class 4) and wheel speed (already in the response since Class 3)
-over time. You're not building a new website — you're adding to the one that's been running since
+(already in the response since Class 4), `heading` (since Class 5), and wheel speed (since Class 3)
+over time. Heading runs 0-360 while tilt stays within a few tens of degrees, so the chart subtracts
+180 and shrinks it (`p.heading - 180`, scale `0.5`) to fit it on the same canvas. You're not building a new website — you're adding to the one that's been running since
 Class 3.
 
 ### The code
@@ -253,6 +280,7 @@ async function pollHistory() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawSeries(ctx, canvas, history, p => p.roll, 2, 'orange');    // IMU tilt
     drawSeries(ctx, canvas, history, p => p.pitch, 2, 'blue');     // IMU tilt
+    drawSeries(ctx, canvas, history, p => p.heading - 180, 0.5, 'purple');  // compass, 0-360 centered
     drawSeries(ctx, canvas, history, p => p.speed_left_cms, 10, 'green');  // wheel speed
     setTimeout(pollHistory, 200);
 }
@@ -291,7 +319,10 @@ Open your Pico's status webpage (`http://192.168.4.1:5000` — type the `http://
 same page you've had
 running since Class 3 — you should now see the same wheel-speed/orientation/scan-state numbers as
 before, plus a new "Recent History" chart below them that scrolls as the rover drives: an orange
-line for roll, a blue line for pitch, and a green line for left wheel speed.
+line for roll, a blue line for pitch, a purple line for compass heading, and a green line for left
+wheel speed. The purple line is the most interesting one: it stays flat while the rover drives
+straight and steps up or down at every turn, so you can literally see each turn's size. If it jumps
+from the top of the chart to the bottom, that's just heading wrapping from 359 to 0.
 
 If the chart never appears, confirm `class-6-code-2.py` actually ran (it must be imported by
 `code.py` alongside the Class 5 rover code, not run standalone in place of it) and that it ran
@@ -302,8 +333,8 @@ appears but never scrolls, the rover's main loop has stopped calling
 ### Checkpoint
 
 Confirm the chart appears below the existing status fields and scrolls live as the rover drives,
-plotting roll, pitch, and left wheel speed, while the Classes 3-5 fields above it keep updating
-too.
+plotting roll, pitch, heading, and left wheel speed, while the Classes 3-5 fields above it keep
+updating too. Point to one step in the purple line and match it to a turn you watched the rover make.
 
 ## 7. Stretch Goal 3 — On-Board TFT Status Display
 
@@ -378,7 +409,7 @@ import rover_server
 
 # Demo values -- replace with the real variables from class-5-code.py / class-6-code-1.py
 demo_distance = 0
-demo_speed = 0.4
+demo_speed = 0.6
 
 REFRESH_S = 0.2  # redraw the screen 5 times a second
 last_refresh = 0.0
@@ -414,11 +445,15 @@ with your rover's real readings — is the natural next step if time allows.
 | Problem | Likely Cause | Fix |
 | :-------- | :------------- | :---- |
 | Core rover regressed since Class 5 | Loose connection, dead 9V battery, failed buck converter, or a missing `motor_driver.py`/`class-5-code.py` file | Restore to the known-working Class 5 state before attempting any stretch goal |
+| Heading check fails (doesn't follow a hand turn, disagrees with the phone compass, or creeps) | IMU, battery, or motors moved since your Class 5 calibration | Rerun `class-5-mag-calibration.py` on the assembled rover; paste the new `MAG_OFFSET` into `rover_server.py` |
+| Turns now overshoot, fall short, or print `turn timed out` | Weaker battery or a different floor than in Class 5, or `TURN_SPEED` changed | Rerun the `SCAN_ANGLES = [150]` turn test and retune `TURN_SPEED`/`HEADING_TOLERANCE_DEG` |
+| Stretch 1: at high speed, `heading` jumps and turns land off target | More motor current, bigger magnetic field near the IMU | Lower `MAX_SPEED`, or mount the IMU farther from the motors and recalibrate |
 | Stretch 1: `current_speed` never changes | Encoder wiring drifted since Class 1, or the code wasn't actually merged into the drive loop | Verify `CLK`/`DT` on `GP3`/`GP4`; confirm the merge step was done, not just run standalone |
 | Stretch 1: speed changes but the rover jerks or stalls at low speed | `MIN_SPEED` set below the DRV8833's usable stall threshold from Class 3 | Raise `MIN_SPEED` closer to the value found usable in Class 3 |
 | Stretch 2: chart never shows up on the page at all | `class-6-code-2.py` never ran, or ran before `rover_server` was imported so `STATUS_PAGE` didn't exist yet | Confirm `code.py` imports `rover_server` first, then `import history_chart` (`class-6-code-2.py`) |
 | Stretch 2: chart appears but is flat/frozen, other fields on the page also stopped updating | Rover's main loop stopped calling `rover_server.server.poll()` (same failure mode Class 5 introduced) | Confirm the main drive loop still calls `rover_server.server.poll()` every cycle |
 | Stretch 2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `class-6-code-2.py` was imported after the browser loaded the page, or the browser is caching an old page | Hard-refresh the browser page; confirm `code.py` does `import history_chart` before its main loop starts |
+| Stretch 2: no purple heading line | Old Class 4 `rover_server.py` without the `heading` field | Confirm `rover_server.py` is the Class 5 9-DOF library version |
 | Stretch 2: chart plots roll/pitch but not wheel speed (or vice versa) | `drawSeries` called with a field name that doesn't match `/data.json`'s actual key (e.g. `speed_left_cms`) | Check the exact field names already established in Classes 3-5's `/data.json` response |
 | Stretch 3: blank/garbled TFT screen | SPI pins mismatched, or `displayio.release_displays()` was omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
 | Stretch 3: TFT shows only demo values for distance and speed | Demo variables never replaced with the real rover variables | Expected unless full integration was completed — not a bug, just an unfinished integration step |
@@ -445,15 +480,16 @@ in one place, so you can build straight to whichever combination you want.
 | IR obstacle sensor `OUT` | `GP13` | Core rover |
 | IR obstacle sensor `VCC` / `GND` | `3V3` / `GND` | Core rover |
 | Wheel-odometry optocouplers (website) | `GP19`/`GP17` | Core rover |
+| LSM9DS1 `SDA`/`SCL` (compass heading for turns) | `GP0`/`GP1` | Core rover, Stretches 2-3 |
 | Rotary encoder `CLK`/`DT` | `GP3`/`GP4` | Stretch 1 |
-| LSM9DS1 `SDA`/`SCL` | `GP0`/`GP1` | Stretch 2 |
 | TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP26`/`GP27`/`GP20`-`GP22` | Stretch 3 |
 
 ### Complete code
 
-Your core rover's finished code is `class-5-code.py` (from Class 5) plus `motor_driver.py` (from
-Class 3) and `rover_server.py` (Class 5's library version) — this class is about tuning that
-code's constants, not replacing it. Each stretch goal's complete, ready-to-run code is exactly what's
+Your core rover's finished code is `class-5-code.py` (from Class 5) plus `motor_driver.py` and
+`wheel_odometry.py` (from Class 3) and `rover_server.py` (Class 5's 9-DOF library version, with your
+`MAG_OFFSET`) — this class is about tuning that code's constants, not replacing it.
+`class-5-mag-calibration.py` stays in your toolbox for whenever something moves near the IMU. Each stretch goal's complete, ready-to-run code is exactly what's
 shown in its own section above: `class-6-code-1.py` (Stretch 1), `class-6-code-2.py` (Stretch 2),
 and `class-6-code-3.py` (Stretch 3). Full integration of Stretch 1 or Stretch 3 means merging its
 logic into `class-5-code.py` rather than running it standalone — the specific merge points are
@@ -468,7 +504,10 @@ You finished the course by making your own rover more reliable and, if you chose
 further with genuinely new capabilities. Specifically, you now know:
 
 * How to debug and tune an existing autonomous system based on real-world observation, rather than
-    building it fresh
+    building it fresh — including checking that a calibrated sensor (the magnetometer) is still
+    telling the truth before blaming the code
+* Why closed-loop control holds up when conditions change: your compass turns kept working when the
+    battery, the floor, or (if you built Stretch 1) the drive speed changed
 * (If attempted) How reusing an existing input (the encoder) to drive a *live* control-loop value,
     instead of a fixed constant, changes a system's behavior without changing its core logic
 * (If attempted) Why a system built so each addition is a small, additive edit to the same file —
@@ -479,7 +518,8 @@ further with genuinely new capabilities. Specifically, you now know:
 
 More broadly, you built a complete physical computing system from a bare microcontroller, one
 working piece at a time, over six classes: a debounced switch, a servo-swept sensor, a motor
-driver, an IMU, and finally a robot that senses, decides, and acts on its own. That's the whole
+driver, an IMU that became a compass, and finally a robot that senses, decides, acts, and checks its
+own work. That's the whole
 discipline of physical computing, and you've now done it for real, with your own hands.
 
 ---
@@ -500,6 +540,8 @@ does, full commented code, and real-world examples).
   setup (Pico W as its own WiFi network) that your rover status website has used since Class 3
 * [Cerberus: Obstacle Avoiding Robot With Mecanum Wheels][04] - alternative physical design
   for the same type of robot
+* [What Is an IMU, and What Does a Mahony Filter Do?][05] — course explainer on the IMU, the
+  magnetometer's role in stopping yaw drift, and sensor-fusion filters
 
 ---
 
@@ -509,3 +551,4 @@ does, full commented code, and real-world examples).
 [02]:https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/
 [03]:https://microcontrollerslab.com/raspberry-pi-pico-w-soft-access-point-web-server-example/
 [04]:https://www.instructables.com/Cerberus-Obstacle-Avoiding-Robot-With-Mecanum-Whee
+[05]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-an-imu-and-mahony-filter.md

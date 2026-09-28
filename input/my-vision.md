@@ -605,7 +605,7 @@ Tips for Students:
 * **Description:** Continue building an obstacle-avoiding robot car and complete the project.
   Then add the stretch objectives outlined in "Objective": a rotary encoder that lets students speed
   the rover up or down live while it drives, a rolling-history chart added to the rover status website
-  (running continuously since Class 3) so IMU tilt and wheel speed are viewable as a scrolling graph
+  (running continuously since Class 3) so IMU tilt, compass heading, and wheel speed are viewable as a scrolling graph
   instead of only a snapshot, and a TFT screen that shows the rover's distance/heading/speed status on the
   robot itself so it's readable without a USB cable attached.
 
@@ -628,7 +628,8 @@ Tips for Students:
   1. Add a TFT display showing real-time status.
 * **Talking Points**:
   * Adding encoder speed control changes the rover's behavior &mdash; does driving slower actually make it make smarter decisions, or does it just take longer to make the same decisions?
-  * Looking back across all 6 classes' "what's missing?" discussions (wheel-speed feedback added in Class 3, orientation added in Class 4), which single improvement would most help the rover's real-world reliability, and what would it take to add it?
+  * Looking back across all 6 classes' "what's missing?" discussions (wheel-speed feedback added in Class 3, orientation added in Class 4, a drift-free compass heading and closed-loop turns added in Class 5), which single improvement would most help the rover's real-world reliability, and what would it take to add it? (e.g. the rover turns by compass but still drives "straight" open-loop &mdash; what would holding a heading while driving take?)
+  * Stretch #1 changes drive speed live. Why doesn't that break the rover's turns, when changing speed would have wrecked Class 3's timed-turn calibration?
   * The rover website has now grown for four classes straight (Class 3 wheel speed, Class 4 orientation, Class 5 scan/sensor state, Class 6 history chart) without ever being rewritten &mdash; what design choice made in Class 3 made that possible, and where would a "rebuild it each class" approach have broken down instead?
   * This is the last class before the future line-following robot course &mdash; which skills/parts built here (motor driver, wheel odometry, calibration mindset, sensor fusion) will carry forward, and what's genuinely new there (line sensor, competitive track) that this course didn't cover?
 * **Features/Capabilities**: Stretch #1 prints the new drive speed to the terminal each time the encoder
@@ -646,12 +647,13 @@ Tips for Students:
     right after `import rover_server` in the rover's `code.py`. Imports the already-running `rover_server`
     (from `class-3-phase-4-rover_server.py`, extended in Classes 4-5) and adds a rolling ~150-sample history buffer plus a
     hand-drawn HTML5 canvas chart to the existing page, polling `/data.json` every 200ms and plotting roll/pitch
-    (from `class-4-phase-3-code.py`'s Mahony filter) and wheel speed (from `wheel_odometry`) over time. No new WiFi
+    (from `class-4-phase-3-code.py`'s Mahony filter), compass heading (Class 5's 9-DOF filter), and wheel speed (from `wheel_odometry`) over time. No new WiFi
     join or web server is created here &mdash; both already exist from Class 3.
   * `class-6-code-3.py` &mdash; stretch #3. ST7789 1.14" 240x135 TFT over SPI
     (`SCK`/`MOSI` on `GP26`/`GP27`, `CS`/`DC`/`RST` on `GP20`-`GP22`) shows distance/heading/speed as large on-board text via
     `displayio` + `adafruit_display_text`, so rover status is visible without a USB cable. Ships with demo
-    values; swap in the real variables from class-5-code.py / class-6-code-1.py. Uses `rowstart=40, colstart=53`
+    distance/speed values (swap in the real variables from class-5-code.py / class-6-code-1.py) and a real heading
+    read from Class 5's `rover_server.latest_heading`. Uses `rowstart=40, colstart=53`
     so drawing lands on this panel's visible glass.
 * **Potential Source Materials**:
   * [Adafruit 1.14" 240x135 Color Newxie TFT Display](https://learn.adafruit.com/adafruit-1-14-240x135-color-newxie-tft-display/circuitpython)
