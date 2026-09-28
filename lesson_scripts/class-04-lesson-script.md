@@ -76,6 +76,9 @@ drift without inheriting the accelerometer's short-term noise. (Kalman and Madgw
 this same problem with different math; Mahony is what's actually implemented here.) The filter's
 `MAHONY_KP` gain controls how strongly it trusts that correction — you'll tune this live and feel
 the tradeoff between drift (too low) and jitter (too high).
+Want the full story? The three-part explainer series covers [what an IMU is and how the Mahony
+filter compares to Madgwick and Kalman filters][06], [what gimbal lock is][07], and
+[why the filter stores orientation as a quaternion][08].
 
 **Adding to a website that's already running.** Building your Class 3 rover status website from
 scratch meant standing up WiFi, an HTTP server, a route, and a page all at once. Adding to one that
@@ -128,7 +131,8 @@ A new `code.py` and one new library. Class 3's files (`motor_driver.py`, `wheel_
 ### What this code does
 
 This program reads raw acceleration and rotation-rate values from the IMU, feeds them into a
-Mahony filter (implemented as a running "quaternion" — a compact way to represent 3D rotation),
+Mahony filter (implemented as a running "quaternion" — a compact way to represent 3D rotation; see
+[What Are Quaternions, and Why Use Them?][08]),
 converts the result into the more intuitive roll/pitch/yaw angles, and prints them as a CSV line
 every loop.
 
@@ -1461,6 +1465,11 @@ does, full commented code, and real-world examples).
     used to extend `rover_server.py` in Phase 4 (same API Class 3 introduced)
 * [Getting Started With Inertial Measurement Units | Exploring Degrees Of Freedom][05] — a friendly
     introduction to accelerometers, gyroscopes, and degrees of freedom
+* [What Is an IMU, and What Does a Mahony Filter Do?][06] — explainer, part 1 of 3: the sensors,
+    why raw readings aren't angles, and Mahony vs. Madgwick vs. Kalman/EKF
+* [What Is Gimbal Lock?][07] — explainer, part 2 of 3: roll/pitch/yaw, gimbal lock, and Apollo
+* [What Are Quaternions, and Why Use Them?][08] — explainer, part 3 of 3: the `q0..q3` inside
+    `mahony_update()`
 
 ---
 
@@ -1471,6 +1480,9 @@ does, full commented code, and real-world examples).
 [03]:https://www.adafruit.com/product/4634
 [04]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
 [05]:https://core-electronics.com.au/guides/getting-started-with-inertial-measurement-units-exploring-degrees-of-freedom/
+[06]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-an-imu-and-mahony-filter.md
+[07]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-gimbal-lock.md
+[08]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-are-quaternion-and-why-use-them.md
 
 [20]:https://pico2w.pinout.xyz/
 [21]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts

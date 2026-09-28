@@ -537,6 +537,17 @@ Tips for Students:
   added as new fields on the same `/data.json` route and webpage that started in Class 3 and grew again in
   Class 4, so the rover's full state &mdash; wheels, IMU, distance sensor, IR, bump switch, and drive
   decision &mdash; is visible together on one page, with no laptop cable required.
+
+  The IMU also gets its missing third sensor. Class 4 fused only the accelerometer and gyroscope, so
+  nothing anchored yaw and it slowly drifted. This class adds the LSM9DS1's magnetometer to the Mahony
+  filter (full 9-DOF fusion), anchoring yaw to magnetic north so the rover's heading stops drifting. Because
+  the motors, battery, and steel parts bend the magnetic field, the magnetometer is calibrated (a simple
+  hard-iron offset: slowly turn and tumble the fully assembled rover through every orientation and
+  record each axis's min/max) *on the rover*,
+  not on the bare breadboard. The rover website adds a compass heading. That stable heading also
+  replaces Class 3's timed turns: instead of spinning for a calibrated number of seconds and hoping
+  it turned far enough, the rover turns until its measured heading reaches the target (closed-loop
+  turning), so turns stay accurate as batteries sag or floor surfaces change.
 * **Wiring Continuity**: Two new pins this class: `GP5` (limit switch, digital input with internal
   pull-up, wired as a physical bumper on the chassis front) and `GP13` (IR obstacle sensor, digital
   input, fixed forward-facing). Both are carried forward unchanged into Class 6. Otherwise, reconnects
@@ -544,10 +555,13 @@ Tips for Students:
   (`GP9`-`GP12`) and wheel-odometry circuit (`GP19`/`GP17`), and the Class 4 IMU circuit (`GP0`/`GP1`)
   as they were left wired &mdash; no pin changes. The one power change: the HC-SR04 `VCC` and servo `+` move
   from `VBUS` (dead without a USB cable) to the buck converter's `VSYS` rail, so the rover can scan untethered. The Class 1 circuit can stay on the breadboard unused
-  or be set aside; it isn't needed for this build.
+  or be set aside; it isn't needed for this build. The magnetometer needs no new wiring &mdash; it is inside the
+  same LSM9DS1 on the same Class 4 I2C bus (`GP0`/`GP1`).
 * **Objective**: Create an autonomous car with wheel motors, operating at a constant speed,
   move around the room without hitting anything.
   Avoid collisions by using the servo-mounted ultrasonic distance sensor.
+  Stop the Class 4 yaw drift by fusing the IMU's magnetometer into the Mahony filter, so the rover
+  reports a stable compass heading, and use that heading to steer turns to the chosen scan angle.
 * **Talking Points**:
   * What will it take to build an autonomous car with collision avoidance?
     How do each of the components help solve the challenge?
@@ -556,21 +570,28 @@ Tips for Students:
   * The rover stops to scan instead of sensing continuously while driving &mdash; discuss the safety/simplicity vs. speed/smoothness tradeoff of that "stop-look-go" design.
   * Beyond eyeballing that it doesn't hit things, how would the class actually measure/test whether their rover's collision avoidance is working? (Hint: the rover website now shows live wheel speed &mdash; does a wheel's measured speed dropping to near zero while still commanded to drive make a stuck/blocked wheel visible before the rover even reports a collision?)
   * Three different signals now decide "stop": ultrasonic distance, IR near-field, and the bump switch. What does each one catch that the others miss, and what's the risk of trusting only one?
+  * Class 4's yaw drifted because gravity says nothing about which way you're facing. What does the magnetometer add, and why does it have to be calibrated on the finished rover instead of the bare breadboard? (Hint: motors, battery, and steel screws all bend the magnetic field &mdash; watch the heading jump when the motors spin up.) See the [IMU and Mahony filter explainer](../explainers/what-is-an-imu-and-mahony-filter.md).
+  * Class 3 turned by time ("spin for 0.4 s ≈ 90°"); Class 5 turns until the compass says it's there. Why does timing drift off as the battery drains or the floor changes, and what does measuring the result (closed-loop) fix? What new way can it fail (e.g. a heading that never arrives, so the turn needs a timeout)?
 * **Features/Capabilities**: Performance of the car is streamed to the terminal and to the growing rover
   website (wheel speed/direction, orientation, scan readings, chosen heading, and sensor-triggered stops all
   on one page). Reads the IR sensor and limit switch every loop; either one true forces an immediate stop
-  independent of the ultrasonic scan/timer logic.
+  independent of the ultrasonic scan/timer logic. Yaw is anchored to magnetic north by 9-DOF Mahony fusion
+  (accelerometer + gyroscope + calibrated magnetometer), and the website shows a compass heading.
 * **Course Pseudocode**:
   * `class-5-code.py` &mdash; combines Class 2's servo-swept HC-SR04 (`GP6`/`GP7` trigger/echo,
     `GP8` servo signal) with Class 3's `motor_driver` (`GP9`-`GP12`) and `wheel_odometry` (`GP19`/`GP17`).
     Drives forward at `DRIVE_SPEED`; sweeps the sensor across `SCAN_ANGLES` on a timer or immediately if
-    anything comes within `STOP_DISTANCE_CM`, turns toward the clearest heading (reusing Class 3's turn-time
-    calibration), then continues. Also polls the IR sensor (`GP13`) and limit switch (`GP5`) every loop;
+    anything comes within `STOP_DISTANCE_CM`, turns toward the clearest heading by adding the chosen scan angle to the
+    current compass heading and spinning until `rover_server`'s magnetometer-anchored `heading` is within
+    `HEADING_TOLERANCE_DEG` of that target (with a `TURN_TIMEOUT_S` safety stop), replacing Class 3's
+    turn-time calibration, then continues. Also polls the IR sensor (`GP13`) and limit switch (`GP5`) every loop;
     either going active forces an immediate stop-and-reverse, overriding the normal scan-and-turn logic.
     Imports `rover_server` and adds scan/heading/drive-state/stop-event fields to the shared `/data.json`
     route alongside the wheel-odometry and IMU fields already there, in addition to streaming everything to
-    the serial console. `rover_server.py` becomes a library (no loop of its own, Class 4's IMU filter and gyro
-    bias calibration carried over unchanged) that exposes `server`, `scan_status`, and an `update()` the drive
+    the serial console. `rover_server.py` becomes a library (no loop of its own, Class 4's gyro bias calibration carried
+    over unchanged, and its Mahony filter upgraded to 9-DOF: `mahony_update()` also takes magnetometer
+    `mx, my, mz` from `sensor.magnetic`, with hard-iron offsets from a one-time tumble calibration (`class-5-mag-calibration.py`) stored as
+    `MAG_OFFSET` constants, and a `heading` field added to `/data.json`) that exposes `server`, `scan_status`, and an `update()` the drive
     loop calls &mdash; through a small `wait()` helper that replaces `time.sleep()` &mdash; to keep the IMU filter
     running. Known limitation: each `/data.json` request blocks about 0.25 s in `read_speed()` inside
     `server.poll()`, pausing the drive loop while the page is open.

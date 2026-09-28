@@ -43,6 +43,9 @@ someone a Word doc or PDF instead of a markdown file, pandoc will convert any of
 | Types of pins on the Pico 2 W | `types-of-pins-on-raspberry-pi-pico-2w.md` | Walks through every non-`GPnn` pin label on the Pico 2 W pinout — `GND`, `VBUS`, `VSYS`, `3V3 EN`, `3V3 OUT`, `ADC VREF`, `ADC GND`, `GP26 A0`/`GP27 A1`/`GP28 A2`, and `RUN` — what each is for, how it operates electrically, and how (or whether) it's reached from CircuitPython. |
 | Glossary of terms for microcontrollers | `glossary-of-terms-for-microcontrollers.md` | Quick-lookup, topic-grouped definitions for MCU jargon — the chip itself (MCU, CPU, register), memory (RAM, SRAM, Flash, EEPROM, NVM), input/output (GPIO, pull-up/pull-down resistor, ADC, DAC, PWM), serial protocols (SPI, I2C, UART, linking to the dedicated doc), event handling (interrupt, ISR, timers, DMA, RTOS), and startup/safety/power (firmware, watchdog timer, brown-out reset, sleep modes). |
 | Breadboards and Dupont wires | `what-are-breadboards-and-dupont-wires.md` | Explains the "breadboard" and "Dupont wire" names' origins, what each is (Wikipedia), why breadboards are used, board sizes and tie-point layout (center channel, power rails, row wiring), jumper wire lengths/terminal types/colors, making your own or substituting solid 22 AWG wire, and when not to use either. |
+| IMUs and the Mahony filter (series part 1 of 3) | `what-is-an-imu-and-mahony-filter.md` | Explains what an IMU is (gyroscope, accelerometer, magnetometer — the course's 9-DOF LSM9DS1), what IMUs are good for, why raw readings are rates and directions rather than angles, how the Mahony filter fuses them (and what `MAHONY_KP`/`MAHONY_KI` do), and how Mahony compares to complementary, Madgwick, Kalman, and Extended Kalman filters. |
+| Gimbal lock (series part 2 of 3) | `what-is-gimbal-lock.md` | Defines Euler angles (roll/pitch/yaw), explains how gimbal lock loses a degree of freedom in both physical gimbals and software, tells the Apollo story (warning lights, "a fourth gimbal for Christmas," Apollo 13), why NASA didn't add a fourth gimbal or use quaternions, and where gimbal lock still bites today. |
+| Quaternions (series part 3 of 3) | `what-are-quaternion-and-why-use-them.md` | Explains what quaternions are, Hamilton's 1843 Broom Bridge invention and their comeback in graphics/aerospace/robotics, and why the Class 4 Mahony filter stores orientation as a quaternion (`q0..q3`) instead of Euler angles — with an optional worked example. |
 
 
 ## Future Explainers Topics
@@ -54,13 +57,10 @@ These are future explainer topics but not yet written:
 * what-devices-have-deceptive-behavior-like-buttons.md
 
 * what-is-an-odometer.md
-* what-is-an-imu.md
 * what-is-a-buck-converter.md
 * what-is-git-and-github.md
 * what-is-wheel-odometry.md
 * how-does-a-microcontroller-host-a-website.md
-* what-are-quaternion-and-why-use-them.md - [Why Robots Use Quaternions](https://akshetpatel.substack.com/p/why-robots-use-quaternions)
-* what-is-gimbal-lock.md
 * why-5v-for-digital-but-33v-for-analog.md
 * what-is-a-servo-motor.md
 * why-is-analog-output-used-for-transducers.md

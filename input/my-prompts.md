@@ -839,7 +839,96 @@ or unchanged including stating what its class-xx-phase-x-??.py identifier,
 
 ----
 
-## My 35th Prompt - Add a Phase 5 to class-04-lesson_script.md
+## My 35th Prompt - Using the `/explainer` skill, create IMU & Quaternion Related Documents
+Using the `/explainer` skill, you are to supervise the creation of 3 documents by 3 subagents.
+These documents are
+`@explainer/what-are-quaternion-and-why-use-them.md`,
+`@explainer/what-is-gimbal-lock.md`,
+and `@explainer/what-is-an-imu-and-mahony-filter.md`.
+
+My target audience are the students for this project directory course.
+Create a subagent for each document as listed below.
+
+When the subagents finish, still using the `/explainer` skill:
+* review all three document together looking for inconsistencies, unnecessary duplication,
+  wordiness, incompleteness, and not engaging the audience correctly.
+  Request the subagent to make proper adjustments.
+* Instruct the subagent to make improvements as necessary
+  since its your job to make sure these three document work together to explain all the topics (with minimal technical jargon):
+  * what is an IMU, what is it good for, how does it work
+  * what is gimbal lock and why is/was a concern
+  * what are quaternions, what is it good for, how does it work
+  * what are Mahony filter, Madgwick filter, Kalman filter, Extended Kalman filter and what are they good for, how do they work
+  * Cross reference these documents to reduce the amount of duplication.
+    Make sure you reference both ways, using URL links, and do it multiple place when useful.
+    Modify the text in all documents, as necessary, for optimal impact and understanding.
+
+Use the `/grill-me` skill, before activating the agents and after all the documents have been reviewed by you,
+to clarify any questions you may have.
+
+#### Subagent #1
+Create a subagent that uses the `/explainer` skill, that will create a document located at `@explainer/what-are-quaternion-and-why-use-them.mdd`
+that does the following:
+* What are quaternion?  Why are they used?  How/why were they invented?
+* Discuss the use of an IMU (Inertial Measurement Unit) and that it produces outputs of rates and vectors, not angles or orientation
+* Discuss that IMU orientation, represented as Euler angles, can be computed but quaternions are superior.
+  Discuss how they are superior and why that is helpful.
+
+#### Subagent #2
+Create a subagent that uses the `/explainer` skill, that will create a document located at `@explainer/what-is-gimbal-lock.md`
+that does the following:
+* Discuss that Gimbal lock is when an Euler-angle representation loses one degree of freedom.
+* Discuss how gimbal lock was a real and serious concern in the early space program,
+  particularly during NASA’s Apollo missions.
+  What where the risks they had to avoid and how did they avoid it?
+  While quaternion math could be used, why wasn't it applied?
+
+#### Subagent #3
+Create a subagent that uses the `/explainer` skill, that will create a document located at `@explainer/what-is-an-imu-and-mahony-filter.md`
+that does the following:
+
+* Discus the fact we are using using the [Adafruit IMU 9-DOF LSM9DS1 Breakout Board (STEMMA)](https://www.adafruit.com/product/4634)
+  and what problem does it attempt to solve.
+* Discuss some IMU chips have an onboard processor that runs the fusion for you and outputs orientation directly, but not the
+* Discuss that the raw IMU outputs is rates and vectors, not angles
+* Discuss the usefulness of an IMU use an analogy like walking with your eyes closed
+* Discuss this analogy: a raw IMU is like a car's speedometer and compass.
+  It tells you how fast you're turning and which way is down or north, not where you're facing.
+  Fusion is the navigator doing the math.
+* Discuss that IMU (Inertial Measurement Unit)
+  is a sensor package that combines a 3-axis gyroscope (angular rate),
+  a 3-axis accelerometer (linear acceleration, including gravity),
+  and often a 3-axis magnetometer (a 9-DOF IMU).
+* Describe what the Mahony filter does
+* Compare the use of the Mahony filter to Madgwick filter or Kalman filter or Extended Kalman filter.
+* Reference quaternion kinematics, stability, gimbal lock documented in
+  `@explaners/what-are-quaternion-and-why-use-them.md` and `@explaners/what-is-gimbal-lock.md`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+## My ??? Prompt - Add a Phase 5 to class-04-lesson_script.md
 In @lesson_scripts/class-03-lesson-script.md, add a Phase 5 section titled "## 8. Build It: Phase 5 — TBD".
 The style of writing for this new section should be consistent with @lesson_scripts/class-03-lesson-script.md.
 
@@ -849,23 +938,6 @@ This code should do the following:
    Code should be reused from previous classes as needed.
 1. The random rover should supply near real time data simultaneously to the @src/wire_frame.py program and the rover_server.py web server.
 1. Data sent to @src/wire_frame.py program and rover_server.py web server is the same format but displayed differently
-
-----
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ----
 

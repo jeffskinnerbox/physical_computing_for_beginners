@@ -196,8 +196,9 @@ as wired in Class 1 (`GP3`/`GP4`) and Class 4 (`GP0`/`GP1`) — nothing to chang
 only new wiring this Class.
 
 **Core work — tuning the Class 5 rover.** Revisit `class-5-code.py`'s constants (`DRIVE_SPEED`,
-`STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, `TURN_SECONDS_PER_DEGREE`) and adjust based on
-each student's specific Class 5 observations and build-journal notes. This is debugging and tuning,
+`STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, `TURN_SPEED`, `HEADING_TOLERANCE_DEG`) and adjust
+based on each student's specific Class 5 observations and build-journal notes. If a student remounted
+the IMU or moved parts near it since Class 5, have them rerun `class-5-mag-calibration.py` first. This is debugging and tuning,
 not new code — treat it like the Independent Work block from Class 5, continued.
 
 **Stretch #1 wiring (all-reused from Class 1):**
@@ -347,9 +348,11 @@ wheel-odometry optocoupler. The encoder's `SW` pin on `GP18` can stay wired, and
 | TFT `VIN`/power | `3V3` |
 | TFT `GND` | `GND` |
 
-Load `class-6-code-3.py`. Shows distance/heading/speed as large on-board text; ships with demo
-placeholder values that should be swapped for the real variables from `class-5-code.py` (and
-`class-6-code-1.py`, if built) during full integration.
+Load `class-6-code-3.py`. Shows distance/heading/speed as large on-board text. The heading is real
+— it imports Class 5's `rover_server` library and shows the magnetometer-anchored `latest_heading`,
+calling `update()` every 20 ms and `server.poll()` so the website stays up. Distance and speed ship as
+demo placeholders to swap for the real variables from `class-5-code.py` (and `class-6-code-1.py`, if
+built) during full integration. Boot the rover still and flat, as in Class 5.
 
 ```python
 # class-6-code-3.py
@@ -381,17 +384,28 @@ display.root_group = group
 
 print("Class 6 stretch 3 -- TFT status display starting...")
 
+# Real compass heading from the Class 5 rover_server library. Importing it
+# calibrates the gyro and reads the compass, so boot the rover still and flat.
+import rover_server
+
 # Demo values -- replace with the real variables from class-5-code.py / class-6-code-1.py
 demo_distance = 0
-demo_heading = 90
 demo_speed = 0.4
 
+REFRESH_S = 0.2  # redraw the screen 5 times a second
+last_refresh = 0.0
+
 while True:
-    demo_distance = (demo_distance + 1) % 100  # replace with a real sensor reading
-    distance_label.text = "dist: {} cm".format(demo_distance)
-    heading_label.text = "head: {} deg".format(demo_heading)
-    speed_label.text = "speed: {:.2f}".format(demo_speed)
-    time.sleep(0.2)
+    rover_server.update()       # keep the IMU filter running about every 20 ms
+    rover_server.server.poll()  # keep the rover status website alive too
+    now = time.monotonic()
+    if now - last_refresh >= REFRESH_S:
+        last_refresh = now
+        demo_distance = (demo_distance + 1) % 100  # replace with a real sensor reading
+        distance_label.text = "dist: {} cm".format(demo_distance)
+        heading_label.text = "head: {:.0f} deg".format(rover_server.latest_heading)
+        speed_label.text = "speed: {:.2f}".format(demo_speed)
+    time.sleep(0.02)
 ```
 
 **What to watch for:** A blank or garbled screen usually means `MOSI`/`SCK`/`CS`/`DC`/`RST` are
@@ -406,8 +420,8 @@ updating, or TFT showing status text) independently of the full rover integratio
 
 **What to do:** Students continue tuning their core rover and/or their chosen stretch goal(s), aiming
 for the closest thing to a full integration time allows (e.g., `class-5-code.py` actually reading
-`current_speed` from the encoder loop, or actually displaying real distance/heading/speed on the
-TFT instead of demo values). Encourage students to prioritize one thing done well over three things
+`current_speed` from the encoder loop, or actually displaying real distance and speed on the
+TFT alongside its already-real heading). Encourage students to prioritize one thing done well over three things
 half-finished. Have them log in their build journal which stretch goal(s) they attempted and what
 state each ended in.
 

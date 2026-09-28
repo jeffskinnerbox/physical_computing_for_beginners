@@ -106,14 +106,16 @@ No new code — you tune the program you finished in Class 5. Everything else st
 
 | Software component | New, modified, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
-| `code.py` | **Modified** (constants only) — `class-5-code.py` | The Random Rover's stop-look-go program. You adjust `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, and `TURN_SECONDS_PER_DEGREE` until it avoids obstacles reliably. |
+| `code.py` | **Modified** (constants only) — `class-5-code.py` | The Random Rover's stop-look-go program. You adjust `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`, `SCAN_ANGLES`, `TURN_SPEED`, and `HEADING_TOLERANCE_DEG` until it avoids obstacles reliably. |
 | `rover_server.py` | **Unchanged** — Class 5 library version | Keeps publishing the rover's status to its webpage while you tune. |
 | `motor_driver.py`, `wheel_odometry.py` | **Unchanged** — `class-3-phase-1-motor-driver.py`, `class-3-phase-3-wheel_odometry.py` | Drive the rover and report wheel speed, as in Class 5. |
 
 ### What to do
 
 Revisit `class-5-code.py`'s constants — `DRIVE_SPEED`, `STOP_DISTANCE_CM`, `SCAN_INTERVAL`,
-`SCAN_ANGLES`, `TURN_SECONDS_PER_DEGREE` — and adjust them based on what you observed in Class 5.
+`SCAN_ANGLES`, `TURN_SPEED`, `HEADING_TOLERANCE_DEG` — and adjust them based on what you observed in
+Class 5. If you remounted the IMU or moved the battery or motors since Class 5, rerun
+`class-5-mag-calibration.py` first and paste the new `MAG_OFFSET` into `rover_server.py`.
 This is debugging and tuning, not new code: treat it as a continuation of Class 5's Independent
 Work. Aim for a rover that reliably completes a full stop-look-go cycle and avoids at least one
 obstacle without you touching it.
@@ -325,8 +327,13 @@ pin on `GP18` can stay wired, and the encoder's `CLK`/`DT` on `GP3`/`GP4` stay e
 ### What this code does
 
 This sets up the ST7789 TFT display over SPI and shows three lines of large text: distance,
-heading, and speed. It ships with placeholder demo values that count up on their own — swapping
-those for your rover's real values is the integration step.
+heading, and speed. The **heading is real**: the program imports your Class 5 `rover_server` library
+and shows its magnetometer-anchored `latest_heading`, calling `rover_server.update()` every 20 ms to
+keep the filter running (and `server.poll()` so the website stays up too). It redraws the screen
+only every 0.2 s, since redrawing is much slower than a filter step. Distance and speed are still
+placeholder demo values — swapping those for your rover's real values is the integration step.
+Because it imports `rover_server`, `rover_server.py` and `wheel_odometry.py` must be on `CIRCUITPY`,
+and the rover should boot sitting still and flat.
 
 ### The code
 
@@ -365,30 +372,42 @@ display.root_group = group
 
 print("Class 6, Stretch 3 -- TFT status display starting...")
 
+# Real compass heading from the Class 5 rover_server library. Importing it
+# calibrates the gyro and reads the compass, so boot the rover still and flat.
+import rover_server
+
 # Demo values -- replace with the real variables from class-5-code.py / class-6-code-1.py
 demo_distance = 0
-demo_heading = 90
 demo_speed = 0.4
 
+REFRESH_S = 0.2  # redraw the screen 5 times a second
+last_refresh = 0.0
+
 while True:
-    demo_distance = (demo_distance + 1) % 100  # replace with a real sensor reading
-    distance_label.text = "dist: {} cm".format(demo_distance)
-    heading_label.text = "head: {} deg".format(demo_heading)
-    speed_label.text = "speed: {:.2f}".format(demo_speed)
-    time.sleep(0.2)
+    rover_server.update()       # keep the IMU filter running about every 20 ms
+    rover_server.server.poll()  # keep the rover status website alive too
+    now = time.monotonic()
+    if now - last_refresh >= REFRESH_S:
+        last_refresh = now
+        demo_distance = (demo_distance + 1) % 100  # replace with a real sensor reading
+        distance_label.text = "dist: {} cm".format(demo_distance)
+        heading_label.text = "head: {:.0f} deg".format(rover_server.latest_heading)
+        speed_label.text = "speed: {:.2f}".format(demo_speed)
+    time.sleep(0.02)
 ```
 
 ### Try it / what you should see
 
 The TFT should light up showing three lines of text, with the distance number counting up on its
-own as a placeholder. If the screen is blank or garbled, double-check the SPI pins against the
+own as a placeholder. Turn the rover clockwise by hand: the `head:` number should rise, and it should
+match the `heading` field on the rover website. If the screen is blank or garbled, double-check the SPI pins against the
 table above and confirm `displayio.release_displays()` ran before the display was created.
 
 ### Checkpoint
 
-Confirm the screen displays readable text for all three lines. Full integration — replacing the
-demo values with your rover's real distance/heading/speed — is the natural next step if time
-allows.
+Confirm the screen displays readable text for all three lines, and that the heading follows the
+rover when you turn it by hand. Full integration — replacing the distance and speed demo values
+with your rover's real readings — is the natural next step if time allows.
 
 ## 8. Troubleshooting Guide
 
@@ -402,7 +421,8 @@ allows.
 | Stretch 2: other fields (Classes 3-5) keep updating but the chart alone never appears/grows | `class-6-code-2.py` was imported after the browser loaded the page, or the browser is caching an old page | Hard-refresh the browser page; confirm `code.py` does `import history_chart` before its main loop starts |
 | Stretch 2: chart plots roll/pitch but not wheel speed (or vice versa) | `drawSeries` called with a field name that doesn't match `/data.json`'s actual key (e.g. `speed_left_cms`) | Check the exact field names already established in Classes 3-5's `/data.json` response |
 | Stretch 3: blank/garbled TFT screen | SPI pins mismatched, or `displayio.release_displays()` was omitted | Verify pins against the table; always call `release_displays()` before creating a new display object |
-| Stretch 3: TFT shows only demo values | Demo variables never replaced with the real rover variables | Expected unless full integration was completed — not a bug, just an unfinished integration step |
+| Stretch 3: TFT shows only demo values for distance and speed | Demo variables never replaced with the real rover variables | Expected unless full integration was completed — not a bug, just an unfinished integration step |
+| Stretch 3: heading stuck at one number | `rover_server.update()` not being called, or an old Class 4 `rover_server.py` on `CIRCUITPY` | Confirm the loop calls `rover_server.update()` and that `rover_server.py` is the Class 5 library version |
 | `ImportError` for `adafruit_httpserver`, `adafruit_st7789`, `fourwire`, or `adafruit_display_text` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy the missing library file(s) from the Library Bundle into `/lib` |
 
 ## 9. Put It All Together

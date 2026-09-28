@@ -278,12 +278,16 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Add two fixed safety sensors — a limit switch as a front bumper and a forward-facing IR obstacle
   sensor — that force an immediate stop-and-reverse, backing up the ultrasonic sweep
 * Sweep left-right on a timer (and immediately if something gets close) to find the clearest direction before steering
+* Add the IMU's magnetometer to the Mahony filter (full 9-DOF fusion), calibrated on the finished
+  rover, so yaw is anchored to magnetic north and stops drifting
+* Turn toward the chosen direction by watching the compass heading until it arrives (closed-loop
+  turning), replacing Class 3's timed turns
 * Drive at constant speed around the room, avoiding obstacles
 * Discuss: what does each component contribute to the collision-avoidance decision? How would you
   actually measure whether it's working, beyond eyeballing it? (Hint: a wheel's measured speed
   dropping to near zero while still commanded to drive is a clue, visible on the rover website.)
-* Add scan readings, chosen heading, and each sensor-triggered stop event to the rover status
-  website, alongside the wheel-speed and orientation data already there
+* Add scan readings, chosen heading, compass heading, and each sensor-triggered stop event to the
+  rover status website, alongside the wheel-speed and orientation data already there
 * **Milestone:** Car drives autonomously and avoids at least one obstacle without instructor
   intervention, with the rover's full state visible together on its status website
 

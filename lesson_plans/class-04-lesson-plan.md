@@ -185,6 +185,9 @@ Kalman and Madgwick filters solve the same problem with different math, but Maho
 implemented here. Ask: "If you only trusted the gyroscope forever, what would happen to your
 orientation estimate after ten minutes of sitting still?" (It would slowly drift away from level,
 even though nothing moved — pure integration error.)
+For students who want more (or for your own prep), point them to the three-part explainer series:
+[IMU and Mahony filter][06] (incl. Madgwick/Kalman/EKF comparison), [gimbal lock][07], and
+[quaternions][08].
 
 Then plant the seed for Step 3: most of that gyro error is a small constant offset called *bias* —
 the gyro reads a little rotation even when perfectly still (0.5°/s of bias is a 30° error after one
@@ -1031,6 +1034,11 @@ extension working to the start of Class 5 and note it in their build journal.
   family guide, useful as a cross-reference for students researching independently
 * [9-DOF LSM9DS1 Breakout Board — Product Page][04] — the IMU used this Class
 * [Inertial Measurement Unit (IMU) — overview video][05] — background on what an IMU is and does
+* [What Is an IMU, and What Does a Mahony Filter Do?][06] — explainer, part 1 of 3: sensors, raw
+  readings vs. angles, Mahony vs. Madgwick vs. Kalman/EKF
+* [What Is Gimbal Lock?][07] — explainer, part 2 of 3: roll/pitch/yaw, gimbal lock, and Apollo
+* [What Are Quaternions, and Why Use Them?][08] — explainer, part 3 of 3: why the filter tracks
+  orientation as `q0..q3`
 
 ---
 
@@ -1039,3 +1047,6 @@ extension working to the start of Class 5 and note it in their build journal.
 [03]:https://learn.adafruit.com/lsm6dsox-and-ism330dhc-6-dof-imu/python-circuitpython
 [04]:https://www.adafruit.com/product/4634
 [05]:https://www.youtube.com/watch?v=qS9GwaekLW4
+[06]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-an-imu-and-mahony-filter.md
+[07]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-gimbal-lock.md
+[08]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-are-quaternion-and-why-use-them.md
