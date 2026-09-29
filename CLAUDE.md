@@ -144,7 +144,9 @@ that reads roll/pitch/yaw CSV over USB serial; its canonical copy is embedded in
 `lesson_scripts/class-04-lesson-script.md`, so keep the two in sync). `pyproject.toml` declares the
 wireframe deps (numpy, matplotlib, pyserial); flask and ruff sit in `src/.venv` undeclared, so
 `uv sync` will remove them — add new deps with `uv add`.
-`main.py` is just the `uv init` stub. Run with `cd src && uv run python wireframe.py /dev/ttyACM0` (`COM5`-style port on Windows);
+`main.py` is just the `uv init` stub. `wireframe.py` carries PEP 723 inline deps (`# /// script`) and
+auto-detects the Pico's port, so run it with `cd src && uv run wireframe.py` (optional port arg, e.g.
+`/dev/ttyACM0` or `COM5`) — students do the same via `tech_setup_check/install-wireframe-on-windows-11.md`;
 lint with `uv run ruff check`. Pico-side CircuitPython can't run here — it needs the board.
 
 `tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated

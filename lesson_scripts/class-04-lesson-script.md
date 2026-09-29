@@ -7,7 +7,8 @@
     should still be working and stay exactly as they are on your breadboard — including the Class 3
     buck converter, which keeps powering your Pico's own `VSYS` all Class. You should also have
     Python 3.14 installed on your laptop from the Pre-Class — this class is the first one that runs
-    code on your laptop as well as your Pico. Your Class 3 rover status website (`rover_server.py`)
+    code on your laptop as well as your Pico (Phase 2 walks you through installing `uv`, the tool that
+    runs that laptop code). Your Class 3 rover status website (`rover_server.py`)
     should still broadcast its own WiFi network and serve `/data.json` once your laptop joins it — a
     quick spot-check, not a rebuild, since today's website work is a small edit to that same file.
 
@@ -42,7 +43,7 @@ Class 3's square-and-circle problem on its own.
 | Breadboard (from Classes 1-3) | 1 | Your existing circuits stay on it, untouched |
 | USB cable | 1 | Powers the Pico and carries the serial data |
 | Laptop with Mu or Thonny | 1 | Where you write/save the Pico's code |
-| Laptop with Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
+| Laptop with `uv` (installed in Phase 2) — or Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
 | (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Class 3 rover status website runs on the network your Pico creates itself — nothing new to set up |
 
 **Additional components for the Homework Assignments** (Section 11) — no homework has been written
@@ -272,7 +273,8 @@ The first software in the course that runs on your laptop instead of the Pico. T
 | Software component | New, modified, or unchanged | What it does |
 | :------------------- | :-------------------------- | :----------- |
 | `wireframe.py` (laptop) | **New** — `class-4-phase-2-wireframe.py` | Reads the Pico's roll/pitch/yaw lines over USB serial and draws a live 3D box rotated to match. It labels the X/Y/Z axes and the box's red `Front` and `Right` faces. |
-| `pyserial`, `matplotlib`, `numpy` (laptop) | **New** — `pip install pyserial matplotlib numpy` | Python packages for the laptop: `pyserial` reads the USB serial port, `numpy` does the rotation math, and `matplotlib` draws the 3D box. |
+| `uv` (laptop) | **New** — installed with [Install and Run wireframe.py on a Windows 11 Laptop][24] | Runs `wireframe.py`: reads the list of needs at the top of the file, gets a matching Python and the packages ready, then runs it. |
+| `pyserial`, `matplotlib`, `numpy` (laptop) | **New** — installed automatically by `uv` (or by hand with `pip install pyserial matplotlib numpy`) | Python packages for the laptop: `pyserial` reads the USB serial port, `numpy` does the rotation math, and `matplotlib` draws the 3D box. |
 | `code.py` (on the Pico) | **Unchanged** — `class-4-phase-1-code.py` | Keeps streaming the roll/pitch/yaw CSV that `wireframe.py` draws. |
 
 ### What this code does
@@ -282,46 +284,98 @@ it arrives, and redraws a simple 3D wireframe box rotated to match — live, usi
 
 ### The code
 
-First, install the needed packages once, in a terminal on your laptop:
+**Before you run anything on your laptop, work through [Install and Run wireframe.py on a Windows 11
+Laptop][24] from top to bottom.** It installs `uv`, downloads `wireframe.py` from the course GitHub
+repository into a `class-4` folder, hands the Pico's serial port over from Thonny, and runs the
+program. You don't need to install any Python packages yourself: the few lines at the top of
+`wireframe.py` (the `# /// script` block) tell `uv` which Python and packages it needs, and `uv`
+sets them up the first time you run it.
 
-```bash
-pip install pyserial matplotlib numpy
-```
-
->**If `pip` or `python` isn't recognized** (or `python` opens the Microsoft Store), use the Python
->Launcher instead — it does the same thing: `py -m pip install pyserial matplotlib numpy` and
->`py wireframe.py COM5`. See [Install Python 3 on a Windows 11 Laptop][23] if Python itself is missing.
-
-Then save this file anywhere on your laptop (not the `CIRCUITPY` drive) as `wireframe.py`:
+Here's the program that guide downloads, so you can read what it does:
 
 ```python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["numpy", "matplotlib", "pyserial"]
+# ///
 # class-4-phase-2-wireframe.py -- save as wireframe.py on laptop and execute there, not the pico mcu
 # Phase 2: runs on your LAPTOP, not the Pico. Reads roll,pitch,yaw CSV over
 # serial from class-4-phase-1-code.py or class-4-phase-3-code.py and draws a live-updating 3D box.
-# Windows usage: python wireframe.py <port>     (e.g. python wireframe.py COM5)
-# Linux usage:   python wireframe.py <device>   (e.g. python wireframe.py /dev/ttyACM0)
+# The block above tells `uv` which Python and packages to use, so no pip or venv needed:
+#   uv run wireframe.py          (finds the Pico's serial port by itself)
+#   uv run wireframe.py COM5     (or name the port: COM5 on Windows, /dev/ttyACM0 on Linux)
 
+import signal
 import sys
-import serial
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import serial
+import serial.tools.list_ports
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D projection
 
-# Pass your board's serial port as a command-line argument, e.g. COM5.
-# Find it in Mu/Thonny's device list or Windows Device Manager.
-PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"
 BAUD = 115200
 
-ser = serial.Serial(PORT, BAUD, timeout=1)
+# USB vendor IDs a CircuitPython Pico shows up with: Adafruit (who
+# maintains CircuitPython) and Raspberry Pi.
+PICO_VENDOR_IDS = {0x239A, 0x2E8A}
+
+
+def find_pico_port():
+    """Return the serial port of the first plugged-in CircuitPython board, or None."""
+    ports = sorted(
+        (p for p in serial.tools.list_ports.comports() if p.vid in PICO_VENDOR_IDS),
+        key=lambda p: p.device,
+    )
+    return ports[0].device if ports else None
+
+
+# Use the port named on the command line, or go find the Pico ourselves.
+PORT = sys.argv[1] if len(sys.argv) > 1 else find_pico_port()
+if PORT is None:
+    sys.exit(
+        "Couldn't find a Pico. Check the USB cable, or name the port yourself:\n"
+        "    uv run wireframe.py COM5"
+    )
+
+try:
+    ser = serial.Serial(PORT, BAUD, timeout=1)
+except serial.SerialException as err:
+    # Most common cause: Thonny is still connected to the board.
+    sys.exit(
+        f"Couldn't open {PORT}: {err}\n"
+        "Is Thonny still connected? Click Stop, then Run > Disconnect, and try again."
+    )
 
 # The 8 corners of a simple rectangular box, and which corners connect
 # to which to draw its 12 edges.
-box_vertices = np.array([
-    [-1, -0.5, -0.2], [1, -0.5, -0.2], [1, 0.5, -0.2], [-1, 0.5, -0.2],
-    [-1, -0.5, 0.2], [1, -0.5, 0.2], [1, 0.5, 0.2], [-1, 0.5, 0.2],
-])
-edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4),
-         (0, 4), (1, 5), (2, 6), (3, 7)]
+box_vertices = np.array(
+    [
+        [-1, -0.5, -0.2],
+        [1, -0.5, -0.2],
+        [1, 0.5, -0.2],
+        [-1, 0.5, -0.2],
+        [-1, -0.5, 0.2],
+        [1, -0.5, 0.2],
+        [1, 0.5, 0.2],
+        [-1, 0.5, 0.2],
+    ]
+)
+edges = [
+    (0, 1),
+    (1, 2),
+    (2, 3),
+    (3, 0),
+    (4, 5),
+    (5, 6),
+    (6, 7),
+    (7, 4),
+    (0, 4),
+    (1, 5),
+    (2, 6),
+    (3, 7),
+]
 
 # The 4 corners of the small +X end of the box -- the "front", pointing
 # along the IMU's X (roll) axis.
@@ -367,8 +421,26 @@ right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
 plt.show(block=False)
 
 print("Class 4, Phase 2 -- 3D box display starting, reading from", PORT)
+print("Close the window or press Ctrl-C to stop.")
 
-while True:
+# Ctrl-C normally raises an error that matplotlib's window can swallow.
+# Instead, just raise a flag the loop checks, so the program stops cleanly.
+running = True
+
+
+def stop(*_):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGINT, stop)
+
+# Keep going until Ctrl-C or the window is closed.
+while running and plt.fignum_exists(fig.number):
+    # Let the window handle events (redraw, resize, close) every pass --
+    # even when no data arrived -- so it never freezes as "Not Responding".
+    fig.canvas.flush_events()
+
     # The Pico sends lines faster than we can draw them. Read everything
     # already waiting and keep only the NEWEST line, so the box shows where
     # the board is now -- not where it was several seconds ago.
@@ -391,24 +463,46 @@ while True:
         edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
     front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
-    ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
-    # Redraw the window and let it handle events (resize, close, etc.).
+    ax.set_title(f"roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f}")
+
+    # Ask for a redraw; the flush_events() at the top of the loop does it.
     fig.canvas.draw_idle()
-    fig.canvas.flush_events()
+
+# Let go of the serial port so Thonny can reconnect to the Pico right away.
+ser.close()
+print("Stopped -- serial port closed.")
 ```
 
-Run it from a terminal, substituting your Pico's actual serial port:
+Run it from a terminal in the folder where you saved it. You don't need to give it your Pico's
+serial port: it finds the board by itself.
 
-```bash
-# Windows - you may need to change COM5
-python wireframe.py COM5
+```powershell
+# Windows (the install guide above covers this step in detail)
+uv run wireframe.py
 
-# Linux - you may need to change /dev/ttyACM0
-python wireframe.py /dev/ttyACM0
+# Only if it finds the wrong board: name the port yourself, e.g. COM5 (/dev/ttyACM0 on Linux)
+uv run wireframe.py COM5
 ```
 
->**Important:** Mu or Thonny's serial console must be closed before running this — only one program
->can hold a serial port open at a time.
+To stop it, close the window or press **Ctrl-C** in the terminal. Either way it prints
+`Stopped -- serial port closed.` and lets go of the port.
+
+**Important:** close Thonny (or Mu) before running this — only one program can hold a serial port
+open at a time. If Thonny still has it, `wireframe.py` prints `Is Thonny still connected?...` and
+stops.
+
+>**Can't install `uv`?** Use `pip` instead. Install the packages once, then run the script with
+>plain Python, naming your port:
+>
+>```powershell
+># Install the three packages (use "py -m pip ..." if "pip" isn't recognized)
+>pip install pyserial matplotlib numpy
+>
+># Run it (use "py wireframe.py" if "python" isn't recognized or opens the Microsoft Store)
+>python wireframe.py COM5
+>```
+>
+>See [Install Python 3 on a Windows 11 Laptop][23] if Python itself is missing.
 
 ### Try it / what you should see
 
@@ -1000,8 +1094,9 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | Very slow turns barely register in yaw | A turn slower than `STILL_GYRO` looks like bias and gets absorbed into it | Lower `STILL_GYRO` (e.g. `0.01`) and re-test |
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
 | 3D box turns backwards or on the wrong axis | Board's +X end isn't where the `Front` label is, or one axis has a display sign mismatch | Line up +X with `Front` first; if one motion is still backwards, negate that angle in `rotation_matrix()` (roll already is) |
-| `wireframe.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console; confirm the correct COM port in Device Manager |
-| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on your laptop | Run `pip install pyserial matplotlib numpy` (or `py -m pip install ...`) in the same Python environment used to run the script |
+| `wireframe.py` prints `Couldn't open COM5: ...` then `Is Thonny still connected?...` | Mu/Thonny still has the serial port open, or you named the wrong port | Close Mu/Thonny; run `uv run wireframe.py` with no port so it finds the Pico itself. More fixes in the [install guide's Troubleshooting][24] |
+| `wireframe.py` prints `Couldn't find a Pico...` | Pico unplugged, a charge-only USB cable, or the board isn't running CircuitPython | Replug with a data cable, or name the port: `uv run wireframe.py COM5` |
+| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | You ran it with plain `python` instead of `uv run`, and the packages aren't installed there | Run it with `uv run wireframe.py` (it installs them), or `pip install pyserial matplotlib numpy` in the same Python you run it with |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on your `CIRCUITPY` drive | Copy `adafruit_lsm9ds1.mpy` from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
@@ -1141,32 +1236,106 @@ while True:
     time.sleep(0.02)
 ```
 
-**On your laptop**, save as `wireframe.py` and run it with `python wireframe.py <port>` (unchanged from Phase 2):
+**On your laptop**, save as `wireframe.py` and run it with `uv run wireframe.py` (unchanged from Phase 2 — see [Install and Run wireframe.py on a Windows 11 Laptop][24]):
 
 ```python
-# class-4-phase-2-wireframe.py -- save as wireframe.py; LAPTOP-side live 3D orientation display.
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["numpy", "matplotlib", "pyserial"]
+# ///
+# class-4-phase-2-wireframe.py -- save as wireframe.py on laptop and execute there, not the pico mcu
+# Phase 2: runs on your LAPTOP, not the Pico. Reads roll,pitch,yaw CSV over
+# serial from class-4-phase-1-code.py or class-4-phase-3-code.py and draws a live-updating 3D box.
+# The block above tells `uv` which Python and packages to use, so no pip or venv needed:
+#   uv run wireframe.py          (finds the Pico's serial port by itself)
+#   uv run wireframe.py COM5     (or name the port: COM5 on Windows, /dev/ttyACM0 on Linux)
+
+import signal
 import sys
-import serial
-import numpy as np
+
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+import numpy as np
+import serial
+import serial.tools.list_ports
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D projection
 
-PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"
 BAUD = 115200
-ser = serial.Serial(PORT, BAUD, timeout=1)
 
-box_vertices = np.array([
-    [-1, -0.5, -0.2], [1, -0.5, -0.2], [1, 0.5, -0.2], [-1, 0.5, -0.2],
-    [-1, -0.5, 0.2], [1, -0.5, 0.2], [1, 0.5, 0.2], [-1, 0.5, 0.2],
-])
-edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4),
-         (0, 4), (1, 5), (2, 6), (3, 7)]
-FRONT_FACE = [1, 2, 6, 5]  # small +X end of the box
-RIGHT_FACE = [0, 1, 5, 4]  # -Y long side (+Y points left)
+# USB vendor IDs a CircuitPython Pico shows up with: Adafruit (who
+# maintains CircuitPython) and Raspberry Pi.
+PICO_VENDOR_IDS = {0x239A, 0x2E8A}
+
+
+def find_pico_port():
+    """Return the serial port of the first plugged-in CircuitPython board, or None."""
+    ports = sorted(
+        (p for p in serial.tools.list_ports.comports() if p.vid in PICO_VENDOR_IDS),
+        key=lambda p: p.device,
+    )
+    return ports[0].device if ports else None
+
+
+# Use the port named on the command line, or go find the Pico ourselves.
+PORT = sys.argv[1] if len(sys.argv) > 1 else find_pico_port()
+if PORT is None:
+    sys.exit(
+        "Couldn't find a Pico. Check the USB cable, or name the port yourself:\n"
+        "    uv run wireframe.py COM5"
+    )
+
+try:
+    ser = serial.Serial(PORT, BAUD, timeout=1)
+except serial.SerialException as err:
+    # Most common cause: Thonny is still connected to the board.
+    sys.exit(
+        f"Couldn't open {PORT}: {err}\n"
+        "Is Thonny still connected? Click Stop, then Run > Disconnect, and try again."
+    )
+
+# The 8 corners of a simple rectangular box, and which corners connect
+# to which to draw its 12 edges.
+box_vertices = np.array(
+    [
+        [-1, -0.5, -0.2],
+        [1, -0.5, -0.2],
+        [1, 0.5, -0.2],
+        [-1, 0.5, -0.2],
+        [-1, -0.5, 0.2],
+        [1, -0.5, 0.2],
+        [1, 0.5, 0.2],
+        [-1, 0.5, 0.2],
+    ]
+)
+edges = [
+    (0, 1),
+    (1, 2),
+    (2, 3),
+    (3, 0),
+    (4, 5),
+    (5, 6),
+    (6, 7),
+    (7, 4),
+    (0, 4),
+    (1, 5),
+    (2, 6),
+    (3, 7),
+]
+
+# The 4 corners of the small +X end of the box -- the "front", pointing
+# along the IMU's X (roll) axis.
+FRONT_FACE = [1, 2, 6, 5]
+
+# The 4 corners of the -Y long side. With X pointing forward and Z up,
+# +Y points LEFT (right-hand rule), so -Y is the box's "right" side.
+RIGHT_FACE = [0, 1, 5, 4]
 
 
 def rotation_matrix(roll, pitch, yaw):
-    r, p, y = np.radians([-roll, pitch, yaw])  # roll negated to match physical board
+    """Build a combined 3D rotation matrix from roll/pitch/yaw degrees."""
+    # Roll is negated so the on-screen box rolls the same way as the physical
+    # board (display-only fix -- the Pico's roll value itself is unchanged).
+    r, p, y = np.radians([-roll, pitch, yaw])
     rx = np.array([[1, 0, 0], [0, np.cos(r), -np.sin(r)], [0, np.sin(r), np.cos(r)]])
     ry = np.array([[np.cos(p), 0, np.sin(p)], [0, 1, 0], [-np.sin(p), 0, np.cos(p)]])
     rz = np.array([[np.cos(y), -np.sin(y), 0], [np.sin(y), np.cos(y), 0], [0, 0, 1]])
@@ -1179,17 +1348,49 @@ ax = fig.add_subplot(111, projection="3d")
 ax.set_xlim(-2, 2)
 ax.set_ylim(-2, 2)
 ax.set_zlim(-2, 2)
+
+# Label each plot axis with the IMU axis it stands for, and the rotation
+# measured around it: roll spins around X, pitch around Y, yaw around Z.
 ax.set_xlabel("X  (roll axis)")
 ax.set_ylabel("Y  (pitch axis)")
 ax.set_zlabel("Z  (yaw axis)")
+
+# Create the 12 edge lines ONCE, then just move them every frame -- much
+# faster than clearing the plot and drawing brand-new lines each time.
 edge_lines = [ax.plot([], [], [], color="C0")[0] for _ in edges]
+
+# Red "Front" and "Right" labels, created once and moved to the center of
+# their faces every frame so you can always tell which way the box is facing.
 front_label = ax.text(0, 0, 0, "Front", color="red", ha="center", va="center")
 right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
 plt.show(block=False)
 
-while True:
+print("Class 4, Phase 2 -- 3D box display starting, reading from", PORT)
+print("Close the window or press Ctrl-C to stop.")
+
+# Ctrl-C normally raises an error that matplotlib's window can swallow.
+# Instead, just raise a flag the loop checks, so the program stops cleanly.
+running = True
+
+
+def stop(*_):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGINT, stop)
+
+# Keep going until Ctrl-C or the window is closed.
+while running and plt.fignum_exists(fig.number):
+    # Let the window handle events (redraw, resize, close) every pass --
+    # even when no data arrived -- so it never freezes as "Not Responding".
+    fig.canvas.flush_events()
+
+    # The Pico sends lines faster than we can draw them. Read everything
+    # already waiting and keep only the NEWEST line, so the box shows where
+    # the board is now -- not where it was several seconds ago.
     raw = ser.readline()
-    while ser.in_waiting:  # skip stale lines -- draw only the newest
+    while ser.in_waiting:
         raw = ser.readline()
     line = raw.decode("utf-8", errors="ignore").strip()
     if not line:
@@ -1197,16 +1398,24 @@ while True:
     try:
         roll, pitch, yaw = [float(v) for v in line.split(",")]
     except ValueError:
+        # Skip any partial/garbled line rather than crashing the display.
         continue
+
     rotated = box_vertices @ rotation_matrix(roll, pitch, yaw).T
+
     for edge_line, (a, b) in zip(edge_lines, edges):
         pts = rotated[[a, b]]
         edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
     front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
-    ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
+    ax.set_title(f"roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f}")
+
+    # Ask for a redraw; the flush_events() at the top of the loop does it.
     fig.canvas.draw_idle()
-    fig.canvas.flush_events()
+
+# Let go of the serial port so Thonny can reconnect to the Pico right away.
+ser.close()
+print("Stopped -- serial port closed.")
 ```
 
 **Option B — `rover_server.py` plus the one-line `code.py` wrapper** (same as Phase 4, unchanged).
@@ -1488,4 +1697,5 @@ does, full commented code, and real-world examples).
 [21]:https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts
 [22]:https://www.adafruit.com/product/4399
 [23]:../tech_setup_check/install-python-on-windows-11.md
+[24]:../tech_setup_check/install-wireframe-on-windows-11.md
 

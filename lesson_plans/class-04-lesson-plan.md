@@ -76,9 +76,10 @@ explicitly before Class 5 combines everything into the Random Rover.
   file. (~10 min)
 * **1-2 days before:** Verify `adafruit_lsm9ds1` is present in each student's Library Bundle folder;
   have a few copies on a USB stick as backup. (~10 min)
-* **1-2 days before:** Confirm every student laptop can run `pip install pyserial matplotlib numpy`
-  successfully — test on a spare laptop or ask students to pre-install before Class if possible, since
-  this is the first Class requiring a Python install on the laptop side rather than just an editor.
+* **1-2 days before:** Have students work through [Install and Run wireframe.py on a Windows 11
+  Laptop][09] before Class if possible (installs `uv`, downloads `wireframe.py`) — test it on a spare
+  laptop too, since this is the first Class running Python on the laptop side rather than just an
+  editor. `pip install pyserial matplotlib numpy` stays as the fallback for laptops that block `uv`.
   (~15 min)
 * **Day of, before students arrive:**
 * Set out one LSM9DS1 9-DOF breakout board and a STEMMA QT/Qwiic to male-header cable (or Dupont jumpers if not
@@ -94,8 +95,9 @@ explicitly before Class 5 combines everything into the Random Rover.
 * Also test `class-4-phase-4-rover_server.py`'s edit to `rover_server.py` end-to-end: load it on
         the reference Pico, confirm the same laptop browser that showed wheel speed/direction in Class 3 now also
         shows `roll`, `pitch`, and `yaw` fields on `/data.json` and the webpage. (~10 min)
-* Note which serial port `wireframe.py` needs (e.g. `COM5`) on the instructor's machine so
-        you can show students how to find their own port quickly. (~5 min)
+* Confirm `uv run wireframe.py` auto-detects the Pico's serial port on the instructor's machine,
+        and note the port it prints (e.g. `COM5`) in case a student needs to name theirs by hand
+        (`uv run wireframe.py COM5`). (~5 min)
 * Project the instructor's live 3D box display so the whole class can see it respond to the
         instructor tilting their board. (~5 min)
 * Have spare LSM9DS1 boards and STEMMA QT cables on hand.
@@ -351,43 +353,100 @@ the board is tilted by hand — roll and pitch changing with tilt, yaw following
 also drifting slowly on its own. Have them keep an eye on that drift: Step 3 fixes it.
 
 **Step 2 — live 3D visualization on the laptop.**
-On the laptop (not the Pico), install dependencies once: `pip install pyserial matplotlib numpy`
-(if `pip`/`python` isn't recognized, `py -m pip install ...` and `py wireframe.py <port>` do the same).
-Save `class-4-phase-2-wireframe.py` as `wireframe.py` and run `python wireframe.py <port>`,
-substituting the student's actual serial port (e.g. `COM5` on Windows — visible in Mu's/Thonny's
-device list or Device Manager — or `/dev/ttyACM0` on Linux). The script draws only the newest line
+On the laptop (not the Pico), students follow [Install and Run wireframe.py on a Windows 11
+Laptop][09]: install `uv`, download `wireframe.py`, close Thonny to free the serial port, and run
+`uv run wireframe.py`. The `# /// script` block at the top of the file tells `uv` which Python and
+packages to use, and the script finds the Pico's port by itself (name it, e.g. `uv run wireframe.py
+COM5`, only if it picks the wrong board). Closing the window or Ctrl-C stops it cleanly and frees the
+port. Fallback for laptops that block `uv`: `pip install pyserial matplotlib numpy`, then
+`python wireframe.py COM5` (or `py -m pip ...` / `py wireframe.py COM5`). The script draws only the newest line
 the Pico sent, so the box never falls behind the board; it labels the plot axes X/Y/Z with the
 rotation around each, marks the box's `Front` (+X end) and `Right` (−Y side) faces in red, and
 negates roll so the box rolls the same way as the physical board.
 
 ```python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["numpy", "matplotlib", "pyserial"]
+# ///
 # class-4-phase-2-wireframe.py -- save as wireframe.py on laptop and execute there, not the pico mcu
 # Phase 2: runs on your LAPTOP, not the Pico. Reads roll,pitch,yaw CSV over
 # serial from class-4-phase-1-code.py or class-4-phase-3-code.py and draws a live-updating 3D box.
-# Windows usage: python wireframe.py <port>     (e.g. python wireframe.py COM5)
-# Linux usage:   python wireframe.py <device>   (e.g. python wireframe.py /dev/ttyACM0)
+# The block above tells `uv` which Python and packages to use, so no pip or venv needed:
+#   uv run wireframe.py          (finds the Pico's serial port by itself)
+#   uv run wireframe.py COM5     (or name the port: COM5 on Windows, /dev/ttyACM0 on Linux)
 
+import signal
 import sys
-import serial
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import serial
+import serial.tools.list_ports
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D projection
 
-# Pass your board's serial port as a command-line argument, e.g. COM5.
-# Find it in Mu/Thonny's device list or Windows Device Manager.
-PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"
 BAUD = 115200
 
-ser = serial.Serial(PORT, BAUD, timeout=1)
+# USB vendor IDs a CircuitPython Pico shows up with: Adafruit (who
+# maintains CircuitPython) and Raspberry Pi.
+PICO_VENDOR_IDS = {0x239A, 0x2E8A}
+
+
+def find_pico_port():
+    """Return the serial port of the first plugged-in CircuitPython board, or None."""
+    ports = sorted(
+        (p for p in serial.tools.list_ports.comports() if p.vid in PICO_VENDOR_IDS),
+        key=lambda p: p.device,
+    )
+    return ports[0].device if ports else None
+
+
+# Use the port named on the command line, or go find the Pico ourselves.
+PORT = sys.argv[1] if len(sys.argv) > 1 else find_pico_port()
+if PORT is None:
+    sys.exit(
+        "Couldn't find a Pico. Check the USB cable, or name the port yourself:\n"
+        "    uv run wireframe.py COM5"
+    )
+
+try:
+    ser = serial.Serial(PORT, BAUD, timeout=1)
+except serial.SerialException as err:
+    # Most common cause: Thonny is still connected to the board.
+    sys.exit(
+        f"Couldn't open {PORT}: {err}\n"
+        "Is Thonny still connected? Click Stop, then Run > Disconnect, and try again."
+    )
 
 # The 8 corners of a simple rectangular box, and which corners connect
 # to which to draw its 12 edges.
-box_vertices = np.array([
-    [-1, -0.5, -0.2], [1, -0.5, -0.2], [1, 0.5, -0.2], [-1, 0.5, -0.2],
-    [-1, -0.5, 0.2], [1, -0.5, 0.2], [1, 0.5, 0.2], [-1, 0.5, 0.2],
-])
-edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4),
-         (0, 4), (1, 5), (2, 6), (3, 7)]
+box_vertices = np.array(
+    [
+        [-1, -0.5, -0.2],
+        [1, -0.5, -0.2],
+        [1, 0.5, -0.2],
+        [-1, 0.5, -0.2],
+        [-1, -0.5, 0.2],
+        [1, -0.5, 0.2],
+        [1, 0.5, 0.2],
+        [-1, 0.5, 0.2],
+    ]
+)
+edges = [
+    (0, 1),
+    (1, 2),
+    (2, 3),
+    (3, 0),
+    (4, 5),
+    (5, 6),
+    (6, 7),
+    (7, 4),
+    (0, 4),
+    (1, 5),
+    (2, 6),
+    (3, 7),
+]
 
 # The 4 corners of the small +X end of the box -- the "front", pointing
 # along the IMU's X (roll) axis.
@@ -433,8 +492,26 @@ right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
 plt.show(block=False)
 
 print("Class 4, Phase 2 -- 3D box display starting, reading from", PORT)
+print("Close the window or press Ctrl-C to stop.")
 
-while True:
+# Ctrl-C normally raises an error that matplotlib's window can swallow.
+# Instead, just raise a flag the loop checks, so the program stops cleanly.
+running = True
+
+
+def stop(*_):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGINT, stop)
+
+# Keep going until Ctrl-C or the window is closed.
+while running and plt.fignum_exists(fig.number):
+    # Let the window handle events (redraw, resize, close) every pass --
+    # even when no data arrived -- so it never freezes as "Not Responding".
+    fig.canvas.flush_events()
+
     # The Pico sends lines faster than we can draw them. Read everything
     # already waiting and keep only the NEWEST line, so the box shows where
     # the board is now -- not where it was several seconds ago.
@@ -457,10 +534,14 @@ while True:
         edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
     front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
-    ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
-    # Redraw the window and let it handle events (resize, close, etc.).
+    ax.set_title(f"roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f}")
+
+    # Ask for a redraw; the flush_events() at the top of the loop does it.
     fig.canvas.draw_idle()
-    fig.canvas.flush_events()
+
+# Let go of the serial port so Thonny can reconnect to the Pico right away.
+ser.close()
+print("Stopped -- serial port closed.")
 ```
 
 **What to watch for:** A "port not found" or permission error usually means either the wrong `PORT`
@@ -941,8 +1022,9 @@ students to the Class 5 references in the syllabus if they want to read ahead.
 | Yaw barely moves at all when the board is turned flat | Gyro converted to radians twice (the library already returns rad/s) | Remove any `math.radians()` applied to `sensor.gyro`/`imu.gyro` |
 | Orientation is jittery/noisy even when the board is still | `MAHONY_KP` too high | Lower `MAHONY_KP` in small steps and re-test |
 | 3D box turns backwards or on the wrong axis | Board's +X end isn't where the `Front` label is, or one axis has a display sign mismatch | Line up +X with `Front` first; if one motion is still backwards, negate that angle in `rotation_matrix()` (roll already is) |
-| `wireframe.py` can't open the serial port | Wrong `PORT` argument, or Mu/Thonny's serial console still has the port open | Close Mu/Thonny's serial console first; confirm the correct COM port in Device Manager |
-| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Dependencies not installed on the laptop | Run `pip install pyserial matplotlib numpy` (or `py -m pip install ...`) in the same Python environment used to run the script |
+| `wireframe.py` prints `Couldn't open COM5: ...` then `Is Thonny still connected?...` | Mu/Thonny still has the serial port open, or the wrong port was named | Close Mu/Thonny; run `uv run wireframe.py` with no port so it auto-detects. More in the [install guide's Troubleshooting][09] |
+| `wireframe.py` prints `Couldn't find a Pico...` | Pico unplugged, charge-only USB cable, or board not running CircuitPython | Replug with a data cable, or name the port: `uv run wireframe.py COM5` |
+| `ModuleNotFoundError` for `serial`, `matplotlib`, or `numpy` | Script run with plain `python` instead of `uv run`, and packages not installed there | Run `uv run wireframe.py`, or `pip install pyserial matplotlib numpy` in the same Python used to run it |
 | `ImportError: no module named 'adafruit_lsm9ds1'` | Library not copied to `/lib` on CIRCUITPY drive | Copy the `adafruit_lsm9ds1.mpy` file from the Library Bundle into `/lib` |
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
@@ -955,8 +1037,8 @@ students to the Class 5 references in the syllabus if they want to read ahead.
 
 **Younger students (12-14) and their parent/guardian:** Provide the pin table above pre-printed and
 laminated at the workstation so it's a lookup, not a memorization task. Pair a younger student's
-STEMMA QT/wiring work with the parent/guardian's help typing the `pip install` command and finding
-the correct COM port in Windows. Start from `class-4-phase-1-code.py` and `wireframe.py` already
+STEMMA QT/wiring work with the parent/guardian's help working through the `uv` install guide in
+Windows Terminal. Start from `class-4-phase-1-code.py` and `wireframe.py` already
 loaded as starting points, and have them focus on the `MAHONY_KP` tuning exercise (a guided,
 observable experiment) rather than reading the quaternion math. For Step 3, the before/after drift
 comparison is the lesson — they can paste in `class-4-phase-3-code.py` and just time a minute of
@@ -1005,8 +1087,9 @@ extension working to the start of Class 5 and note it in their build journal.
   watching the box tilt in real time as you tilt the physical board is the single most convincing
   demo in the course so far.
 * This is the first Class requiring a Python install on the student's laptop itself, not just an
-  editor — budget extra troubleshooting time for `pip install` issues (corporate/school laptop
-  restrictions, PATH problems) and have a couple of pre-configured spare laptops ready as a fallback.
+  editor — budget extra troubleshooting time for `uv` install issues (school laptop
+  script restrictions — the guide's `winget` option or the `pip` fallback usually gets around them;
+  Terminal left open from before the install, so `uv` isn't found) and have a couple of pre-configured spare laptops ready as a fallback.
 * The `MAHONY_KP` tuning exercise (Independent Work) is worth insisting every pair actually do, not
   just discuss — the drift-vs-jitter tradeoff is abstract until you've watched it happen on your own
   board.
@@ -1050,3 +1133,4 @@ extension working to the start of Class 5 and note it in their build journal.
 [06]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-an-imu-and-mahony-filter.md
 [07]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-gimbal-lock.md
 [08]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-are-quaternion-and-why-use-them.md
+[09]:../tech_setup_check/install-wireframe-on-windows-11.md
