@@ -916,12 +916,6 @@ Make use of the text diagrams when it make sense to do so.
 
 Place the presentation you create in @handouts and call it class-04-summary.html
 
-### Next Prompt
-Using the /teen-install-instructions skill,
-write procedures for downloading the wireframe.py program and executing it on on Windows 11.
-Make sure you include installing & using any tools/libraries you may need.
-Put these instructions in this file @tech_setup_check/install-wireframe-on-windows-11.md
-
 ----
 
 ## My 37th Prompt - Executing wireframe.py on Window 11
@@ -936,6 +930,19 @@ I want to give my students simple instructions or a script to install, activate,
 I believe all my students have python installed but its likely they have different versions.
 Recommend an approach to make this simple for them.
 
+### Next Prompt
+Using the /teen-install-instructions skill,
+write procedures for downloading the wireframe.py program and executing it on on Windows 11.
+Make sure you include installing & using any tools/libraries you may need.
+Put these instructions in this file @tech_setup_check/install-wireframe-on-windows-11.md
+
+### Next Prompt
+Do phase 3 and
+update the document @lesson_scripts/class-04-lesson-script.md to instruct the student to use
+the document @tech_setup_check/install-wireframe-on-windows-11.md.
+Do this before the first use of the @src/wire-frame.py code.
+
+----
 
 
 
