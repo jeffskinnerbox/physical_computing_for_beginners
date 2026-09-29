@@ -1,21 +1,56 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["numpy", "matplotlib", "pyserial"]
+# ///
 # class-4-phase-2-wireframe.py -- save as wireframe.py on laptop and execute there, not the pico mcu
 # Phase 2: runs on your LAPTOP, not the Pico. Reads roll,pitch,yaw CSV over
 # serial from class-4-phase-1-code.py or class-4-phase-3-code.py and draws a live-updating 3D box.
-# Windows usage: python wireframe.py <port>     (e.g. python wireframe.py COM5)
-# Linux usage:   python wireframe.py <device>   (e.g. python wireframe.py /dev/ttyACM0)
+# The block above tells `uv` which Python and packages to use, so no pip or venv needed:
+#   uv run wireframe.py          (finds the Pico's serial port by itself)
+#   uv run wireframe.py COM5     (or name the port: COM5 on Windows, /dev/ttyACM0 on Linux)
 
+import signal
 import sys
-import serial
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import serial
+import serial.tools.list_ports
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D projection
 
-# Pass your board's serial port as a command-line argument, e.g. COM5.
-# Find it in Mu/Thonny's device list or Windows Device Manager.
-PORT = sys.argv[1] if len(sys.argv) > 1 else "COM5"
 BAUD = 115200
 
-ser = serial.Serial(PORT, BAUD, timeout=1)
+# USB vendor IDs a CircuitPython Pico shows up with: Adafruit (who
+# maintains CircuitPython) and Raspberry Pi.
+PICO_VENDOR_IDS = {0x239A, 0x2E8A}
+
+
+def find_pico_port():
+    """Return the serial port of the first plugged-in CircuitPython board, or None."""
+    ports = sorted(
+        (p for p in serial.tools.list_ports.comports() if p.vid in PICO_VENDOR_IDS),
+        key=lambda p: p.device,
+    )
+    return ports[0].device if ports else None
+
+
+# Use the port named on the command line, or go find the Pico ourselves.
+PORT = sys.argv[1] if len(sys.argv) > 1 else find_pico_port()
+if PORT is None:
+    sys.exit(
+        "Couldn't find a Pico. Check the USB cable, or name the port yourself:\n"
+        "    uv run wireframe.py COM5"
+    )
+
+try:
+    ser = serial.Serial(PORT, BAUD, timeout=1)
+except serial.SerialException as err:
+    # Most common cause: Thonny is still connected to the board.
+    sys.exit(
+        f"Couldn't open {PORT}: {err}\n"
+        "Is Thonny still connected? Click Stop, then Run > Disconnect, and try again."
+    )
 
 # The 8 corners of a simple rectangular box, and which corners connect
 # to which to draw its 12 edges.
@@ -90,8 +125,22 @@ right_label = ax.text(0, 0, 0, "Right", color="red", ha="center", va="center")
 plt.show(block=False)
 
 print("Class 4, Phase 2 -- 3D box display starting, reading from", PORT)
+print("Close the window or press Ctrl-C to stop.")
 
-while True:
+# Ctrl-C normally raises an error that matplotlib's window can swallow.
+# Instead, just raise a flag the loop checks, so the program stops cleanly.
+running = True
+
+
+def stop(*_):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGINT, stop)
+
+# Keep going until Ctrl-C or the window is closed.
+while running and plt.fignum_exists(fig.number):
     # The Pico sends lines faster than we can draw them. Read everything
     # already waiting and keep only the NEWEST line, so the box shows where
     # the board is now -- not where it was several seconds ago.
@@ -114,8 +163,12 @@ while True:
         edge_line.set_data_3d(pts[:, 0], pts[:, 1], pts[:, 2])
     front_label.set_position_3d(rotated[FRONT_FACE].mean(axis=0))
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
-    ax.set_title("roll={:.0f} pitch={:.0f} yaw={:.0f}".format(roll, pitch, yaw))
+    ax.set_title(f"roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f}")
 
     # Redraw the window and let it handle events (resize, close, etc.).
     fig.canvas.draw_idle()
     fig.canvas.flush_events()
+
+# Let go of the serial port so Thonny can reconnect to the Pico right away.
+ser.close()
+print("Stopped -- serial port closed.")
