@@ -845,9 +845,10 @@ while True:
 visibly change direction each time it touches an edge, and briefly cover the text each time it
 passes underneath, without ever disappearing off the side.
 
-> You'll also need `adafruit_display_text` copied into `CIRCUITPY`'s `lib` folder (the same way
-> you copied `neopixel.mpy` back in Section 4) — grab the `adafruit_display_text` folder from the
-> Adafruit CircuitPython Library Bundle. `terminalio`, used for the built-in font, ships with
+> You'll also need `adafruit_display_text` and `adafruit_st7789` copied into `CIRCUITPY`'s `lib`
+> folder (the same way you copied `neopixel.mpy` back in Section 4) — grab the
+> `adafruit_display_text` folder and `adafruit_st7789.mpy` from the Adafruit CircuitPython Library
+> Bundle. `terminalio`, used for the built-in font, ships with
 > CircuitPython already, so it needs no copying.
 >
 >**NOTE:** This specific panel (Adafruit's 1.14" 240×135 ST7789 Newxie, product 6113) has a controller with more RAM (240×320)

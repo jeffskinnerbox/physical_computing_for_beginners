@@ -38,7 +38,7 @@ the Cost Summary below.
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
-| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
+| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU; Class 5 core rover (magnetometer compass steers every turn); reused Class 6 stretch #2/#3 |
 | STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable, 150mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward): JST-SH end plugs into the IMU's STEMMA QT port, male-header end plugs into the Pico's breadboard rows (the Pico has no QT port, so a JST-to-JST cable would not work) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
@@ -162,7 +162,8 @@ lesson plan and lesson script — no separate cost, but listed here for complete
 | `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
 | `class-4-phase-1-code.py` / `class-4-phase-2-wireframe.py` / `class-4-phase-3-code.py` / `class-4-phase-4-rover_server.py` | 4 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + gyro bias calibration (Pico) + orientation on the Class 3 rover website, Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
+| `class-5-mag-calibration.py` | 1 | Instructor | one-time magnetometer hard-iron calibration + axis check on the finished rover, prints the `MAG_OFFSET` line for `rover_server.py`, Class 5 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup) with compass-steered (closed-loop) turns, also posts heading/scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website (saved as `history_chart.py`), TFT status display — Class 6 stretch goals |
 
 ---
@@ -174,7 +175,7 @@ Equipment needed during the course that is not part of the take-home hardware ki
 | Item | Quantity | Source | Notes |
 | :-----: | :-----: | :-----: | :--------: |
 | Windows 11 Laptop | 1 | Student | one per student, no sharing; all install guides and the Pre-Class assume Windows 11 specifically |
-| USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Shared Supplies) for a cable that fails, not as the primary source |
+| USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Per-Student Required) for a cable that fails, not as the primary source |
 | Soldering station (iron + stand, solder, safety glasses, fume extractor) | 2-3 | Makersmiths | Class 3 — students solder Dupont leads onto the chassis motors and on/off switch; stocked by the makerspace, $0 |
 
 ---
@@ -213,7 +214,7 @@ part of the course budget above.
 [13]:https://www.amazon.com/Amazon-Basics-Performance-All-Purpose-Batteries/dp/B00MH4QM1S/?th=1
 [16]:https://www.amazon.com/dp/B0FTF8P9DQ
 [17]:https://www.amazon.com/dp/B001FGLX72
-[18]:https://www.amazon.com/Connector-Solde
+[18]:https://www.amazon.com/Connector-Solderless-Multicolor-Electronic-Breadboard/dp/B09FPGT7JT/?th=1
 [19]:https://www.amazon.com/Invisible-Mounting-Double-Sided-Permanent-Classroom/dp/B07LFRN1K8/
 [20]:https://circuitpython.org/board/raspberry_pi_pico2_w/
 [21]:https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor

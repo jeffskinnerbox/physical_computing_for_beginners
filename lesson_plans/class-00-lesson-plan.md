@@ -241,7 +241,7 @@ around. Suggested modifications:
 * Change the printed message text and confirm it updates after saving.
 * Deliberately introduce a syntax error (e.g., delete a colon) and read the resulting traceback in
   the serial console — a low-stakes first look at how CircuitPython reports errors.
-* Browse the [course GitHub repository][12] and the [Adafruit Learn][13] site to get comfortable
+* Browse the [course GitHub repository][23] and the [Adafruit Learn][13] site to get comfortable
   navigating both before they're needed for real troubleshooting in Class 1.
 
 **What to watch for:** The most common failure at this stage is a student who "saved" but the editor
@@ -263,6 +263,8 @@ chain works, end to end, so that starting next Class, every minute you spend is 
 computing, not fighting your setup. Next time, that chain gets its first real test: a button and a
 rotary encoder, and you'll watch, with your own eyes, why reading them cleanly is harder than it
 looks."
+
+**Assign homework (optional):** point students to the four take-home exercises in Section 10 of `class-00-lesson-script.md` (chip temperature, WiFi access point, TFT bouncing square, IR sensor test).
 
 **Preview next Class:** Class 1 is the first Class with real wiring — a pushbutton switch on `GP2`
 and a KY-040 rotary encoder on `GP3`/`GP4`, driving two LEDs. Nothing from tonight needs to be
@@ -378,3 +380,4 @@ follow-up with them individually before then rather than losing Class 1 time to 
 [20]:https://learn.adafruit.com/welcome-to-circuitpython/circuitpython-documentation
 [21]:https://docs.github.com/en
 [22]:https://docs.sparkfun.com/
+[23]:https://github.com/jeffskinnerbox/physical_computing_for_beginners

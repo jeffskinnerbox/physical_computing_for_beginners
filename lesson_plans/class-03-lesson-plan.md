@@ -57,8 +57,8 @@ up Class 4: matching wheel speeds isn't the same as going straight, which needs 
 * Name, specifically, the separate causes of that drift — missing wheel/heading feedback, battery
   voltage sag, and wheel slip/friction — rather than one generic explanation
 * Wire a Slot Type IR Optocoupler at each driven wheel (`GP19`/`GP17`) and explain how its slotted
-  fork and onboard LM393 comparator turn a spinning encoder disc into a clean digital pulse train
-  the Pico can count directly, no debouncing required
+  fork and onboard LM393 comparator turn a spinning encoder disc into a digital pulse train — one
+  whose edges still bounce at slow wheel speeds, so it's counted through the same `Debouncer` Class 1 used
 * Write and use `wheel_odometry.py`, converting counted ticks into real wheel speed in cm/s using
   the 67mm wheel diameter, and explain why a single-slot optocoupler alone cannot tell direction —
   and why pairing tick rate with the last direction commanded through `motor_driver.drive()` is a
@@ -449,7 +449,7 @@ since there's no wheel-speed feedback yet.
 import time
 import motor_driver
 
-SPEED = 0.5                  # [VERIFY] -- calibrate per robot
+SPEED = 0.6                  # [VERIFY] -- calibrate per robot
 SECONDS_PER_CM = 0.035     # [VERIFY] -- calibrate: time a measured straight run, divide by cm
 SECONDS_PER_90_DEGREES = 0.4  # [VERIFY] -- calibrate: time a measured 90-degree turn
 
@@ -691,8 +691,11 @@ updates, the fetch loop is running but the browser may be caching — a hard ref
 **What "done" looks like for this segment:** Every pair can join their Pico's network, open a
 browser to its printed IP address, and see the `/data.json` fields update live. Two levels: (1) the
 plumbing check — spin a wheel by hand and watch `speed_left_cms`/`speed_right_cms` respond; (2) the
-mission — with the page still open, drive the car with code (e.g. `motor_driver.drive(0.5, 0.5)`
-from the REPL) and watch the page update while the car moves under its own power. Each pair should
+mission — drive the car with code and watch the page update while the car moves under its own
+power. This can't be done from the REPL: `rover_server.py` ends in `while True: server.poll()` and
+never returns a prompt. Instead, with the car on blocks, temporarily swap `code.py` for the script's
+"automatic check" version (`import motor_driver`, `motor_driver.drive(0.6, 0.6)`, then
+`import rover_server`), reload the page, then put the one-line `import rover_server` back. Each pair should
 also describe in one sentence why direction shown on the page is "what we last told it to do," not
 something separately measured — so spinning a wheel by hand moves the speeds but never the
 direction fields.
@@ -819,6 +822,8 @@ itself. But notice what that still doesn't tell you — which way the *car* is p
 wheels are turning correctly isn't the same as knowing you're heading the right direction. That's
 exactly the gap the IMU fills next Class, and it'll show up on this same website."
 
+**Assign homework (optional):** point students to the Phase 6 procedure (Section 9 of `class-03-lesson-script.md`) for tuning `KI` and `MAX_TRIM` by experiment.
+
 **Preview next Class:** Class 4 reuses none of today's, Class 1's, or Class 2's pins — it's the
 LSM9DS1 9-DOF IMU over I2C on `GP0`/`GP1`, while today's motor driver circuit, both optocouplers, the
 rover status website, and both prior circuits stay untouched and running. Class 4 extends
@@ -845,7 +850,7 @@ Class 4 references in the syllabus if they want to read ahead.
 | Stretch: car curves more than before, and `trim` runs to `MAX_TRIM` | Correction is slowing the wrong wheel — optocouplers/motors swapped relative to left/right | Confirm Motor A's optocoupler is on `GP19`, Motor B's on `GP17`, and Motor A is the left wheel |
 | `ImportError: no module named 'motor_driver'` | `motor_driver.py` not saved to the CIRCUITPY drive alongside `code.py` | Confirm `class-3-phase-1-motor-driver.py` was saved as `motor_driver.py` in the CIRCUITPY root, not left named `class-3-phase-1-motor-driver.py` |
 | `ImportError: no module named 'adafruit_debouncer'` (or `'adafruit_ticks'`) when `wheel_odometry.py` runs | `adafruit_debouncer.mpy` or its helper `adafruit_ticks.mpy` isn't in `/lib` | Copy both files from the Library Bundle into `CIRCUITPY/lib/` (the same files Class 1 used) |
-| Tick count climbs faster than slots actually passing, turning by hand | Comparator edge bounce beats `Debouncer`'s default interval | Raise the `interval` in `Debouncer(sensor_a, interval=0.02)` (and `sensor_b`) in `wheel_odometry.py` |
+| Tick count climbs faster than slots actually passing, turning by hand | Comparator edge bounce beats `Debouncer`'s default interval (0.01 s) | In `wheel_odometry.py`, add a longer interval: `Debouncer(sensor_a, interval=0.02)` (and the same for `sensor_b`) |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Wheel speed reading is wildly too high or too low | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | Code is reading a stale `motor_driver.last_direction_a`/`_b` value, or `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on the CIRCUITPY drive includes the `last_direction_a`/`_b` tracking shown in `class-3-phase-1-motor-driver.py` |

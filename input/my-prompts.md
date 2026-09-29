@@ -944,6 +944,45 @@ Do this before the first use of the @src/wire-frame.py code.
 
 ----
 
+## My 39th Prompt - Strategy for Tuning & Calibration of the Random Rover
+There are multiple parameters in this random rover project that require tuning & calibration, or just setting in geneeral.
+Some of that work has been attempted during the building of this project,
+but because of time pressures, very little tuning & calibration has been successfully accomplished.
+So a major task during class 6 or afterwords will be tuning & calibration.
+I want to create a document to help in this process.
+
+I want this document to begin with:
+* What is tuning & calibration & setting of parameters for and why is it important?
+* What are all the parameters that require our attention?
+  Also include parameters that need to be set to satisfy our taste or preference.
+* Describe you strategy for tuning & calibration & setting of parameters
+* What level of improvement should we expect from our efforts?
+
+I also want to provide the students a step-by-step process
+for tuning & calibration a fully built random rover.
+Starting with the assumption that all the parameter require adjustment,
+move from start to finish in the logical sequence.
+Point out when adjusting one parameter may effect otters.
+In you sequence of activity, point out clearly when a parameter is optimally tuning or calibration
+and what behaviors should be present in the random rover.
+Establish section headings that bring together activates & accomplishments for each step.
+Make the steps very clear on what needs to be done and when it is successful.
+
+Create a 2nd agent, I'll call Validator, to validate the document, using these criteria:
+* document is fully consistent with the /explainer skills objectives
+* document is fully consistent with how random rover is specified in the @lesson_scripts documents
+* document is easy to follow and not confusing, use of text based diagrams could be helpful
+* document provides warnings when setting parameters could cause harm to the random rover
+* document says when parameter settings are very important or of little consequences
+* document provides time estimate for the work performed
+
+Update your edits and revalidate until Validator has no objections.
+
+Use your /explainer skill to write this document
+and place it in @explaners/strategy-for-tuning-calibration-random-rover.md
+
+----
+
 
 
 

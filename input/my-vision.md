@@ -306,8 +306,9 @@ Tips for Students:
   Now close part of that gap: mount a [Slot Type IR Optocoupler](https://www.amazon.com/dp/B0B2NSQJDL) at
   each driven wheel, reading the wheel-speed encoder disc that's molded into the Emo Smart Robot Car Chassis
   Kit's wheels. Each optocoupler's slotted fork interrupts a beam once per disc slot as the wheel turns,
-  and its onboard LM393 comparator outputs a clean digital pulse train the Pico can count directly &mdash; no
-  debouncing needed the way the Class 1 switch/encoder needed it, since this is a much faster, cleaner signal.
+  and its onboard LM393 comparator outputs a digital pulse train the Pico can count &mdash; but at slow wheel
+  speeds the comparator's edges still bounce, so each optocoupler is debounced with the same
+  `adafruit_debouncer.Debouncer` the Class 1 switch/encoder used.
   Counting pulses over a time window, and knowing the wheel is 67mm in diameter (so 210.5mm/21.05cm
   circumference), converts ticks-per-second into a real speed in cm/s for each wheel.
 
@@ -495,11 +496,13 @@ Tips for Students:
     and prints `roll,pitch,yaw` CSV lines over USB serial. This is the "why do we need a filter" payoff:
     raw accelerometer alone is noisy, raw gyro alone drifts. (The library's `gyro` already returns rad/s &mdash;
     no conversion.)
-  * `class-4-phase-2-wireframe.py` &mdash; runs on the STUDENT LAPTOP (`pip install pyserial matplotlib numpy`),
-    saved as `wireframe.py`. Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students
+  * `class-4-phase-2-wireframe.py` &mdash; runs on the STUDENT LAPTOP, saved as `wireframe.py`. Its PEP 723
+    `# /// script` block lets `uv` install `pyserial`, `matplotlib`, and `numpy` automatically (fallback:
+    `pip install pyserial matplotlib numpy`). Reads the serial CSV and redraws a 3D box in real time with matplotlib, so students
     see whether tilting the physical board is faithfully reflected on screen. Draws only the newest line (no
     lag), labels the X/Y/Z axes and the box's red `Front` (+X) and `Right` (&minus;Y) faces, and negates roll to
-    match the physical board. Usage: `python wireframe.py <port>`.
+    match the physical board. Finds the Pico's serial port by itself. Usage: `uv run wireframe.py`
+    (optional port argument, e.g. `uv run wireframe.py COM5`).
   * `class-4-phase-3-code.py` &mdash; runs on the Pico, replacing Phase 1's `code.py`. Phase 1 plus gyro bias
     calibration: averages ~2 s of gyro readings at startup (board still) and subtracts that bias, then keeps
     refining it whenever the board looks still. Starts the loop clock after calibrating. Same CSV output, so
@@ -691,7 +694,7 @@ the Cost Summary below.
 | :-----: | :-----: | :-----: | :-----: | :--------: |
 | Raspberry Pi Pico 2W with Header | 1 | $8.00 | [Adafruit][01] | microcontroller, used every class starting Pre-Class |
 | DRV8833 DC/Stepper Motor Driver Breakout Board | 1 | $5.95 | [Adafruit][05] | Class 3 motor driver, reused Class 5-6 |
-| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU, reused Class 6 stretch #2 |
+| IMU 9-DOF LSM9DS1 Breakout Board (STEMMA) | 1 | $19.95 | [Adafruit][06] | Class 4 IMU; Class 5 core rover (magnetometer compass steers every turn); reused Class 6 stretch #2/#3 |
 | STEMMA QT / Qwiic JST SH 4-pin to Premium Male Headers Cable, 150mm | 2 | $0.95 | [Adafruit][07] | I2C connection for the LSM9DS1 (Class 4 onward): JST-SH end plugs into the IMU's STEMMA QT port, male-header end plugs into the Pico's breadboard rows (the Pico has no QT port, so a JST-to-JST cable would not work) + 1 spare; the LSM9DS1 is the only I2C device in the course |
 | 1.14" 240x135 Color Newxie TFT Display | 1 | $9.95 | [Adafruit][09] | Class 6 stretch #3 status display |
 | Emo Smart Robot Car Chassis Kit | 1 | $13.99 | [Amazon][02] | 2 DC gearbox motors + 67mm wheels with a wheel-speed encoder disc molded into each; assembled across Classes 1-2, driven starting Class 3, encoder discs read by the wheel-odometry optocouplers starting Class 3 |
@@ -791,7 +794,7 @@ All free — no paid software is required anywhere in this course.
 | Thonny | [Setup Guide][22] | alternate editor, installed in the Pre-Class |
 | Adafruit CircuitPython Library Bundle | [Download][23] | downloaded in the Pre-Class; supplies `adafruit_debouncer`, `adafruit_hcsr04`, `adafruit_motor`, `adafruit_lsm9ds1`, `adafruit_httpserver` (Class 3 onward), `adafruit_st7789`, `adafruit_display_text` |
 | GitHub account (free) | [GitHub Docs][24] | required so students can access the course repository |
-| Python 3.14 + `pyserial`, `matplotlib`, `numpy` | `winget install -e --id Python.Python.3.14 --scope user` (Pre-Class), then `pip install pyserial matplotlib numpy` (Class 4) | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-phase-2-wireframe.py` (saved as `wireframe.py`), the live 3D orientation display |
+| Python 3.14 + `uv` (`pyserial`, `matplotlib`, `numpy` installed automatically) | `winget install -e --id Python.Python.3.14 --scope user` (Pre-Class), then install `uv` per `tech_setup_check/install-wireframe-on-windows-11.md` (Class 4); fallback: `pip install pyserial matplotlib numpy` | required on the student's laptop (not the Pico) starting Class 4, to run `class-4-phase-2-wireframe.py` (saved as `wireframe.py`), the live 3D orientation display |
 | Modern web browser (Chrome, Firefox, or Edge) | already on any Windows 11 laptop | required starting Class 3, to view the Pico-hosted rover status page (`class-3-phase-4-rover_server.py`) that carries forward and grows through Class 6 |
 | (none — the Pico 2 W broadcasts its own WiFi network) | n/a | no classroom WiFi needed: the student's laptop joins the Pico's own network (access-point mode) to reach the rover's web server, losing normal internet while joined |
 
@@ -811,7 +814,8 @@ lesson plan and lesson script — no separate cost, but listed here for complete
 | `class-3-phase-5-straight_drive.py` | 1 | Instructor | (stretch) wheel-feedback straight driving, saved as `straight_drive.py`, Class 3 |
 | `class-3-phase-6-measure-k.py` / `class-3-phase-6-code.py` | 2 | Instructor | (optional stretch) measure `k` and sweep `KI`/`MAX_TRIM` to tune the straight-driving loop, Class 3 |
 | `class-4-phase-1-code.py` / `class-4-phase-2-wireframe.py` / `class-4-phase-3-code.py` / `class-4-phase-4-rover_server.py` | 4 | Instructor | Mahony-filtered IMU orientation (Pico) + live 3D viewer (laptop) + gyro bias calibration (Pico) + orientation on the Class 3 rover website, Class 4 |
-| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup), also posts scan/sensor telemetry to the rover website, Class 5 |
+| `class-5-mag-calibration.py` | 1 | Instructor | one-time magnetometer hard-iron calibration + axis check on the finished rover, prints the `MAG_OFFSET` line for `rover_server.py`, Class 5 |
+| `class-5-code.py` | 1 | Instructor | Random Rover collision-avoidance logic (ultrasonic scan + limit switch + IR near-field backup) with compass-steered (closed-loop) turns, also posts heading/scan/sensor telemetry to the rover website, Class 5 |
 | `class-6-code-1.py` / `class-6-code-2.py` / `class-6-code-3.py` | 3 | Instructor | encoder speed control, rolling-history chart added to the rover website (saved as `history_chart.py`), TFT status display — Class 6 stretch goals |
 
 #### Tools
@@ -821,7 +825,7 @@ Equipment needed during the course that is not part of the take-home hardware ki
 | Item | Quantity | Source | Notes |
 | :-----: | :-----: | :-----: | :--------: |
 | Windows 11 Laptop | 1 | Student | one per student, no sharing; all install guides and the Pre-Class assume Windows 11 specifically |
-| USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Shared Supplies) for a cable that fails, not as the primary source |
+| USB Cable | 1 | Student | own cable, brought to every class starting with the Pre-Class; course keeps a small spare supply (see Per-Student Required) for a cable that fails, not as the primary source |
 | Soldering station (iron + stand, solder, safety glasses, fume extractor) | 2-3 | Makersmiths | Class 3 — students solder Dupont leads onto the chassis motors and on/off switch; stocked by the makerspace, $0 |
 
 [01]:https://www.adafruit.com/product/6315

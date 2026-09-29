@@ -400,7 +400,7 @@ code "knows" is the clock; everything to the right of `time.sleep()` is out of i
 
    your code                          the real world (code can't see this)
    ---------                          ------------------------------------
-   drive(0.5, 0.5)  ---- PWM ------>  motors spin, wheels roll, car moves
+   drive(0.6, 0.6)  ---- PWM ------>  motors spin, wheels roll, car moves
         |                                  |   |   |
    time.sleep(35 * 0.035)                  |   |   +-- battery sags -> slower
         |   (= 1.23 s, and that's          |   +------ left/right motors differ
@@ -689,10 +689,9 @@ motor_driver.stop()
 You should see ten printed tuples of
 `(left_wheel_cm_per_sec,  left_wheel_dir,  right_wheel_cm_per_sec,  right_wheel_dir)`,
 with both speeds rising above `0.0` while the car drives forward and `left_wheel_dir`/`right_wheel_dir`
-both reading `1`.
-Stop the car (`motor_driver.stop()`), then try `motor_driver.drive(-0.5, -0.5)` and rerun the
-loop — the direction values should flip to `-1` while the speeds stay positive (speed is always a
-magnitude; direction is a separate value).
+both reading `1`. Then the code reverses the car and prints ten more — the direction values
+flip to `-1` while the speeds stay positive (speed is always a magnitude; direction is a separate
+value).
 
 A speed reading of `0.0` while the wheel is visibly spinning almost always means the optocoupler's
 slot isn't actually straddling the disc — remount it before assuming the code is wrong. A reading
@@ -1132,7 +1131,7 @@ import time
 import motor_driver
 import wheel_odometry
 
-BASE_THROTTLE = 0.6   # throttle both wheels start at
+BASE_THROTTLE = 0.5   # throttle both wheels start at
 KI = 0.005            # [VERIFY] nudge per cm/s of speed difference -- tune on your own car
 MAX_TRIM = 0.2        # [VERIFY] never slow a wheel by more than this, so a bad reading can't stall it
 
@@ -1543,7 +1542,7 @@ for.
 | `ImportError: no module named 'adafruit_ticks'` when `wheel_odometry.py` runs | `adafruit_debouncer.mpy` imports `adafruit_ticks.mpy` internally, missing from `CIRCUITPY/lib/` | Copy `adafruit_ticks.mpy` from the Library Bundle into `CIRCUITPY/lib/`, alongside `adafruit_debouncer.mpy` |
 | Wheel speed reads `0.0` while the wheel is visibly spinning | Optocoupler's slot isn't straddling the encoder disc, or its wiring is loose | Remount the optocoupler so the disc's teeth pass through the slot; reseat `VCC`/`GND`/signal jumpers |
 | Raw tick count is nonzero even with the wheel held perfectly still | Comparator output is noisy or sitting right at its trigger threshold — a wiring/electrical issue, not a code issue | Check `VCC`/`GND` wiring and common ground; try repositioning the optocoupler slightly off the disc edge |
-| Raw tick count climbs faster than slots actually passing, turning by hand | Bounce beats `Debouncer`'s default interval | Raise `Debouncer(sensor_a, interval=0.02)`'s `interval` in `wheel_odometry.py` |
+| Raw tick count climbs faster than slots actually passing, turning by hand | Bounce beats `Debouncer`'s default interval (0.01 s) | In `wheel_odometry.py`, add a longer interval: `Debouncer(sensor_a, interval=0.02)` (and the same for `sensor_b`) |
 | Wheel speed reading is wildly too high or too low, but raw ticks match a hand-turned revolution correctly | `SLOTS_PER_REV` miscounted for that wheel's disc | Recount the disc's slots by hand and update `SLOTS_PER_REV` |
 | Direction shown never changes even when the car reverses | `wheel_odometry.py` was saved before `motor_driver.py` was updated with direction tracking | Confirm `motor_driver.py` on your `CIRCUITPY` drive includes the `last_direction_a`/`last_direction_b` tracking shown in Phase 1 |
 | `ImportError: no module named 'wifi'` | The board is running the non-WiFi build of CircuitPython — `wifi` is only compiled into the build made for "Raspberry Pi Pico 2 W", not the plain "Raspberry Pi Pico 2" build, even on genuine Pico 2 W hardware | Download the correct `.uf2` for "Raspberry Pi Pico 2 W" from circuitpython.org, hold `BOOTSEL` while plugging in USB to mount `RPI-RP2`, drag the `.uf2` on to reflash, then re-copy `motor_driver.py`, `wheel_odometry.py`, `rover_server.py`, `code.py`, `settings.toml`, and `lib/` (including `adafruit_httpserver`) back onto `CIRCUITPY` |
@@ -1708,28 +1707,31 @@ SECONDS_PER_90_DEGREES = 0.4   # calibrate per robot
 
 
 def drive_straight(cm):
+    print("move: straight", cm, "cm")
     motor_driver.drive(SPEED, SPEED)
     time.sleep(cm * SECONDS_PER_CM)
     motor_driver.stop()
 
 
 def turn_90():
+    print("move: turn 90 deg")
     motor_driver.drive(-SPEED, SPEED)
     time.sleep(SECONDS_PER_90_DEGREES)
     motor_driver.stop()
 
 
 def drive_square(side_cm=35):
-    print("square, side", side_cm, "cm")
+    print("attempt: square, side", side_cm, "cm")
     for _ in range(4):
         drive_straight(side_cm)
         time.sleep(0.2)
         turn_90()
         time.sleep(0.2)
+    print("attempt: square complete")
 
 
 def drive_circle(diameter_cm=35):
-    print("circle, diameter", diameter_cm, "cm")
+    print("attempt: circle, diameter", diameter_cm, "cm")
     circumference = math.pi * diameter_cm
     segments = 24
     seg_length = circumference / segments
@@ -1739,6 +1741,7 @@ def drive_circle(diameter_cm=35):
         motor_driver.drive(-SPEED, SPEED)
         time.sleep(seg_turn)
         motor_driver.stop()
+    print("attempt: circle complete")
 
 
 print("Class 3 project running -- square/circle attempt.")

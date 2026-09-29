@@ -112,7 +112,7 @@ quantities, and sourcing.
 | Component | Purpose This Class |
 | :---------- | :-------------------- |
 | Raspberry Pi Pico 2 W (with header) | Microcontroller running CircuitPython |
-| 9V battery, clip, and 5V buck converter (from Class 3) | Powers the Pico's logic (via `VSYS`) all Class — carried forward unwired from Class 3, no new wiring today |
+| 9V battery, clip, and 5V buck converter (from Class 3) | Powers the Pico's logic (via `VSYS`) all Class — carried forward unchanged from Class 3, no new wiring today |
 | IMU: LSM9DS1 9-DOF Breakout Board (STEMMA) | Measures acceleration and rotation rate; fused into orientation |
 | STEMMA QT/Qwiic to male-header cable | I2C connection between the Pico and the IMU |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Classes 1-3 circuits stay on it, untouched |
@@ -168,7 +168,7 @@ An accelerometer measures linear acceleration along three axes (x/y/z) — inclu
 constant downward pull of gravity. At rest, its reading points straight toward the floor, which is
 exactly how it can be used to sense tilt: as the board rotates, gravity's component shifts between
 the axes in a predictable way. A gyroscope measures angular *rate* — how fast the board is rotating
-around each axis, in degrees per second — not an absolute angle.
+around each axis, in radians per second (rad/s) — not an absolute angle.
 
 **Concept 2 — Why neither sensor alone is good enough.**
 Ask: "If the accelerometer can already sense tilt from gravity, why do we need the gyroscope at
@@ -721,8 +721,8 @@ while True:
 start, it moved during calibration; press reset with the board lying flat. Tradeoff to mention: a
 turn slower than `STILL_GYRO` (~1°/s) looks exactly like bias and gets absorbed instead of
 measured — fine for a car, which turns far faster. And calibration slows drift, it doesn't
-eliminate it; only the magnetometer (a compass) gives an absolute heading — a stretch goal, not
-today's work.
+eliminate it; only the magnetometer (a compass) gives an absolute heading — that's Class 5, which calibrates it
+on the finished rover and adds it to this same filter.
 
 **Checkpoint 3:** With the board flat and untouched for one minute, yaw should now hold within about
 a degree, versus the Step 2 "before" number. Then have pairs shake the board hard for 10-15 seconds
@@ -996,15 +996,19 @@ closer to 35 cm, and why or why not.
 
 **What to say:** "You now have a car that can move, a sensor that knows which way it's pointed, and
 one website that shows both at once. That's real progress — but notice neither one, alone or
-together, tells you *how far* you've gone or where you actually are. That gap is exactly why Class 5
-doesn't use the IMU or dead-reckoning distance at all — it solves navigation a completely different
-way, using the sensor and servo you built back in Class 2."
+together, tells you *how far* you've gone or where you actually are. So Class 5 doesn't try to
+track position at all — it navigates by sweeping the sensor and servo you built back in Class 2 to
+find open space. But today's IMU still matters: Class 5 adds its magnetometer so yaw stops drifting,
+and the rover steers every turn by that compass heading."
 
-**Preview next Class:** Class 5 reuses no new pins — it reconnects exactly the Class 2 sensor+servo
-circuit (`GP6`-`GP8`) and the Class 3 motor driver circuit (`GP9`-`GP12`, with the wheel optocouplers on `GP19`/`GP17`) as they were
-left wired, combining them into the Random Rover's collision-avoidance behavior. Today's IMU circuit
-and Class 1's button/encoder circuit both stay untouched on the breadboard. The rover status website
-keeps growing too — Class 5 adds scan readings, chosen heading, and sensor-stop events to the same
+**Preview next Class:** Class 5 reconnects exactly the Class 2 sensor+servo circuit (`GP6`-`GP8`),
+the Class 3 motor driver circuit (`GP9`-`GP12`, with the wheel optocouplers on `GP19`/`GP17`), and
+today's IMU (`GP0`/`GP1`) as they were left wired, and adds two new safety sensors — a limit switch on
+`GP5` and an IR obstacle sensor on `GP13` — combining them into the Random Rover's collision-avoidance
+behavior. Today's IMU gets its magnetometer calibrated on the finished rover, fused into the filter,
+and used to steer compass-guided turns. Class 1's button/encoder circuit stays untouched on the
+breadboard. The rover status website keeps growing too — Class 5 adds a compass heading, scan
+readings, chosen heading, and sensor-stop events to the same
 `rover_server.py`, alongside the wheel-speed and orientation fields added in Classes 3 and 4. Point
 students to the Class 5 references in the syllabus if they want to read ahead.
 
@@ -1102,7 +1106,8 @@ extension working to the start of Class 5 and note it in their build journal.
   console as proof the calibration ran.
 * The "does this solve Class 3's problem?" discussion (Closing) should land as a genuine letdown
   followed by curiosity, not a gotcha — the point is that students feel the gap themselves before
-  Class 5 explains how the course actually closes it (via the sensor/servo scan, not the IMU).
+  Class 5 explains how the course actually closes it (the sensor/servo scan finds open space, and
+  the IMU's newly added magnetometer steers the turns).
 * Step 4's website edit is small on purpose — resist the urge to re-teach `adafruit_httpserver` or
   WiFi setup from scratch; if a pair never got the Class 3 website working, point them back to that
   Class's troubleshooting guide rather than debugging WiFi live during today's Guided Practice.

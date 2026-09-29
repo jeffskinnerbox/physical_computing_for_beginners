@@ -404,6 +404,9 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * **Course GitHub Repository:** The instructor maintains a repo with handouts, install instructions,
   build guides, and ready-to-use code for every Class. Pull code from it whenever you're stuck —
   no student is ever left without a working starting point.
+* **Homework (optional):** The Pre-Class and Classes 1-3 lesson scripts end with optional take-home
+  exercises that extend that Class's build (Class 2's homework includes assembling the chassis kit
+  before Class 3, which saves class time). Homework for Classes 4-6 is coming soon.
 
 **Milestone Assignments**
 

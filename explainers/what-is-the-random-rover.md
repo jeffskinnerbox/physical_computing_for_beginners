@@ -18,6 +18,13 @@ between sweeps, and a physical bump switch on the front bumper as the last resor
 Rover actually touches something, it stops and backs away immediately, no matter what the
 other sensors said.
 
+Turning toward that open direction isn't guesswork, either. The Rover carries an IMU (a motion
+sensor) whose built-in compass, the magnetometer, tells it which way it's facing. When it picks a
+direction, it works out the compass heading it needs and keeps spinning until the compass says
+it's there, instead of spinning for a fixed time and hoping. And while all this happens, the Rover
+hosts its own small website over WiFi, so a laptop can watch its wheel speeds, heading, and latest
+decision live, with no cable attached.
+
 That's the entire "job" of the Rover: look, decide, move, look again — forever, with no human
 steering it.
 

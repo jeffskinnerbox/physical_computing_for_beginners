@@ -51,8 +51,8 @@ their working rover to the group.
 | Laptop with a web browser | 1 | Views the rover website — the warm-up heading check and the stretch 2 rolling-history chart |
 | Phone with a compass app | shared | Checking your rover's `heading` is still healthy |
 
-**Additional components for the Homework Assignments** (Section 11) — no homework has been written
-for this class yet; this section will be filled in when that content is added.
+**Homework Assignments** (Section 11) — coming soon; no additional components are needed for this
+class yet.
 
 ## 3. Meet the Hardware
 
@@ -176,7 +176,6 @@ Run this standalone first (as `code.py`) to see the pattern work on its own:
 import time
 import digitalio
 import board
-import motor_driver
 
 encoder_clk = digitalio.DigitalInOut(board.GP3)
 encoder_clk.direction = digitalio.Direction.INPUT
@@ -525,7 +524,7 @@ discipline of physical computing, and you've now done it for real, with your own
 ---
 ## 11. Homework Assignment
 
-No homework assignments have been written for this class yet. This section will be filled in with
+**Coming soon.** This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
 [`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
 does, full commented code, and real-world examples).

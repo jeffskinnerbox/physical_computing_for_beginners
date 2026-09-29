@@ -425,6 +425,8 @@ completely different software results depending on whether we handled bounce. Th
 noisy real-world signal' problem comes back constantly in physical computing — next Class, it's
 an ultrasonic sensor instead of a switch."
 
+**Assign homework (optional):** point students to the nine take-home exercises in Section 10 of `class-01-lesson-script.md` (long-press detection, encoder acceleration, NVM counter, and more).
+
 **Preview next Class:** Class 2 reuses none of today's pins — it's the HC-SR04 ultrasonic
 distance sensor and the SG90 servo motor, both wired fresh, while today's circuit stays untouched
 on the breadboard. Point students to the Class 2 references in the syllabus if they want to read

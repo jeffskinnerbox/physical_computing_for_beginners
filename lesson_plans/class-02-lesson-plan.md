@@ -71,7 +71,7 @@ quantities, and sourcing.
 | HC-SR04 Ultrasonic Distance Sensor | Measures distance via a timed sound echo |
 | SG90 Micro Servo Motor | Sweeps the distance sensor across an angle range via PWM |
 | Voltage-divider resistor pair (1k + 2k ohm) | Steps the HC-SR04's 5V ECHO signal down to a safe 3.3V for the Pico |
-| Double-sided tape or small mount **[VERIFY — not itemized]** | Fastens the HC-SR04 to the SG90 shaft/horn for the combined sweep |
+| Double-sided mounting tape (shared) | Fastens the HC-SR04 to the SG90 shaft/horn for the combined sweep |
 | Breadboard (830-point, from Class 1) | Circuit assembly surface — Class 1's circuit stays on it, untouched |
 | Dupont jumper wires (shared) | Point-to-point wiring |
 | USB cable (student-supplied, from Pre-Class) | Power + serial connection to laptop |
@@ -320,6 +320,8 @@ left' or 'steer right'?"
 **What to say:** "You just built the exact sensing setup your Random Rover will use in Class 5 to
 avoid running into things — nothing about this wiring or mounting changes between now and then. The
 only piece missing is a motor to actually act on what the sensor sees, and that's next Class."
+
+**Assign homework (optional):** point students to Section 11 of `class-02-lesson-script.md` — Homework 1 is assembling the chassis kit at home (no wiring, no battery holder) so it's ready for Class 3.
 
 **Preview next Class:** Class 3 reuses none of today's or Class 1's pins — it's the DRV8833 dual
 H-bridge motor driver, wired fresh on `GP9`-`GP12`, while today's sensor+servo circuit and Class 1's

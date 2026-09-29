@@ -248,13 +248,13 @@
         </div>
         <div class="card" style="background:#E1F5EE; border-top-color:#5DCAA5; min-height:400px;">
           <h3 style="color:#0F6E56;">Gyroscope</h3>
-          <p style="color:#085041;">Measures angular <b>rate</b> &mdash; how fast the board is rotating, in degrees per second &mdash; not an angle.</p>
+          <p style="color:#085041;">Measures angular <b>rate</b> &mdash; how fast the board is rotating, in radians per second &mdash; not an angle.</p>
           <p style="color:#993C1D;"><b>Weakness:</b> small errors add up into drift.</p>
         </div>
         <div class="card" style="background:#F1EFE8; border-top-color:#B4B2A9; min-height:400px;">
           <h3 style="color:#5F5E5A;">Magnetometer</h3>
           <p style="color:#5F5E5A;">A compass &mdash; an absolute heading reference.</p>
-          <p style="color:#5F5E5A;"><b>Not used today</b> &mdash; it's a stretch goal.</p>
+          <p style="color:#5F5E5A;"><b>Not used today</b> &mdash; Class 5 adds it to steer the rover.</p>
         </div>
       </div>
     </section>
@@ -537,8 +537,9 @@
         </h2>
         <p class="subtitle" style="margin-top:24px;">
           Even with wheel speed and orientation side by side on one webpage, the IMU alone doesn't solve
-          Class 3's square-and-circle problem. That's why Class 5 takes a completely different approach
-          &mdash; using the sensor and servo you built back in Class 2.
+          Class 3's square-and-circle problem. So Class 5 navigates by sweeping the sensor and servo from
+          Class 2 to find open space &mdash; and adds the IMU's magnetometer so a drift-free compass
+          heading steers every turn.
         </p>
       </div>
     </section>

@@ -234,7 +234,6 @@ it into `motor_driver.drive()`.
 import time
 import digitalio
 import board
-import motor_driver
 
 encoder_clk = digitalio.DigitalInOut(board.GP3)
 encoder_clk.direction = digitalio.Direction.INPUT

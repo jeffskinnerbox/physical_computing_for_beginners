@@ -44,13 +44,15 @@ after it bolts on one new piece without disturbing what's already running:
   (Class 4)
 
 Class 5 folds the sensor, servo, and motor driver together into the Random Rover: it drives
-forward, checks what's ahead, and steers itself clear of anything in the way — with its
-collision-avoidance state also posted live to the rover website. Class 6 finishes the Rover and
+forward, checks what's ahead, and steers itself clear of anything in the way. The IMU's
+magnetometer is calibrated and fused in, so a drift-free compass heading steers every turn — and
+the heading and collision-avoidance state are posted live to the rover website. Class 6 finishes the Rover and
 opens up stretch goals: encoder-based speed control, a rolling-history chart added to the
 already-running rover website, and a TFT status display.
 
 Nothing gets rewired mid-course. GPIO pins are assigned up front so a circuit built in Class 1
-is still live and working by Class 6.
+is still live and working by Class 6. The one exception is power: in Class 5 the HC-SR04 and servo
+move from `VBUS` to the buck converter's `VSYS` rail so the Rover can run untethered.
 
 
 ## Course Structure
@@ -62,11 +64,11 @@ is still live and working by Class 6.
 | Class 2 | Ultrasonic distance sensor + servo | HC-SR04, SG90 servo, PWM |
 | Class 3 | Dual H-bridge motor driver | DRV8833, two DC motors, 9V battery (`VM`); wheel odometry (IR optocoupler) and the first version of the rover status website |
 | Class 4 | Inertial measurement unit | LSM9DS1 (9-DOF), I2C, Mahony filter; orientation added to the rover website |
-| Class 5 | Random Rover | Sensor + servo + motor driver combined for collision avoidance; scan/heading/stop telemetry added to the rover website |
+| Class 5 | Random Rover | Sensor + servo + motor driver combined for collision avoidance; limit switch + IR safety sensors; magnetometer compass for closed-loop turns; heading/scan/stop telemetry added to the rover website |
 | Class 6 | Finish the Rover | Stretch goals: encoder speed control, rolling-history chart added to the rover website, TFT display |
 
 Wiring/pin assignments are chosen so each class's circuit keeps working after later classes add
-to it — nothing gets rewired mid-course.
+to it — nothing gets rewired mid-course (apart from Class 5's `VBUS`-to-`VSYS` power move).
 
 
 ## Getting Started
@@ -81,12 +83,14 @@ to it — nothing gets rewired mid-course.
 
 ```text
 input/            Source-of-truth vision doc + prompt log — everything else is generated from this
+methodology/      Background notes on course terms and authoring methodology (not generated)
 lesson_plans/     Instructor-facing syllabus + per-class lesson plans, BOM
 lesson_scripts/   Student-facing build+code walkthroughs, one per class
 tech_setup_check/ Install/setup instructions per environment
 explainers/       Standalone "why does it work that way" deep-dive docs
 handouts/         Printable per-class handouts
 communications/   Marketing copy, registration info (may contain PII — treat as sensitive)
+src/              Laptop-side Python helpers (uv project), e.g. the Class 4 wireframe.py 3D viewer
 expenses/         Purchase receipts (photos, receipts/ subdir) — no established doc conventions yet
 ```
 

@@ -64,8 +64,8 @@ your rover's own main loop imports and calls each cycle.
 | (none — the Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the rover status website runs on the network your Pico creates itself (access point mode, from Class 3) |
 | Open floor area with soft obstacles | shared | Test space for autonomous driving runs |
 
-**Additional components for the Homework Assignments** (Section 10) — no homework has been written
-for this class yet; this section will be filled in when that content is added.
+**Homework Assignments** (Section 10) — coming soon; no additional components are needed for this
+class yet.
 
 ## 3. Meet the Hardware
 
@@ -694,7 +694,7 @@ ir_sensor = digitalio.DigitalInOut(board.GP13)
 ir_sensor.direction = digitalio.Direction.INPUT  # module drives its own LOW-on-detect output
 
 # Tune these for your specific robot -- start conservative and adjust.
-DRIVE_SPEED = 0.6                     # lower than Class 3's test speed -- safer for autonomous runs
+DRIVE_SPEED = 0.6                     # same as Class 3's Phase 2 SPEED -- lower it for safer autonomous runs
 TURN_SPEED = 0.45                     # spin-in-place speed -- slow enough to stop near the target
 SCAN_ANGLES = [30, 60, 90, 120, 150]  # servo degrees, left to right
 CENTER_ANGLE = 90                     # servo angle that looks straight ahead
@@ -1198,7 +1198,7 @@ ir_sensor = digitalio.DigitalInOut(board.GP13)
 ir_sensor.direction = digitalio.Direction.INPUT  # module drives its own LOW-on-detect output
 
 # Tune these for your specific robot -- start conservative and adjust.
-DRIVE_SPEED = 0.6                     # lower than Class 3's test speed -- safer for autonomous runs
+DRIVE_SPEED = 0.6                     # same as Class 3's Phase 2 SPEED -- lower it for safer autonomous runs
 TURN_SPEED = 0.45                     # spin-in-place speed -- slow enough to stop near the target
 SCAN_ANGLES = [30, 60, 90, 120, 150]  # servo degrees, left to right
 CENTER_ANGLE = 90                     # servo angle that looks straight ahead
@@ -1355,7 +1355,7 @@ fields, and the library shape of `rover_server.py` all carry forward into Class 
 ---
 ## 10. Homework Assignment
 
-No homework assignments have been written for this class yet. This section will be filled in with
+**Coming soon.** This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
 [`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
 does, full commented code, and real-world examples).

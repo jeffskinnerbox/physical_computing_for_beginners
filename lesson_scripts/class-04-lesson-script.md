@@ -46,8 +46,8 @@ Class 3's square-and-circle problem on its own.
 | Laptop with `uv` (installed in Phase 2) — or Python 3 + `pyserial`, `matplotlib`, `numpy` | 1 | Runs the 3D visualization script (this part runs on your laptop, not the Pico) |
 | (none — Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the Class 3 rover status website runs on the network your Pico creates itself — nothing new to set up |
 
-**Additional components for the Homework Assignments** (Section 11) — no homework has been written
-for this class yet; this section will be filled in when that content is added.
+**Homework Assignments** (Section 11) — coming soon; no additional components are needed for this
+class yet.
 
 ## 3. Meet the Hardware
 
@@ -64,7 +64,7 @@ axes in a predictable way. Its weakness: it's *noisy* under vibration or sudden 
 moving car constantly shakes it with forces that have nothing to do with tilt.
 
 **Gyroscope.** Measures angular *rate* — how fast the board is rotating around each axis, in
-degrees per second — not an absolute angle. Its weakness: small measurement errors accumulate
+radians per second (rad/s) — not an absolute angle. Its weakness: small measurement errors accumulate
 ("integrate") over time into a growing drift, so a gyro-only orientation slowly wanders away from
 the truth even if the board never actually moves. Most of that error is a small constant offset
 called **bias** — the gyro reads a little rotation even when perfectly still. Phase 3 measures it
@@ -580,7 +580,8 @@ than that.
 
 This makes yaw drift far slower, but it can't stop it completely — a tiny leftover error still adds
 up over many minutes. Fully locking yaw needs an absolute heading reference, which is what the
-LSM9DS1's third sensor, the magnetometer (a compass), is for. That's a stretch goal, not today's work.
+LSM9DS1's third sensor, the magnetometer (a compass), is for. That's next class: Class 5 calibrates
+the magnetometer on the finished rover and adds it to this same filter, anchoring yaw to magnetic north.
 
 ### What this code does
 
@@ -1667,14 +1668,16 @@ on the same website your car has been publishing to since Class 3. Specifically,
 
 And critically: you also confirmed that knowing which way something is pointed still isn't the
 same as knowing how far it has traveled — even with both wheel speed and orientation sitting side
-by side on the same webpage. That's exactly why Class 5 doesn't use the IMU at all to solve the
-navigation problem — it takes a completely different approach, using the sensor and servo you built
-back in Class 2.
+by side on the same webpage. So Class 5 doesn't try to track the rover's position at all — it
+navigates a different way, by sweeping the sensor and servo you built back in Class 2 to find open
+space. The IMU still earns its place there: Class 5 adds the magnetometer to today's filter so yaw
+stops drifting, and the rover uses that compass heading to steer every turn until it actually
+points where the scan said to go.
 
 ---
 ## 11. Homework Assignment
 
-No homework assignments have been written for this class yet. This section will be filled in with
+**Coming soon.** This section will be filled in with
 optional take-home exercises, following the same format as the Pre-Class homework in
 [`class-00-lesson-script.md`](class-00-lesson-script.md#10-homework-assignment) (what the code
 does, full commented code, and real-world examples).

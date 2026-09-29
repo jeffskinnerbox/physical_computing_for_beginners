@@ -21,7 +21,9 @@ sync with `my-vision.md` without also reconciling.
 
 `input/my-prompts.md` is a running log of the actual prompts used to generate each artifact
 (chronological, "My Nth Prompt" sections) — check it before regenerating something to see the
-exact invocation pattern and skill combination that produced the current version.
+exact invocation pattern and skill combination that produced the current version. It's long
+(~40 prompt sections); `grep -n "My .* Prompt" input/my-prompts.md` to jump to them rather than
+reading it whole.
 
 `methodology/course-methodology.md` has definitions/background the user reads before working the
 repo (class vs. course vs. workshop, external articles on applying coding agents to non-programming
@@ -89,7 +91,8 @@ already hold port 80 — keep that consistent across lesson plans/scripts when e
 Linting/formatting: `npx markdownlint-cli2 "**/*.md"` against the committed `.markdownlint-cli2.jsonc`
 (not installed globally). The linter is **not** clean on existing docs — it reports pre-existing,
 tolerated warnings (MD013 long lines, MD036 emphasis-as-heading, MD060 table-pipe spacing). Don't
-chase zero warnings; just confirm you didn't add *new* ones.
+chase zero warnings; just confirm you didn't add *new* ones. Lint just the file you edited with
+`npx markdownlint-cli2 lesson_scripts/class-04-lesson-script.md` (any path/glob works).
 
 Non-default rules to honor when hand-editing:
 
@@ -147,7 +150,7 @@ wireframe deps (numpy, matplotlib, pyserial); flask and ruff sit in `src/.venv` 
 `main.py` is just the `uv init` stub. `wireframe.py` carries PEP 723 inline deps (`# /// script`) and
 auto-detects the Pico's port, so run it with `cd src && uv run wireframe.py` (optional port arg, e.g.
 `/dev/ttyACM0` or `COM5`) — students do the same via `tech_setup_check/install-wireframe-on-windows-11.md`;
-lint with `uv run ruff check`. Pico-side CircuitPython can't run here — it needs the board.
+lint with `uv run ruff check` (or one file: `uv run ruff check wireframe.py`, from `src/`). Pico-side CircuitPython can't run here — it needs the board.
 
 `tech_setup_check/` holds more than `/teen-install-instructions` output: alongside the generated
 install guides it has hand-maintained docs (`git-worktree-multitasking.md`,
@@ -159,4 +162,4 @@ script — don't assume everything there came from the skill.
 Per the user's global rule, editing any file means first `cp -f file file.bak` in the same
 directory (overwriting an existing `.bak`) — that's why `*.md.bak` files sit beside lesson
 plans/scripts/BOM. They are throwaway backups, not canonical; don't edit or reconcile them.
-Each of `explainers/`, `handouts/`, `lesson_plans/`, `lesson_scripts/` has its own `README.md`.
+Every top-level directory except `expenses/` has its own `README.md`.
