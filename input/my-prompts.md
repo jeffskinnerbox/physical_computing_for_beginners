@@ -845,7 +845,7 @@ These documents are
 `@explainer/what-are-quaternion-and-why-use-them.md`,
 `@explainer/what-is-gimbal-lock.md`,
 and `@explainer/what-is-an-imu-and-mahony-filter.md`.
-
+mujoce
 My target audience are the students for this project directory course.
 Create a subagent for each document as listed below.
 
@@ -904,6 +904,37 @@ that does the following:
 * Reference quaternion kinematics, stability, gimbal lock documented in
   `@explaners/what-are-quaternion-and-why-use-them.md` and `@explaners/what-is-gimbal-lock.md`
 
+----
+
+## My 36th Prompt - Presentation Summarizing Class 4 Lesson Script
+Using the /html_slide_deck skill, summarize the file @lesson_scripts/class-04-lesson-script.md
+
+I will use the presentation to brief my students on what we will be doing & creating in Class 4.
+First, give a quick summary of what we did in class 3 using the @/handout/class-03-* documents.
+Do NOT summarize the bill of materials, wiring plans, references, trouble shooting.
+Make use of the text diagrams when it make sense to do so.
+
+Place the presentation you create in @handouts and call it class-04-summary.html
+
+### Next Prompt
+Using the /teen-install-instructions skill,
+write procedures for downloading the wireframe.py program and executing it on on Windows 11.
+Make sure you include installing & using any tools/libraries you may need.
+Put these instructions in this file @tech_setup_check/install-wireframe-on-windows-11.md
+
+----
+
+## My 37th Prompt - Executing wireframe.py on Window 11
+/plan
+I plan to use @src/wireframe.py in class 4 with my students.
+They use Thonny (<https://thonny.org/>) for CircuitPython for development & testing.
+@src/wireframe.py was developed and tested by me on Ubuntu.
+
+I plan to have my students download wireframe from my GitHub
+(<https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/src/wireframe.py>).
+I want to give my students simple instructions or a script to install, activate, and use @src/wireframe.py.
+I believe all my students have python installed but its likely they have different versions.
+Recommend an approach to make this simple for them.
 
 
 
