@@ -944,18 +944,32 @@ Do this before the first use of the @src/wire-frame.py code.
 
 ----
 
-## My 39th Prompt - Strategy for Tuning & Calibration of the Random Rover
-There are multiple parameters in this random rover project that require tuning & calibration, or just setting in geneeral.
+## My 39th Prompt - Check for Consistency and Completeness
+/clear
+Check all documents in the directory for consistency and completeness.
+Do this for all text and code in the entire directory.
+Make sure documents are consistent with @input/my-vision.md.
+At this time, the definitive sources are likely the documents in @lesson_scripts.
+
+Use the `/grill-me` skill to clarify any questions you may have.
+When you find inconsistencies or incompleteness, describe to me what you found,
+list the options for changes to correct it,
+recommend the changes to apply, and get my approval before making any changes.
+
+----
+
+## My 40th Prompt - Strategy for Tuning & Calibration of the Random Rover
+There are multiple parameters in this random rover project that require tuning & calibration, or just setting in general.
 Some of that work has been attempted during the building of this project,
 but because of time pressures, very little tuning & calibration has been successfully accomplished.
 So a major task during class 6 or afterwords will be tuning & calibration.
-I want to create a document to help in this process.
+I want to create a document, for the student to use, to help in this process.
 
 I want this document to begin with:
 * What is tuning & calibration & setting of parameters for and why is it important?
 * What are all the parameters that require our attention?
   Also include parameters that need to be set to satisfy our taste or preference.
-* Describe you strategy for tuning & calibration & setting of parameters
+* Describe your strategy for tuning & calibration & setting of parameters
 * What level of improvement should we expect from our efforts?
 
 I also want to provide the students a step-by-step process
@@ -972,11 +986,13 @@ Create a 2nd agent, I'll call Validator, to validate the document, using these c
 * document is fully consistent with the /explainer skills objectives
 * document is fully consistent with how random rover is specified in the @lesson_scripts documents
 * document is easy to follow and not confusing, use of text based diagrams could be helpful
-* document provides warnings when setting parameters could cause harm to the random rover
+* document provides warnings when setting parameters that could cause harm to the random rover
 * document says when parameter settings are very important or of little consequences
-* document provides time estimate for the work performed
+* document provides time estimate for the work performed and any tools required
+  (e.g. paper/pen to log data, masking tap, timer, volt meter, etc.)
 
 Update your edits and revalidate until Validator has no objections.
+Do no more than 5 iterative loops.
 
 Use your /explainer skill to write this document
 and place it in @explaners/strategy-for-tuning-calibration-random-rover.md
