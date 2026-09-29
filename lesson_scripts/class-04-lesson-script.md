@@ -1053,6 +1053,21 @@ while True:
 
 ```
 
+**Don't skip this step: put Class 3's `code.py` back.** Saving `rover_server.py` alone does
+nothing — CircuitPython only runs `code.py`, and right now your `code.py` is still Phase 3's IMU
+program, which never imports `rover_server`. Until you replace it, the website never starts and the
+Pico's WiFi network never appears. Save this over `code.py` on your `CIRCUITPY` drive (it's the
+same file as Class 3 Phase 4's manual-check version):
+
+```python
+# class-3-phase-4-code.py -- save as code.py -- runs the rover status website
+import rover_server
+```
+
+Want the page to keep updating while the car drives itself, like Class 3's automatic check? Use
+Class 3's automatic-check version instead — `import motor_driver`,
+`motor_driver.drive(0.6, 0.6)`, then `import rover_server` — with the rover's wheels off the table.
+
 ### Try it / what you should see
 
 Watch the serial console for `Starting Wi-Fi Access Point...`, `AP Active! Connect to SSID: ...`,
@@ -1101,6 +1116,7 @@ adding orientation didn't require touching any HTML or JavaScript — only the d
 | Rover status website's `roll`/`pitch`/`yaw` show `0.0` and never change | Same I2C wiring problem as `class-4-phase-1-code.py` — `SDA`/`SCL` swapped or not detected | Verify `SDA` on `GP0`, `SCL` on `GP1` before touching `rover_server.py`'s new code |
 | Website's `yaw` lags or ends up far off after turning, though Phase 3 tracks fine | Filter runs only per browser request, or pauses during `read_speed()` | Main loop must call `_update_orientation()`; route must pass `while_sampling=_update_orientation` |
 | `TypeError: ... unexpected keyword argument 'while_sampling'` | `wheel_odometry.py` on `CIRCUITPY` is an older copy without the optional argument | Update `read_speed()` to the Class 3 Phase 3 version, which accepts `while_sampling` |
+| Pico's WiFi network never appears / website never loads after Phase 4 | `code.py` is still Phase 3's IMU program, so `rover_server.py` never runs | Save `class-3-phase-4-code.py` (`import rover_server`) over `code.py` |
 | Browser says "refused to connect" at `192.168.4.1` | Wrong port (this version uses `5000`) or the browser switched to `https://` | Open exactly `http://192.168.4.1:5000` |
 | Website loads but is missing `speed_left_cms`/`dir_left`/etc. from Class 3 | `class-4-phase-4-rover_server.py` was saved as a new file instead of over the existing `rover_server.py` | Confirm only one `rover_server.py` exists on `CIRCUITPY` and it's the Class 4 version with all seven fields |
 | Website's orientation fields update, but wheel speed/direction stopped working | `wheel_odometry` import removed, or Class 3's optocoupler wiring on `GP19`/`GP17` was disturbed while adding today's IMU wiring | Confirm `import wheel_odometry` is still present and Class 3's optocoupler wiring wasn't bumped |
