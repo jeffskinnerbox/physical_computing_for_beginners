@@ -141,6 +141,10 @@ signal.signal(signal.SIGINT, stop)
 
 # Keep going until Ctrl-C or the window is closed.
 while running and plt.fignum_exists(fig.number):
+    # Let the window handle events (redraw, resize, close) every pass --
+    # even when no data arrived -- so it never freezes as "Not Responding".
+    fig.canvas.flush_events()
+
     # The Pico sends lines faster than we can draw them. Read everything
     # already waiting and keep only the NEWEST line, so the box shows where
     # the board is now -- not where it was several seconds ago.
@@ -165,9 +169,8 @@ while running and plt.fignum_exists(fig.number):
     right_label.set_position_3d(rotated[RIGHT_FACE].mean(axis=0))
     ax.set_title(f"roll={roll:.0f} pitch={pitch:.0f} yaw={yaw:.0f}")
 
-    # Redraw the window and let it handle events (resize, close, etc.).
+    # Ask for a redraw; the flush_events() at the top of the loop does it.
     fig.canvas.draw_idle()
-    fig.canvas.flush_events()
 
 # Let go of the serial port so Thonny can reconnect to the Pico right away.
 ser.close()

@@ -15,6 +15,7 @@ just a bookmark to an external source, kept for whoever's setting up a laptop to
 ├── install-wsl-on-windows-11.md                     # full WSL install walkthrough
 ├── install-python-on-windows-11.md                  # full Python 3 install for Windows 11 (used from Class 4)
 ├── install-circuitpython-dev-env-on-windows-11.md    # full CircuitPython dev environment setup (editor, libraries, board)
+├── install-wireframe-on-windows-11.md                # install uv, download + run Class 4 wireframe.py (laptop 3D viewer)
 ├── python-virtual-environments.md                    # venv reference notes
 ├── set-up-ssh-key-authentication.md                  # link out to an SSH key setup guide
 ├── git-worktree-multitasking.md                      # link out to git worktree reference material
