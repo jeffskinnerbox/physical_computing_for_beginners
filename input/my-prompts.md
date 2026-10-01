@@ -999,6 +999,63 @@ and place it in @explaners/strategy-for-tuning-calibration-random-rover.md
 
 ----
 
+## My 41st Prompt - Make a Full Build Script file
+Use your /explainer skill.
+A student may want to build the full project, including all optional hardware,
+without going through all the individual phases.
+This will be particularly useful after the student has completed the class and wishes to rebuild the project.
+This effectively combines all classes 1 thru 6 into one build session,
+creating the final working build that is created in class 6.
+It should also include all the optional/stretch software/hardware in class 6.
+Use the place holder calibration/tuning/preferences valued use in the @lesson_scripts/class-06* documents.
+
+The introduction should instruct the student to put the pico and motor driver at one end of the breadboard close together.
+The other extreme end of the breadboard should hold the buck converter.
+One rail of the breadboard should be dedicated to 5V and the other to 3.3V power.
+All power wiring, `+/-` should go to these rails and make sure to establish a common `GRD` for all devices,
+including the battery.
+
+The document to cover this full project build will be call @full_build/full-build-script.md.
+It will attempt to be brief, leaving out much of the narrative found in the @lesson_scripts/class*documents,
+but it must be consistent with those documents and complete enough so the student can easily follow it for a successful build.
+Like the @lesson_scripts/class* documents, its purpose is to step the student through the build,
+point out potential pitfalls when they may exits.
+The import point is to be brief but complete.
+
+@lesson_scripts/full-build-script.md must contain the following sections:
+* brief description of what this document is used for
+* A table like found in "### Wiring for this phase" but also including a column for the class where the device was first introduced.
+* A table like found in "### Software for this phase" that includes only the code & libraries used for this final build.
+* A section like "### The code" provides a short introductory description of each code block code that will be installed on the pico,
+  software for the laptop (e.g. `wireframe.py`), and calibration/testing tools.
+  At the conclusion of the description a URL link will point to the code in @full_build/src.
+* The near file step will instruct the student to use the @full_build/test testing tools (describe further below).
+* The very final step is to tell to the user to use the @explainers/strategy-for-tuning-calibration-random-rover.md file for final preparation.
+* The final section should be a check list of things the user must do to create the build with links to code as required.
+
+The code will be organized in the following fashion:
+* All build code blocks will be in @full_build/src and its file name will be the same used by CircuitPython or Python.
+* Instructions/scripts will be give on how to easily move all the software to its target location (e.g. Pico, Laptop, etc)
+* Also provided will be a test scripts placed in @full_build/test.
+  The test script (scripts) will exercise all the devices to validate the build is working.
+  The script should instruct the user on what to do, what to observer, they should pause so the user can do preparation (as required),
+  and should pause for user input as required
+
+Using a sub-agent,
+validate that @lesson_scripts/full-build-script.md is equivalent to how the class 1 thru 6 would operate.
+Modify @lesson_scripts/full-build-script.md as necessary.
+
+Once the above sub-agent finishes,
+The test scripts should be created by another sub-agent.
+Using the @lesson_scripts/full-build-script.md as your spec document,
+iterate on test scripts until you predict they will pass.
+
+Use the `/grill-me` skill to clarify any questions you may have.
+When you find inconsistencies or incompleteness, describe to me what you found,
+list the options for changes to correct it,
+recommend the changes to apply, and get my approval before making any changes.
+
+----
 
 
 
@@ -1019,18 +1076,6 @@ and place it in @explaners/strategy-for-tuning-calibration-random-rover.md
 
 
 
----
-
-## My ??? Prompt - Add a Phase 5 to class-04-lesson_script.md
-In @lesson_scripts/class-03-lesson-script.md, add a Phase 5 section titled "## 8. Build It: Phase 5 — TBD".
-The style of writing for this new section should be consistent with @lesson_scripts/class-03-lesson-script.md.
-
-This code should do the following:
-1. Use the Phase 4 code as its starting point.
-1. The random rover should move continuously in square pattern, where the sides of the square are 60 centimeters.
-   Code should be reused from previous classes as needed.
-1. The random rover should supply near real time data simultaneously to the @src/wire_frame.py program and the rover_server.py web server.
-1. Data sent to @src/wire_frame.py program and rover_server.py web server is the same format but displayed differently
 
 ----
 

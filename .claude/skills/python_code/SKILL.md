@@ -16,11 +16,14 @@ High quality Python code is written such that it contains these characteristic's
 * Create Highly Readable Python Functions
 * Efficiently Executed Python Code
 
-Sources:
+Other Sources to Consider:
 * [How to Write Readable Python Functions Even If You’re a Beginner][01]
 * [How to Write Efficient Python Code Even If You’re a Beginner][02]
 * [How To Write Efficient Python Code: A Tutorial for Beginners][03]
 * [7 Python Best Practices Senior Developers Follow (That Beginners Often Miss)](https://www.kdnuggets.com/7-python-best-practices-senior-developers-follow-that-beginners-often-miss)
+* [7 Advanced Python Tricks to Level Up Your Coding Skills](https://www.kdnuggets.com/7-advanced-python-tricks-to-level-up-your-coding-skills)
+* [10 Python One-Liners That Will Make Your Code Cleaner and Faster](https://www.kdnuggets.com/10-python-one-liners-that-will-make-your-code-cleaner-and-faster)
+
 ----
 
 ## Write Pythonic Code
