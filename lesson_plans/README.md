@@ -1,20 +1,23 @@
 # README
 
 Generated, instructor-facing course documents for Physical Computing for Beginners: the syllabus,
-the bill of materials, and one lesson plan per class (Pre-Class through Class 6).
+the bill of materials, and one lesson plan per class (Pre-Class through Class 6). Students follow
+the matching student-facing walkthroughs in [`lesson_scripts/`][01] instead.
 
 
 ## Usage
 
-See the root [README][01] for the full course documentation map, and the project's `CLAUDE.md`
-for the generation pipeline behind it. Every file here is generated *from* `input/my-vision.md` via a dedicated skill
+See the root [README][02] for the full course documentation map, and the project's
+[`CLAUDE.md`][03] for the generation pipeline behind it. Every file here is generated *from*
+[`input/my-vision.md`][04] via a dedicated skill
 (`/syllabus_generator`, `/lesson_plan_generator`, `/bill_of_materials_generator`) and must stay
 consistent with it and with each other — when `my-vision.md` changes, these docs need to be
 regenerated or reconciled, not hand-edited out of sync. Lesson plans must follow the class outline
 fixed in the syllabus and flow class-to-class with minimal repetition; regenerate them one class at
 a time, stopping for review, rather than all at once. The BOM is the single source of truth for all
 cost and sourcing information — the syllabus and lesson plans reference component names but never
-prices.
+prices. Each lesson plan embeds its class's `class-N-code-*.py` code inline as fenced code blocks;
+there are no standalone `.py` files here.
 
 
 ## Build Process
@@ -40,5 +43,7 @@ the `.bak` files are throwaway and gitignored.
 | Class 5 lesson plan | `class-05-lesson-plan.md` | Combines Class 2's sensor/servo sweep and Class 3's motor driver into the autonomous Random Rover, plus two new fixed safety sensors (limit switch, IR), and calibrates/fuses the IMU's magnetometer so a compass heading steers closed-loop turns. Also refactors the rover status website into a library so the collision-avoidance program can drive and serve live telemetry at the same time, adding compass heading, scan heading, drive state, and stop-trigger fields. |
 | Class 6 lesson plan | `class-06-lesson-plan.md` | Finishes and tunes the Random Rover, then offers three optional stretch goals reconnecting earlier circuits: encoder speed control, a rolling-history chart added to the rover status website running since Class 3, and a TFT status display. |
 
-
-[01]:../README.md
+[01]:../lesson_scripts/README.md
+[02]:../README.md
+[03]:../CLAUDE.md
+[04]:../input/my-vision.md

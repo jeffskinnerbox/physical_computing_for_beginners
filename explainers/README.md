@@ -12,10 +12,9 @@ about *why* something was invented than a spec sheet about *what* it is.
 
 ## Usage
 
-See the root [README][01] for the full course map, and `CLAUDE.md` for the generation pipeline
-behind it. Explainers
-sit off to the side of the main syllabus/lesson-plan/BOM generation pipeline: they're
-supplementary reading, not something a student needs to get through before a class. Think of them
+See the root [README][01] for the full course map, and [`CLAUDE.md`][02] for the generation
+pipeline behind it. Explainers sit off to the side of the main syllabus/lesson-plan/BOM generation
+pipeline: they're supplementary reading, not something a student needs to get through before a class. Think of them
 as the answer to a question a curious student might ask mid-build — "wait, why CircuitPython and
 not MicroPython?" — without making every lesson script stop and explain it inline. A lesson plan
 or lesson script is free to link out to one of these whenever it touches a concept an explainer
@@ -27,8 +26,8 @@ already covers in more depth.
 Nothing to build here — it's all static markdown. If you want a new explainer, that's what the
 `explainer` skill is for; just invoke it with the topic you want covered. If you'd rather hand
 someone a Word doc or PDF instead of a markdown file, pandoc will convert any of these directly:
-`pandoc -f gfm <file>.md -o <file>.docx`, following the same export convention used elsewhere in
-`CLAUDE.md`.
+`pandoc -f gfm <file>.md -o <file>.docx`, following the same export convention described in
+[`CLAUDE.md`][02].
 
 
 ## Contents
@@ -50,22 +49,23 @@ someone a Word doc or PDF instead of a markdown file, pandoc will convert any of
 
 
 ## Future Explainers Topics
-These are future explainer topics but not yet written:
+These are future explainer topics, not yet written (checked against this folder's contents — none
+of them exist yet; move an entry into the Contents table above once its file is generated):
 
-* what-are-pull-up-pull-down-resistors.md
-* what-are-the-types-of-displays.md
-* devices-that-need-debouncing.md
-* what-devices-have-deceptive-behavior-like-buttons.md
-
-* what-is-an-odometer.md
-* what-is-a-buck-converter.md
-* what-is-git-and-github.md
-* what-is-wheel-odometry.md
-* how-does-a-microcontroller-host-a-website.md
-* why-5v-for-digital-but-33v-for-analog.md
-* what-is-a-servo-motor.md
-* why-is-analog-output-used-for-transducers.md
-
+- what-are-pull-up-pull-down-resistors.md
+- what-are-the-types-of-displays.md
+- devices-that-need-debouncing.md
+- what-devices-have-deceptive-behavior-like-buttons.md
+- what-is-an-odometer.md
+- what-is-a-buck-converter.md
+- what-is-git-and-github.md
+- what-is-wheel-odometry.md
+- how-does-a-microcontroller-host-a-website.md
+- why-5v-for-digital-but-33v-for-analog.md
+- what-is-a-servo-motor.md
+- why-is-analog-output-used-for-transducers.md
 
 
-[01]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/README.md
+
+[01]:../README.md
+[02]:../CLAUDE.md

@@ -2,25 +2,36 @@
 
 Student-facing, detailed build+code walkthroughs for Physical Computing for Beginners: one lesson
 script per class (Pre-Class through Class 6), each explanatory text plus fully-commented
-CircuitPython built up in phases, with the complete final code listed at the end.
+CircuitPython built up in phases, with the complete final code listed at the end. Already finished
+the course, or rebuilding a rover? [`full_build/`][01] builds the finished Random Rover (Classes
+1-6 plus all stretch goals) in one session, reusing this folder's code.
 
 
 ## Usage
 
-See the root [README][01] for the full course documentation map, and the project's `CLAUDE.md`
-for the generation pipeline behind it. Lesson scripts are distinct from the instructor-facing lesson plans in
-`lesson_plans/`: the lesson plan is the teaching guide an instructor works from, while the lesson
-script is the detailed, student-readable walkthrough a student can follow on their own. Neither is
+See the root [README][02] for the full course documentation map, and the project's
+[`CLAUDE.md`][03] for the generation pipeline behind it. Lesson scripts are distinct from the
+instructor-facing lesson plans in [`lesson_plans/`][04]: the lesson plan is the teaching guide an instructor works from, while
+the lesson script is the detailed, student-readable walkthrough a student can follow on their own. Neither is
 generated from the other via a dedicated skill — they're written ad-hoc (see "My 8th Prompt" in
 `input/my-prompts.md`) but must stay consistent with the class outline fixed in the syllabus and
 with each other, flowing class-to-class with minimal repetition. Regenerate/reconcile them one
 class at a time, stopping for review, rather than all six at once.
 
+Each "Build It: Phase N" section has a fixed subsection order — Wiring for this phase → Software
+for this phase (a table of component | new / modified / unchanged + its `class-xx-phase-x-*.py` id |
+what it does) → What this code does → The code → Try it / what you should see → Checkpoint. Keep
+that order, and keep the Software table in sync whenever a phase's code changes.
+
 
 ## Build Process
 
 No build process — this directory holds static markdown source files plus the CircuitPython code
-they walk through inline as fenced code blocks (no standalone `.py` files). Per this user's
+they walk through inline as fenced code blocks (no standalone `.py` files). Two places hold
+copies of code from these scripts as real files, and must be kept in sync when a script's code
+changes: [`src/wireframe/wireframe.py`][05] (the Class 4 laptop viewer, canonical copy in
+`class-04-lesson-script.md`) and the rover files in [`full_build/src/pico/`][06] (copied unchanged
+from the Class 3/5/6 scripts, plus full-build-only glue). Per this user's
 file-change convention, editing a script here also writes/updates a matching `.md.bak` mechanical
 backup (e.g. `class-00-lesson-script.md.bak`) alongside it; the `.bak` files are throwaway and
 gitignored.
@@ -38,5 +49,9 @@ gitignored.
 | Class 5 lesson script | `class-05-lesson-script.md` | Walkthrough for combining the Class 2 sensor/servo sweep and Class 3 motor driver into the autonomous Random Rover, with two new fixed safety sensors. Calibrates the IMU's magnetometer on the finished rover and fuses it into the Mahony filter, so a drift-free compass heading steers closed-loop turns. Also refactors the rover status website into a library so the collision-avoidance program can drive and serve live telemetry (compass heading, scan heading, drive state, stop reason) at the same time. |
 | Class 6 lesson script | `class-06-lesson-script.md` | Walkthrough for finishing/tuning the Random Rover, then three optional stretch goals: encoder speed control, a rolling-history chart added to the rover status website running since Class 3, and a TFT status display. |
 
-
-[01]:../README.md
+[01]:../full_build/README.md
+[02]:../README.md
+[03]:../CLAUDE.md
+[04]:../lesson_plans/README.md
+[05]:../src/wireframe/wireframe.py
+[06]:../full_build/src/pico/

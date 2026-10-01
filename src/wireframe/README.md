@@ -1,9 +1,9 @@
 # README
 
-Laptop-side Python helpers for Physical Computing for Beginners: code that runs on the student's
-computer, not on the Pico. Everything Pico-side is CircuitPython embedded in the lesson scripts;
-this directory is a small `uv` project (Python 3.14) for the few programs that need a desktop
-Python instead.
+Laptop-side Python for Physical Computing for Beginners: `wireframe.py`, the Class 4 live 3D
+orientation viewer, which runs on the student's computer, not on the Pico. Everything Pico-side is
+CircuitPython embedded in the lesson scripts; this directory is a small `uv` project (Python 3.14)
+for the one program that needs a desktop Python instead.
 
 
 ## Contents
@@ -28,21 +28,41 @@ Pico running `class-4-phase-1-code.py` or `class-4-phase-3-code.py`.
 Students don't clone this directory; they download `wireframe.py` and run it by following
 [Install and Run wireframe.py on a Windows 11 Laptop][02].
 
+A separate variant, [`full_build/src/laptop/wireframe.py`][03], is a test tool for the finished
+rover: it reads the rover website's `/data.json` over WiFi instead of CSV over USB (the finished
+rover never prints CSV). It isn't part of this project; see [`full_build/`][04]. See
+[`src/`][05] for the rest of the laptop-side folders.
+
+
+## Installation
+
+Nothing to install beyond [`uv`][06]. `wireframe.py` carries PEP 723 inline dependencies (the
+`# /// script` block: numpy, matplotlib, pyserial), so `uv` fetches what it needs on first run
+(internet needed once).
+
 
 ## Usage
 
-`wireframe.py` carries PEP 723 inline dependencies (the `# /// script` block), so `uv` installs
-what it needs on first run. It finds the Pico's serial port by itself; pass a port only if it picks
-the wrong board.
+It finds the Pico's serial port by itself (USB vendor ID of an Adafruit/CircuitPython or Raspberry
+Pi board); pass a port only if it picks the wrong board.
 
 ```bash
 cd src/wireframe
 uv run wireframe.py               # auto-detect the Pico
 uv run wireframe.py /dev/ttyACM0  # or name the port (COM5 on Windows)
-uv run ruff check                 # lint (or: uv run ruff check wireframe.py)
 ```
 
 Close Mu/Thonny first — only one program can hold the serial port.
+
+
+## Testing
+
+No automated tests. Lint with ruff:
+
+```bash
+cd src/wireframe
+uv run ruff check                 # or one file: uv run ruff check wireframe.py
+```
 
 
 ## Notes
@@ -50,9 +70,14 @@ Close Mu/Thonny first — only one program can hold the serial port.
 - `flask` and `ruff` are installed in `.venv` but not declared in `pyproject.toml`, so `uv sync`
     removes them. Add new dependencies with `uv add <package>`, not `uv pip install`.
 - Pico-side CircuitPython can't run here — it needs the board.
-- See the root [README][03] for the course map and `CLAUDE.md` for repo conventions.
+- See the root [README][07] for the course map and [`CLAUDE.md`][08] for repo conventions.
 
 
-[01]:../lesson_scripts/class-04-lesson-script.md
-[02]:../tech_setup_check/install-wireframe-on-windows-11.md
-[03]:../README.md
+[01]:../../lesson_scripts/class-04-lesson-script.md
+[02]:../../tech_setup_check/install-wireframe-on-windows-11.md
+[03]:../../full_build/src/laptop/wireframe.py
+[04]:../../full_build/README.md
+[05]:../README.md
+[06]:https://docs.astral.sh/uv/
+[07]:../../README.md
+[08]:../../CLAUDE.md
