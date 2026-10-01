@@ -999,7 +999,7 @@ and place it in @explaners/strategy-for-tuning-calibration-random-rover.md
 
 ----
 
-## My 41st Prompt - Make a Full Build Script file
+## My 41st Prompt - Make a Full Build Script File
 Use your /explainer skill.
 A student may want to build the full project, including all optional hardware,
 without going through all the individual phases.
@@ -1029,9 +1029,9 @@ The import point is to be brief but complete.
 * A section like "### The code" provides a short introductory description of each code block code that will be installed on the pico,
   software for the laptop (e.g. `wireframe.py`), and calibration/testing tools.
   At the conclusion of the description a URL link will point to the code in @full_build/src.
-* The near file step will instruct the student to use the @full_build/test testing tools (describe further below).
-* The very final step is to tell to the user to use the @explainers/strategy-for-tuning-calibration-random-rover.md file for final preparation.
-* The final section should be a check list of things the user must do to create the build with links to code as required.
+* The near final step will instruct the student to use the @full_build/test testing tools (describe further below) to validate the build.
+* The very final step is to tell the student to use the @explainers/strategy-for-tuning-calibration-random-rover.md file for final preparation.
+* The final section should be a check list of things the user must do to create the build, test, and calibrate, with links to code as required.
 
 The code will be organized in the following fashion:
 * All build code blocks will be in @full_build/src and its file name will be the same used by CircuitPython or Python.
