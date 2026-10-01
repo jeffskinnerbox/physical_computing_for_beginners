@@ -1,0 +1,11 @@
+# CircuitPython libraries for /lib -- installed by `circup install -r requirements.txt`
+# (deploy.py does this for you). circup also pulls in their dependencies
+# (adafruit_bus_device, adafruit_register, adafruit_ticks, ...).
+adafruit_hcsr04
+adafruit_motor
+adafruit_debouncer
+adafruit_ticks
+adafruit_lsm9ds1
+adafruit_httpserver
+adafruit_st7789
+adafruit_display_text

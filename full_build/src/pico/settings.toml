@@ -1,0 +1,5 @@
+# settings.toml -- the name and password YOU choose for the rover's own WiFi network.
+# Pick a name nobody else in the room is using. Password: at least 8 characters.
+# deploy.py copies this only if CIRCUITPY has no settings.toml yet -- it never overwrites yours.
+CIRCUITPY_WIFI_AP_SSID="rover-yourname"
+CIRCUITPY_WIFI_AP_PASSWORD="changeme123"

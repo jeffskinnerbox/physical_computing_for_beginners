@@ -95,3 +95,4 @@ Thumbs.db
 *.box
 .vagrant
 
+full_build/backup/

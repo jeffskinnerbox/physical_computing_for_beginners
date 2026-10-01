@@ -1027,7 +1027,7 @@ The import point is to be brief but complete.
 * A table like found in "### Wiring for this phase" but also including a column for the class where the device was first introduced.
 * A table like found in "### Software for this phase" that includes only the code & libraries used for this final build.
 * A section like "### The code" provides a short introductory description of each code block code that will be installed on the pico,
-  software for the laptop (e.g. `wireframe.py`), and calibration/testing tools.
+  software for the laptop (e.g. `wireframe.py` which should be reformatted as a testing tool), and calibration/testing tools.
   At the conclusion of the description a URL link will point to the code in @full_build/src.
 * The near final step will instruct the student to use the @full_build/test testing tools (describe further below) to validate the build.
 * The very final step is to tell the student to use the @explainers/strategy-for-tuning-calibration-random-rover.md file for final preparation.
@@ -1049,6 +1049,10 @@ Once the above sub-agent finishes,
 The test scripts should be created by another sub-agent.
 Using the @lesson_scripts/full-build-script.md as your spec document,
 iterate on test scripts until you predict they will pass.
+Test scripts should run without making any modifications to the pico code.
+Test scripts should validate that project is operating as specified in @lesson_scripts/full-build-script.md.
+Test scripts should work, without code changes to test scripts,
+before and after performing the @explainers/strategy-for-tuning-calibration-random-rover.md work.
 
 Use the `/grill-me` skill to clarify any questions you may have.
 When you find inconsistencies or incompleteness, describe to me what you found,
