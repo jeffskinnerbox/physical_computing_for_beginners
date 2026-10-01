@@ -36,7 +36,7 @@ what it needs on first run. It finds the Pico's serial port by itself; pass a po
 the wrong board.
 
 ```bash
-cd src
+cd src/wireframe
 uv run wireframe.py               # auto-detect the Pico
 uv run wireframe.py /dev/ttyACM0  # or name the port (COM5 on Windows)
 uv run ruff check                 # lint (or: uv run ruff check wireframe.py)

@@ -143,7 +143,7 @@ Set-Location "$HOME\class-4"
 #                        Windows PowerShell 5.1 (Windows 11's default) shows a "Script Execution
 #                        Risk" warning and cancels the download if you press Enter.
 #                        PowerShell 7 ignores this flag, so it's safe either way.
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/src/wireframe.py" -OutFile "wireframe.py" -UseBasicParsing
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/src/wireframe/wireframe.py" -OutFile "wireframe.py" -UseBasicParsing
 ```
 
 **Test it**
