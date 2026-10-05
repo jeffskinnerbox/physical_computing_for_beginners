@@ -13,8 +13,11 @@ and the commands; it doesn't repeat the build steps.
 ```text
 .
 ├── full-build-script.md        # THE doc: plan, parts, wiring, code overview, build, test, tune, checklist
+├── setup-test-laptop.sh        # laptop (Linux): install git/uv, clone or pull this repo, pre-fetch laptop tools' packages
+├── setup-test-laptop.ps1       # laptop (Windows 11): same, in PowerShell
 ├── deploy.py                   # laptop: copies libraries + rover code onto CIRCUITPY, runs tools/tests as code.py
 ├── src/
+│   ├── tuning-log-template.md  # the tuning guide's log, pre-filled with the starting values
 │   ├── pico/                   # the rover itself (runs on the Pico)
 │   │   ├── code.py             # full build: Class 5 stop-look-go rover + Class 6 stretch glue
 │   │   ├── rover_server.py     # Class 5, unchanged: 9-DOF Mahony filter, compass heading, rover website
@@ -50,7 +53,7 @@ curriculum. See the root [README][03] for where it fits in the course.
     or 6 lesson script changes that code, copy the change here too.
 - **Full-build glue:** `code.py` (Class 5's `class-5-code.py` plus three hook points for the
     stretch goals), `speed_knob.py`, and `tft_status.py` (Class 6's standalone demos turned into
-    libraries), plus `deploy.py`, `wireframe.py`, and both tests. These have no lesson-script
+    libraries), plus `setup-test-laptop.sh`/`.ps1`, `deploy.py`, `wireframe.py`, and both tests. These have no lesson-script
     original to sync against beyond the Class 5/6 code they extend.
 - `servo_check.py` and `motor_check.py` come from the
     [Strategy for Tuning and Calibrating the Random Rover][04] explainer, which is the next stop
@@ -65,7 +68,8 @@ prints CSV.
 
 - Raspberry Pi Pico 2 W running CircuitPython **10.x** (9 or later is required for the TFT's
     `fourwire` module), wired per the wiring table in [`full-build-script.md`][01].
-- [`uv`][06] on the laptop (Windows 11, Linux, or macOS). Every laptop script carries PEP 723
+- [`uv`][06] and `git` on the laptop (Windows 11, Linux, or macOS) — the setup scripts install both
+    if they're missing. Every laptop script carries PEP 723
     inline dependencies (`# /// script`), so `uv` installs `circup`, `numpy`/`matplotlib`, or
     `pyserial` as needed — there's no project file to sync.
 - Internet on the laptop for the first `deploy.py rover` (circup downloads libraries into `/lib`)
@@ -76,7 +80,24 @@ prints CSV.
 
 ## Usage
 
-Run everything from this `full_build/` folder. **Keep the rover on its stand whenever you deploy or
+On a laptop without the code yet (e.g., a separate test laptop), run the setup script for its OS
+while it has internet. It installs `git` and `uv` if missing, clones this repo to
+`~/physical_computing_for_beginners` (override with `ROVER_REPO_DIR`), and pre-fetches the
+packages for `deploy.py`, `test/system_test.py`, and `src/laptop/wireframe.py`. On Linux it also adds
+you to the `dialout` group for the Pico's serial port (log out and back in once). Rerun it any time
+to pull updates; it stops instead of overwriting files you've edited.
+
+```bash
+# Linux
+curl -LsSf https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.sh | bash
+```
+
+```powershell
+# Windows 11 (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.ps1 | iex"
+```
+
+Then run everything from this `full_build/` folder. **Keep the rover on its stand whenever you deploy or
 save a file** — the moment `code.py` is saved, it starts driving.
 
 ```bash
@@ -85,7 +106,7 @@ uv run deploy.py rover
 uv run deploy.py rover --overwrite        # replace files you changed on CIRCUITPY (backs them up first)
 uv run deploy.py --drive E:\ rover        # if CIRCUITPY isn't found (Linux: --drive /media/you/CIRCUITPY)
 
-# pre-fetch the laptop tools' packages while you still have internet
+# pre-fetch the laptop tools' packages while you still have internet (the setup scripts already do this)
 uv sync --script src/laptop/wireframe.py
 uv sync --script test/system_test.py
 
