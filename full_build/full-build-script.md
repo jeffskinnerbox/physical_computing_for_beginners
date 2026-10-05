@@ -196,6 +196,7 @@ the meter is your check.) If either rail is wrong, switch off and recheck the ta
 | CircuitPython libraries in `/lib` | Pico | Classes 1-6 | `adafruit_hcsr04`, `adafruit_motor`, `adafruit_debouncer`, `adafruit_ticks`, `adafruit_lsm9ds1`, `adafruit_httpserver`, `adafruit_st7789`, `adafruit_display_text` (+ their dependencies) |
 | `mag_calibration.py` | Pico (as `code.py`, temporarily) | Class 5, `class-5-mag-calibration.py` | One-time compass calibration |
 | `servo_check.py`, `motor_check.py` | Pico (as `code.py`, temporarily) | [Tuning guide][02] Steps 3 and 5 | Servo-aim and motor stall-point checks |
+| `setup-test-laptop.sh` / `.ps1` | Laptop | **Full build** | Gets (or updates) this code from GitHub and pre-fetches the laptop tools' packages |
 | `deploy.py` | Laptop | **Full build** | Copies everything onto the Pico |
 | `wireframe.py` | Laptop | Class 4, reworked as a test tool | Live 3D box of the rover's orientation, read over WiFi |
 | `device_test.py` | Pico (as `code.py`, temporarily) | **Full build** | Interactive part-by-part test |
@@ -247,6 +248,14 @@ own (the password needs at least 8 characters). [settings.toml][17]
 seconds, copy the printed `MAG_OFFSET` line into `rover_server.py`. `servo_check.py` and
 `motor_check.py` are the tuning guide's servo-aim and motor-stall tests. [tools folder][19]
 
+**`setup-test-laptop.sh` / `setup-test-laptop.ps1` — laptop setup.** Use the `.sh` on Linux and
+the `.ps1` on Windows 11. It installs `git` and `uv` if they're missing, clones this course's
+repository to `~/physical_computing_for_beginners` (or pulls the latest code if it's already there),
+and pre-fetches the Python packages for `deploy.py`, `system_test.py`, and `wireframe.py` — so they
+still run after you join the rover's internet-less WiFi. On Linux it also adds you to the `dialout`
+group so `system_test.py` can open the Pico's USB serial port (log out and back in once afterward).
+Run it again any time to pull updates. [setup-test-laptop.sh][31], [setup-test-laptop.ps1][32]
+
 **`deploy.py` — the installer (laptop).** Run from the `full_build` folder with `uv`. It finds the
 `CIRCUITPY` drive, installs the libraries with `circup`, and copies the rover files — `code.py`
 last, since saving `code.py` restarts the Pico. It never overwrites your `settings.toml`, and it
@@ -286,28 +295,46 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
 
 1. **Chassis.** Assemble the chassis (motors, wheels, encoder discs, caster). Solder long male Dupont
     leads to the motors and short female leads to the on/off switch.
-2. **Mount.** Blu Tack the breadboard, DRV8833, buck converter, and battery to the chassis. Mount the
+1. **Mount.** Blu Tack the breadboard, DRV8833, buck converter, and battery to the chassis. Mount the
     servo with the HC-SR04 on its horn at the front, the limit switch with its lever leading the front
     edge, the IR sensor low and forward-facing, each optocoupler straddling its wheel's encoder disc
     (without rubbing), and the IMU as far from the motors and battery as possible. Tape the TFT where
     you can read it.
-3. **Power, then measure.** Wire the power rows of the [wiring table][26]. Set the buck
+1. **Power, then measure.** Wire the power rows of the [wiring table][26]. Set the buck
     converter to 5.0 V *before* its output reaches the 5V rail. Do the power-on check.
-4. **Signals.** Wire the rest of the table, one device at a time.
-5. **Install the software** — while your laptop is still on a normal, internet-connected network.
+1. **Signals.** Wire the rest of the table, one device at a time.
+1. **Install the software tools (Laptop)** — on a normal, internet-connected network. This gets the
+    code onto your laptop and pre-fetches the laptop tools' packages, because the rover's WiFi has no
+    internet. The first time, run the one-line command for your laptop's operating system (OS):
+
+    Do this if your OS is Linux:
+
+    ```bash
+    # Linux (Shell)
+    curl -LsSf https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.sh | bash
+    ```
+
+    Do this if your OS is Windows:
+
+    ```powershell
+    # Windows 11 (PowerShell)
+    powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.ps1 | iex"
+    ```
+
+    After that, rerun `full_build/setup-test-laptop.sh` (or `.ps1`) in your copy to pull updates.
+    Every command below runs from `~/physical_computing_for_beginners/full_build`.
+1. **Install Rover software (Pico 2W)** — while your laptop is still on a normal, internet-connected network.
     Plug in USB, put the rover on its stand (wheels off the table), and from the `full_build` folder
     run `uv run deploy.py rover`. On a first install it pauses after copying `settings.toml`: edit it
-    on `CIRCUITPY` (your own network name and password), save, then press Enter. Then pre-fetch the
-    laptop tools' packages, because the rover's WiFi has no internet:
-    `uv sync --script src/laptop/wireframe.py` and `uv sync --script test/system_test.py`.
+    on `CIRCUITPY` (your own network name and password), save, then press Enter.
 
     > **⚠ CAUTION** — the moment `code.py` is saved, the rover starts driving. **Keep it on its stand
     > whenever you deploy or save a file.** The battery switch is your emergency stop.
-6. **Watch it boot.** Open the serial console in Mu or Thonny. With the rover still and flat you
+1. **Watch it boot.** Open the serial console in Mu or Thonny. With the rover still and flat you
     should see the WiFi lines, `Calibrating gyro -- keep the rover perfectly still...`,
     `HTTP Server running at http://192.168.4.1:5000`, then `Full build -- Random Rover starting...`
     and the `drive:` and `scan:` lines as it runs in the air. The TFT shows `dist`, `head`, and `speed`.
-7. **Calibrate the compass** (Class 5, Phase 1). Run `uv run deploy.py tool mag_calibration`, then,
+1. **Calibrate the compass** (Class 5, Phase 1). Run `uv run deploy.py tool mag_calibration`, then,
     away from steel furniture, tumble the fully assembled rover through every orientation for 30
     seconds when it says `GO`. Check the three spans are roughly equal, and do the axis check with a
     phone compass (`mx` positive with the X arrow north, `my` positive with Y north, `mz` negative lying
@@ -316,8 +343,8 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
     the printed `MAG_OFFSET` line into `rover_server.py` on `CIRCUITPY`, then
     `uv run deploy.py restore`. Also paste it into `full_build/src/pico/rover_server.py` on your
     laptop, so a later `deploy.py rover --overwrite` keeps it.
-8. **Test** — [Test the Build][27].
-9. **Tune** — [Tune the Rover][28].
+1. **Test** — [Test the Build][27].
+1. **Tune** — [Tune the Rover][28].
 
 **Pitfalls during the build:**
 
@@ -326,6 +353,10 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
     doesn't reach `VSYS`.
 * **The Pico resets when the motors start** → weak 9V battery; replace it, then add the capacitor.
 * **`ImportError`** → run `uv run deploy.py rover` again (with internet) so `circup` fills `/lib`.
+* **`RuntimeError: No pull up found on SDA or SCL`** (right after the WiFi lines) → the Pico can't
+    see the IMU at all. Check IMU `VIN` is on the 3.3V rail, that rail is fed from `3V3(OUT)`, IMU
+    `GND` is on the GND rail, `SDA`/`SCL` are on `GP0`/`GP1`, and the STEMMA QT plug is fully seated.
+    `uv run deploy.py test` narrows it down.
 * **`heading` wrong or creeping** → booted while moving or tilted, or the IMU moved after
     calibration. Reboot still and flat; recalibrate if anything moved.
 * **Blank TFT** → check `GP26`/`GP27`/`GP20`-`GP22` against the table.
@@ -359,7 +390,8 @@ Your rover now works on placeholder numbers. Make it work *well* with the
 `speed_knob.py`; where it says `class-6-code-2.py`, use `history_chart.py`; for `class-6-code-3.py`, use
 `tft_status.py`. To run its test programs, use `uv run deploy.py tool servo_check` /
 `motor_check` / `mag_calibration`, and `uv run deploy.py restore` afterward. In Step 0, back up all
-seven `.py` files on `CIRCUITPY` plus `settings.toml`, not just the four the guide lists. Two more
+seven `.py` files on `CIRCUITPY` plus `settings.toml`, not just the four the guide lists. Record
+every change in a copy of the guide's tuning log, [`src/tuning-log-template.md`][33]. Two more
 full-build notes:
 the knob sets the drive speed live, so after Step 8 use it only within the range you tested; and
 during Step 7 (`DRIVE_SPEED = 0`), don't touch the knob.
@@ -375,6 +407,7 @@ during Step 7 (`DRIVE_SPEED = 0`), don't touch the knob.
 * [ ] Power wiring done; 9V only to buck `IN+` and DRV8833 `VM`; common GND everywhere
 * [ ] Power-on check: 5V rail 4.8-5.2 V, 3.3V rail 3.2-3.4 V
 * [ ] Signal wiring done per the [wiring table][26]; `SLP` on 3.3V; divider on `ECHO`
+* [ ] Laptop set up: `setup-test-laptop.sh` / `.ps1` ([setup-test-laptop.sh][31], [setup-test-laptop.ps1][32])
 * [ ] Software installed: `uv run deploy.py rover` ([deploy.py][20])
 * [ ] `settings.toml` edited with your own network name and password ([settings.toml][17])
 * [ ] Rover boots and logs `drive:` / `scan:` lines on its stand
@@ -417,4 +450,7 @@ during Step 7 (`DRIVE_SPEED = 0`), don't touch the knob.
 [28]:#8-tune-the-rover
 [29]:https://www.elecrow.com/blog/everything-you-should-know-about-micro-switch.html
 [30]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
+[31]:setup-test-laptop.sh
+[32]:setup-test-laptop.ps1
+[33]:src/tuning-log-template.md
 
