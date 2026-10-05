@@ -248,12 +248,13 @@ own (the password needs at least 8 characters). [settings.toml][17]
 seconds, copy the printed `MAG_OFFSET` line into `rover_server.py`. `servo_check.py` and
 `motor_check.py` are the tuning guide's servo-aim and motor-stall tests. [tools folder][19]
 
-**`setup-test-laptop.sh` / `setup-test-laptop.ps1` — laptop setup.** Use the `.sh` on Linux and
-the `.ps1` on Windows 11. It installs `git` and `uv` if they're missing, clones this course's
+**`setup-test-laptop.sh` / `setup-test-laptop.ps1` — laptop setup.** Use the `.sh` on Linux or a
+MacBook (macOS) and the `.ps1` on Windows 11. It installs `git` and `uv` if they're missing, clones this course's
 repository to `~/physical_computing_for_beginners` (or pulls the latest code if it's already there),
 and pre-fetches the Python packages for `deploy.py`, `system_test.py`, and `wireframe.py` — so they
 still run after you join the rover's internet-less WiFi. On Linux it also adds you to the `dialout`
-group so `system_test.py` can open the Pico's USB serial port (log out and back in once afterward).
+group so `system_test.py` can open the Pico's USB serial port (log out and back in once afterward);
+macOS needs no serial-port setup.
 Run it again any time to pull updates. [setup-test-laptop.sh][31], [setup-test-laptop.ps1][32]
 
 **`deploy.py` — the installer (laptop).** Run from the `full_build` folder with `uv`. It finds the
@@ -269,7 +270,8 @@ you add `--overwrite`, which backs the old file up first. [deploy.py][20]
 | `uv run deploy.py test` | Same, for `test/device_test.py` |
 | `uv run deploy.py restore` | Put your parked rover `code.py` back |
 
-Add `--drive E:\` (Windows) or `--drive /media/you/CIRCUITPY` (Linux) if the drive isn't found.
+Add `--drive E:\` (Windows), `--drive /media/you/CIRCUITPY` (Linux), or `--drive /Volumes/CIRCUITPY`
+(macOS) if the drive isn't found.
 
 **`wireframe.py` — orientation viewer (laptop).** Class 4's 3D box, reworked as a test tool. The
 finished rover never prints CSV over USB, so instead it reads `/data.json` from the rover website
@@ -307,10 +309,10 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
     code onto your laptop and pre-fetches the laptop tools' packages, because the rover's WiFi has no
     internet. The first time, run the one-line command for your laptop's operating system (OS):
 
-    Do this if your OS is Linux:
+    Do this if your OS is Linux or macOS (MacBook) — in Terminal on a Mac:
 
     ```bash
-    # Linux (Shell)
+    # Linux or macOS (Shell)
     curl -LsSf https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.sh | bash
     ```
 
@@ -320,6 +322,9 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
     # Windows 11 (PowerShell)
     powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.ps1 | iex"
     ```
+
+    On a Mac without Apple's Command Line Tools (which provide `git`), the script opens their
+    installer and stops — finish that install, then run the command again.
 
     After that, rerun `full_build/setup-test-laptop.sh` (or `.ps1`) in your copy to pull updates.
     Every command below runs from `~/physical_computing_for_beginners/full_build`.
@@ -374,7 +379,8 @@ unchanged, after you tune.
     `uv run deploy.py restore`.
 2. **The whole rover.** Rover on its stand, USB plugged in, laptop joined to the rover's WiFi
     network. Close Mu/Thonny's serial console (only one program can use the port), then run
-    `uv run test/system_test.py` and follow its prompts.
+    `uv run test/system_test.py` and follow its prompts. (If it can't find the Pico, name the port:
+    `COM5` on Windows, `/dev/ttyACM0` on Linux, `/dev/cu.usbmodem...` on macOS.)
 3. **Look at it.** Run `uv run src/laptop/wireframe.py`, tilt and turn the rover by hand, and check
     that the box follows and that `heading` goes **up** about 90 for a clockwise quarter turn. Then
     open `http://192.168.4.1:5000` and check the history chart scrolls.

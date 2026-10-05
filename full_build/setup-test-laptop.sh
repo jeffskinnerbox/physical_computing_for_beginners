@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# setup-test-laptop.sh -- full build: get (or update) the course code on a Linux test laptop,
+# setup-test-laptop.sh -- full build: get (or update) the course code on a Linux or macOS test laptop,
 # then pre-install every laptop script's Python packages so they run on the rover's
 # internet-less WiFi later. Safe to run again: the second time it just pulls the latest code.
 #
@@ -19,7 +19,14 @@ LAPTOP_SCRIPTS=(deploy.py test/system_test.py src/laptop/wireframe.py)
 step() { printf '\n==> %s\n' "$*"; }
 
 step "Checking for git"
-if ! command -v git >/dev/null 2>&1; then
+if [ "$(uname -s)" = "Darwin" ]; then
+    # macOS ships a /usr/bin/git stub that only works once the Command Line Tools are installed
+    if ! xcode-select -p >/dev/null 2>&1; then
+        xcode-select --install || true
+        echo "Finish the Command Line Tools install in the window that opened, then rerun this script." >&2
+        exit 1
+    fi
+elif ! command -v git >/dev/null 2>&1; then
     if command -v apt-get >/dev/null 2>&1; then
         sudo apt-get update && sudo apt-get install -y git
     else
@@ -57,7 +64,9 @@ for script in "${LAPTOP_SCRIPTS[@]}"; do
 done
 
 step "Checking serial-port access (needed by system_test.py)"
-if id -nG "$USER" | grep -qw dialout; then
+if [ "$(uname -s)" = "Darwin" ]; then
+    echo "  macOS: no setup needed -- the Pico shows up as /dev/cu.usbmodem..."
+elif id -nG "$USER" | grep -qw dialout; then
     echo "  $USER is in the dialout group"
 else
     sudo usermod -aG dialout "$USER"

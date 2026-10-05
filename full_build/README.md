@@ -13,7 +13,7 @@ and the commands; it doesn't repeat the build steps.
 ```text
 .
 ├── full-build-script.md        # THE doc: plan, parts, wiring, code overview, build, test, tune, checklist
-├── setup-test-laptop.sh        # laptop (Linux): install git/uv, clone or pull this repo, pre-fetch laptop tools' packages
+├── setup-test-laptop.sh        # laptop (Linux/macOS): install git/uv, clone or pull this repo, pre-fetch laptop tools' packages
 ├── setup-test-laptop.ps1       # laptop (Windows 11): same, in PowerShell
 ├── deploy.py                   # laptop: copies libraries + rover code onto CIRCUITPY, runs tools/tests as code.py
 ├── src/
@@ -88,7 +88,7 @@ you to the `dialout` group for the Pico's serial port (log out and back in once)
 to pull updates; it stops instead of overwriting files you've edited.
 
 ```bash
-# Linux
+# Linux or macOS (Terminal)
 curl -LsSf https://raw.githubusercontent.com/jeffskinnerbox/physical_computing_for_beginners/main/full_build/setup-test-laptop.sh | bash
 ```
 
@@ -104,7 +104,7 @@ save a file** — the moment `code.py` is saved, it starts driving.
 # first install: libraries + every rover file (code.py copied last; pauses so you can edit settings.toml)
 uv run deploy.py rover
 uv run deploy.py rover --overwrite        # replace files you changed on CIRCUITPY (backs them up first)
-uv run deploy.py --drive E:\ rover        # if CIRCUITPY isn't found (Linux: --drive /media/you/CIRCUITPY)
+uv run deploy.py --drive E:\ rover        # if CIRCUITPY isn't found (Linux: /media/you/CIRCUITPY, macOS: /Volumes/CIRCUITPY)
 
 # pre-fetch the laptop tools' packages while you still have internet (the setup scripts already do this)
 uv sync --script src/laptop/wireframe.py
