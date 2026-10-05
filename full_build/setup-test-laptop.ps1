@@ -41,7 +41,12 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Update-Path
     $env:Path = "$HOME\.local\bin;$env:Path"
 } else {
-    uv self update 2>$null | Out-Null  # needs uv 0.6+ for `uv sync --script`; skip if uv came from winget/pip
+    # Needs uv 0.6+ for `uv sync --script`; fails harmlessly if uv came from winget/pip. uv prints
+    # progress on stderr, and Windows PowerShell 5.1 turns redirected stderr into an error that
+    # "Stop" would end the script on -- so relax it for this one call.
+    $ErrorActionPreference = "Continue"
+    uv self update *> $null
+    $ErrorActionPreference = "Stop"
 }
 uv --version
 
