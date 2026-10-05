@@ -35,9 +35,9 @@ prevents most of the hard-to-find bugs later.
 ```text
 +5V  rail (top +)       ===========================================================
 GND  rail (top -)       ===========================================================
-
-USB end of the board -> [ Pico 2 W ][ DRV8833 ]                  [ buck converter ] <- far end
-
+                                           [ TFT ] [ Rotary Encoder ]
+USB end of the board -> [ Pico 2W ][ DRV8833 ]                   [ Buck Converter ] <- far end
+                                             [ 1K & 2K Resisters ]
 GND   rail (bottom -)   ===========================================================
 +3.3V rail (bottom +)   ===========================================================
 ```
@@ -67,7 +67,7 @@ GND   rail (bottom -)   ========================================================
 ## 3. What You'll Need
 
 | Component | Qty | First used |
-| :-------- | :-: | :--------- |
+| :-------- | :-: | :---------: |
 | Raspberry Pi Pico 2 W (with header) | 1 | Pre-Class |
 | 830-point breadboard, Dupont jumper wires | 1, many | Pre-Class |
 | * KY-040 rotary encoder | 1 | Class 1 |
@@ -81,7 +81,7 @@ GND   rail (bottom -)   ========================================================
 | 1000 µF electrolytic capacitor | 1 | Class 3 |
 | Adafruit LSM9DS1 9-DOF IMU + STEMMA QT-to-male-header cable | 1 | Class 4 |
 | * Micro limit switch (bump switch) | 1 | Class 5 |
-| * IR obstacle avoidance sensor | 1 | Class 5 (Pre-Class homework) |
+| * IR obstacle avoidance sensor | 1 | Class 5 Pre-Class homework) |
 | * Adafruit 1.14" 240x135 ST7789 TFT display | 1 | Class 6 (Pre-Class homework) |
 | Long male and short female Dupont leads (to solder to the motors and switch) | 2 + 2 | Class 3 |
 | Blu Tack, soldering iron, multimeter, small screwdriver | — | Class 3 |
@@ -95,10 +95,11 @@ GND   rail (bottom -)   ========================================================
 ## 4. Wiring
 
 Wire in the order of the table: power first, then each device. Trace each row out loud as you go.<br>
-**Pinouts:** [Pico 2 W][03], [DRV8833][04], [LSM9DS1][05], [HC-SR04][06], [SG90][07], [IR optocoupler][08], [TFT display][09].
+**Pinouts:** [Pico 2 W][03], [DRV8833][04], [LSM9DS1][05], [HC-SR04][06], [SG90][07], [IR optocoupler][08],
+[TFT display][09], [IR Obstacle Avoidance Sensor][30], [DAOKI Micro Limit Switch][29]
 
 | Component | Connects to | First introduced | Notes |
-| :-------- | :---------- | :--------------- | :---- |
+| :-------- | :---------- | :---------------: | :---- |
 | Battery `+` | chassis on/off switch | Class 3 | solder Dupont leads to the switch and motors first |
 | On/off switch output | buck `IN+` **and** DRV8833 `VM` | Class 3 | 9V — never on a breadboard rail |
 | Battery `−` | GND rail | Class 3 | common ground |
@@ -106,32 +107,41 @@ Wire in the order of the table: power first, then each device. Trace each row ou
 | Buck converter `OUT+` | 5V rail **and** Pico `VSYS` | Class 3 | set to 5.0 V *before* connecting |
 | Buck converter `OUT−` | GND rail | Class 3 | |
 | Pico `3V3(OUT)` | 3.3V rail | Class 3 | |
-| Pico `GND` (two or more pins) | GND rail | Pre-Class | |
+| Pico `GND` (two or more pins) | GND rail | Class 1 | |
 | * KY-040 encoder `CLK` / `DT` | `GP3` / `GP4` | Class 1 | |
+| * KY-040 encoder `CLK` | `GP3` | Class 1 | |
+| * KY-040 encoder `DT` | `GP4` | Class 1 | |
 | * KY-040 encoder `+` / `GND` | 3.3V rail / GND rail | Class 1 | **changed** — Class 1 used 5V; see pitfall below |
 | * KY-040 encoder `SW` | not connected | Class 1 | |
 | * HC-SR04 `TRIG` | `GP6` | Class 2 | |
-| * HC-SR04 `ECHO` | 1 kΩ → `GP7`, with 2 kΩ from `GP7` to GND | Class 2 | divider on `ECHO`, never `TRIG` |
+| * HC-SR04 `ECHO` | 1 kΩ → `GP7`, with 2 kΩ from `GP7` to GND <br>**See NOTE / Diagram below** | Class 2 | **NOTE:** See note below, divider on `ECHO`, never `TRIG` |
 | * HC-SR04 `VCC` / `GND` | 5V rail / GND rail | Class 2 | `VSYS` rail, not `VBUS` (moved in Class 5) |
-| * SG90 signal (orange) | `GP8` | Class 2 | |
-| * SG90 `+` (red) / `GND` (brown) | 5V rail / GND rail | Class 2 | `VSYS` rail, not `VBUS` (moved in Class 5) |
+| * SG90 servo (orange) | `GP8` | Class 2 | |
+| * SG90 servo `+` (red) / `GND` (brown) | 5V rail / GND rail | Class 2 | `VSYS` rail, not `VBUS` (moved in Class 5) |
 | DRV8833 `AIN1` / `AIN2` | `GP9` / `GP10` | Class 3 | Motor A (left) |
 | DRV8833 `BIN1` / `BIN2` | `GP11` / `GP12` | Class 3 | Motor B (right) |
 | DRV8833 `SLP` (`nSLEEP`) | 3.3V rail | Class 3 | must be HIGH or the motors never move |
 | DRV8833 `GND` | GND rail | Class 3 | common ground |
-| DRV8833 `AOUT1`/`AOUT2`, `BOUT1`/`BOUT2` | Motor A leads, Motor B leads | Class 3 | |
-| 1000 µF capacitor `+` / `−` (optional) | DRV8833 `VM` / GND | Class 3 | stripe side to GND |
+| DRV8833 `AOUT1`/`AOUT2` | Motor A leads | Class 3 | Motor A (left) |
+| DRV8833 `BOUT1`/`BOUT2` | Motor B leads | Class 3 | Motor B (right) |
+| 1000 µF capacitor `+` / `−` | DRV8833 `VM` / GND | Class 3 | stripe side to GND |
 | Optocoupler A `DO` (Motor A wheel) | `GP19` | Class 3 | fork straddles the encoder disc |
 | Optocoupler B `DO` (Motor B wheel) | `GP17` | Class 3 | |
 | Both optocouplers `VCC` / `GND` | 3.3V rail / GND rail | Class 3 | |
-| LSM9DS1 `SDA` (blue) / `SCL` (yellow) | `GP0` / `GP1` | Class 4 | swapped wires fail silently |
-| LSM9DS1 `VIN` (red) / `GND` (black) | 3.3V rail / GND rail | Class 4 | mount far from motors and battery |
+| LSM9DS1 IMU `SDA` (blue) | `GP0` | Class 4 | swapped wires fail silently |
+| LSM9DS1 IMU `SCL` (yellow) | `GP1` | Class 4 | swapped wires fail silently |
+| LSM9DS1 IMU `VIN` (red) | 3.3V rail | Class 4 | mount far from motors and battery |
+| LSM9DS1 IMU `GND` (black) | GND rail | Class 4 | mount far from motors and battery |
 | * Limit switch `NO` / `COM` | `GP5` / GND rail | Class 5 | lever leads the chassis front |
-| * IR obstacle sensor `OUT` | `GP13` | Class 5 (Pre-Class homework) | |
-| * IR obstacle sensor `VCC` / `GND` | 3.3V rail / GND rail | Class 5 (Pre-Class homework) | low, forward-facing, tilted slightly up |
-| * TFT `SCK` / `MOSI` | `GP26` / `GP27` | Class 6 (Pre-Class homework) | second SPI bus — `GP19` is taken |
-| * TFT `CS` / `DC` / `RST` | `GP20` / `GP21` / `GP22` | Class 6 (Pre-Class homework) | |
-| * TFT `VIN` / `GND` | 3.3V rail / GND rail | Class 6 (Pre-Class homework) | |
+| * IR obstacle sensor `OUT` | `GP13` | Class 5 | |
+| * IR obstacle sensor `VCC` / `GND` | 3.3V rail / GND rail | Class 5 | low, forward-facing, tilted slightly up |
+| * TFT `BL` or `RST` | `GP22` | Class 6 | |
+| * TFT `DC` | `GP21`| Class 6 | |
+| * TFT `CS` | `GP20` | Class 6 | |
+| * TFT `DA` or `MO` or `MOSI` |`GP27` | Class 6 | second SPI bus — `GP19` is taken |
+| * TFT `CL` or `SCK` | `GP26` | Class 6 | second SPI bus — `GP19` is taken |
+| * TFT `GND` | GND rail | Class 6 | |
+| * TFT `V+` or `VIN` | 3.3V rail | Class 6 | |
 
 >**NOTE:** Items with "*" **were not** part of the Class 4 build and need to be added now.
 
@@ -152,9 +162,24 @@ Wire in the order of the table: power first, then each device. Trace each row ou
 rail (4.8-5.2 V) and the 3.3V rail (3.2-3.4 V) with a multimeter. (The Pico 2 W has no power LED —
 the meter is your check.) If either rail is wrong, switch off and recheck the table before going further.
 
+>**NOTE:** Double-check the voltage-divider resistors sit on the `ECHO` line, not `TRIG` — this is
+>the single easiest wiring mistake to make this class, and the least forgiving one, since it
+>protects the Pico's GPIO pin.
+>
+>```text
+>Make sure to use this voltage-divider circuit for the GP7 pin on the Pico
+>   ECHO
+>    |
+> 1K ohms
+>    |
+>    +----------------------- GP7
+>    |               ^
+> 2K ohms        3.3 volts
+>    |
+>   GND
+>```
 
 ## 5. The Code
-
 
 ### Software for this build
 
@@ -261,9 +286,6 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
 
 1. **Chassis.** Assemble the chassis (motors, wheels, encoder discs, caster). Solder long male Dupont
     leads to the motors and short female leads to the on/off switch.
-
-    > **Soldering safety:** the tip is about 350°C — return the iron to its stand, use the fume
-    > extractor, wear safety glasses, wash your hands after.
 2. **Mount.** Blu Tack the breadboard, DRV8833, buck converter, and battery to the chassis. Mount the
     servo with the HC-SR04 on its horn at the front, the limit switch with its lever leading the front
     edge, the IR sensor low and forward-facing, each optocoupler straddling its wheel's encoder disc
@@ -393,3 +415,6 @@ during Step 7 (`DRIVE_SPEED = 0`), don't touch the knob.
 [26]:#4-wiring
 [27]:#7-test-the-build
 [28]:#8-tune-the-rover
+[29]:https://www.elecrow.com/blog/everything-you-should-know-about-micro-switch.html
+[30]:https://docs.sunfounder.com/projects/umsk/en/latest/01_components_basic/08-component_ir_obstacle.html
+

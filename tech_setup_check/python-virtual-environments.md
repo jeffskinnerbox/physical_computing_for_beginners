@@ -1,5 +1,7 @@
 
 # Add This
+* [How to Install Python on Your System: A Guide](https://realpython.com/installing-python/)
+* See -- /home/jeff/blogging/content/ideas/managing-testing-and-debugging-python.md
 
 ## Git & CircuitPython
 Wouldn't be nice if you had an easy way to use `git` with your CircuitPython project?
