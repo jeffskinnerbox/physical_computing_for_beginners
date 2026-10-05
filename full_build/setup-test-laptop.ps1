@@ -26,10 +26,14 @@ function Update-Path {
                 [Environment]::GetEnvironmentVariable("Path", "User")
 }
 
+# A window opened before an earlier run installed git or uv can't see them yet, so reload first.
+Update-Path
+
 Step "Checking for git"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
-    Assert-Ok "Installing git"
+    # -1978335189 (0x8A15002B) = winget's "already installed, no upgrade available" -- not a failure
+    if ($LASTEXITCODE -ne -1978335189) { Assert-Ok "Installing git" }
     Update-Path
 }
 git --version
