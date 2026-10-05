@@ -56,7 +56,7 @@ curriculum. See the root [README][03] for where it fits in the course.
     [Strategy for Tuning and Calibrating the Random Rover][04] explainer, which is the next stop
     after the build.
 
-The class version of the 3D viewer (reads CSV over USB serial) lives in [`src/wireframe/`][05];
+The class version of the 3D viewer (reads CSV over USB serial) lives in [`lesson_scripts/wireframe.py`][05];
 `src/laptop/wireframe.py` here is the WiFi-reading variant for the finished rover, which never
 prints CSV.
 
@@ -136,6 +136,6 @@ uv run src/laptop/wireframe.py
 [02]:../lesson_scripts/README.md
 [03]:../README.md
 [04]:../explainers/strategy-for-tuning-calibration-random-rover.md
-[05]:../src/wireframe/README.md
+[05]:../lesson_scripts/wireframe.py
 [06]:https://docs.astral.sh/uv/
 [07]:../CLAUDE.md

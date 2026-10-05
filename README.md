@@ -98,13 +98,12 @@ students follow the matching walkthroughs in [`lesson_scripts/`][07].
 input/            Source-of-truth vision doc + prompt log — everything else is generated from this
 methodology/      Background notes on course terms and authoring methodology (not generated)
 lesson_plans/     Instructor-facing syllabus + per-class lesson plans, BOM
-lesson_scripts/   Student-facing build+code walkthroughs, one per class (class-00 .. class-06)
+lesson_scripts/   Student-facing build+code walkthroughs, one per class (class-00 .. class-06), plus wireframe.py (Class 4 laptop 3D viewer)
 full_build/       One-session build of the finished rover: build script, Pico/laptop code, deploy + tests
 tech_setup_check/ Windows 11 install/setup guides, plus hand-maintained git/Python/SSH notes
 explainers/       Standalone "why does it work that way" deep-dive docs
 handouts/         Printable per-class handouts and single-file HTML summaries/slide decks
 communications/   Marketing copy, registration info (may contain PII — treat as sensitive)
-src/              Laptop-side code + rover tuning material: wireframe/ (uv project, Class 4 3D viewer), rover/ (tuning log)
 expenses/         Purchase receipts (gitignored, local only) — not course content
 ```
 
@@ -119,7 +118,7 @@ Each directory has its own README with details:
 - [`explainers/`][11] — deep-dive explainers and future topics
 - [`handouts/`][12] — handouts and reference links
 - [`communications/`][13] — course description and kick-off message
-- [`src/`][14] — laptop-side code; see also [`src/wireframe/`][15]
+- [`lesson_scripts/wireframe.py`][14] — Class 4 laptop 3D viewer (standalone copy)
 
 
 ## How This Repository Is Generated
@@ -182,7 +181,6 @@ Makersmiths. No license file present in this repo.
 [11]:explainers/README.md
 [12]:handouts/README.md
 [13]:communications/README.md
-[14]:src/README.md
-[15]:src/wireframe/README.md
+[14]:lesson_scripts/wireframe.py
 [16]:CLAUDE.md
 [17]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/issues

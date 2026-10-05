@@ -141,22 +141,22 @@ glossary-term hierarchy, videos, datasheets), not a generated outline. `expenses
 purchase receipts (photos, a `receipts/` subdir) — no established doc conventions there yet, not
 course content.
 
-`src/` holds **laptop-side** code and rover tuning material — code that runs on the student's
-computer, not on the Pico. It has no project of its own; each subdirectory stands alone:
+`full_build/` is the one-session build of the finished Random Rover (Classes 1–6 plus all three
+Class 6 stretch goals). `full-build-script.md` is its main doc; `src/pico/` is ready-to-deploy rover
+code, `src/tools/` holds calibration scripts (`mag_calibration.py`, `servo_check.py`,
+`motor_check.py`), `src/laptop/wireframe.py` is a WiFi-polling variant of the Class 4 viewer (reads
+the rover website's `/data.json`, not USB-serial CSV), `src/tuning-log-template.md` is the log from
+`explainers/strategy-for-tuning-calibration-random-rover.md`, `deploy.py` copies code onto
+CIRCUITPY, and `test/` has device/system tests. Laptop scripts carry PEP 723 inline deps
+(`# /// script`) — run them with `uv run <script>.py`; there's no project file to sync. Code in
+`src/pico/` copied from Class 5/6 lesson scripts must be kept in sync with those scripts (see
+`full_build/README.md`).
 
-- `src/wireframe/` is a `uv` Python 3.14 project for `wireframe.py`, the Class 4 live 3D orientation
-    viewer that reads roll/pitch/yaw CSV over USB serial (its canonical copy is embedded in
-    `lesson_scripts/class-04-lesson-script.md`, so keep the two in sync). `pyproject.toml` declares the
-    wireframe deps (numpy, matplotlib, pyserial); flask and ruff sit in `src/wireframe/.venv` undeclared, so
-    `uv sync` will remove them — add new deps with `uv add`. `main.py` is just the `uv init` stub.
-    `wireframe.py` carries PEP 723 inline deps (`# /// script`) and auto-detects the Pico's port, so run it
-    with `cd src/wireframe && uv run wireframe.py` (optional port arg, e.g. `/dev/ttyACM0` or `COM5`) —
-    students do the same via `tech_setup_check/install-wireframe-on-windows-11.md`; lint with
-    `uv run ruff check` (or one file: `uv run ruff check wireframe.py`, from `src/wireframe/`).
-- `src/rover/` holds Random Rover tuning material: `tuning-log-template.md` (the log from
-    `explainers/strategy-for-tuning-calibration-random-rover.md`) plus `before_tuning/` and
-    `after_tuning/` (empty so far).
-- `src/tuning_tools/` is empty so far.
+`lesson_scripts/wireframe.py` is the Class 4 laptop-side 3D orientation viewer (reads roll/pitch/yaw
+CSV over USB serial). Its canonical copy is embedded in `lesson_scripts/class-04-lesson-script.md`
+(Phase 2 and the final listing) — keep all three identical. Students download it from GitHub via
+`tech_setup_check/install-wireframe-on-windows-11.md`, so don't move or rename it without updating
+that URL. Run with `uv run lesson_scripts/wireframe.py` (optional port arg, e.g. `/dev/ttyACM0` or `COM5`).
 
 Pico-side CircuitPython can't run here — it needs the board.
 

@@ -27,9 +27,9 @@ that order, and keep the Software table in sync whenever a phase's code changes.
 ## Build Process
 
 No build process — this directory holds static markdown source files plus the CircuitPython code
-they walk through inline as fenced code blocks (no standalone `.py` files). Two places hold
+they walk through inline as fenced code blocks. Two places hold
 copies of code from these scripts as real files, and must be kept in sync when a script's code
-changes: [`src/wireframe/wireframe.py`][05] (the Class 4 laptop viewer, canonical copy in
+changes: [`wireframe.py`][05] (the Class 4 laptop viewer, canonical copy in
 `class-04-lesson-script.md`) and the rover files in [`full_build/src/pico/`][06] (copied unchanged
 from the Class 3/5/6 scripts, plus full-build-only glue). Per this user's
 file-change convention, editing a script here also writes/updates a matching `.md.bak` mechanical
@@ -53,5 +53,5 @@ gitignored.
 [02]:../README.md
 [03]:../CLAUDE.md
 [04]:../lesson_plans/README.md
-[05]:../src/wireframe/wireframe.py
+[05]:wireframe.py
 [06]:../full_build/src/pico/

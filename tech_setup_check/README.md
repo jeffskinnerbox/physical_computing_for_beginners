@@ -36,7 +36,7 @@ building, not troubleshooting a broken toolchain. Not everything here came from 
     skill output. `check-for-windows-11-and-wsl.md` is a short standalone checklist.
 
 `install-wireframe-on-windows-11.md` downloads the class version of `wireframe.py` from
-[`src/wireframe/`][02] — the Class 4 viewer that reads roll/pitch/yaw over USB serial. The
+[`lesson_scripts/wireframe.py`][02] — the Class 4 viewer that reads roll/pitch/yaw over USB serial. The
 finished-rover variant in [`full_build/src/laptop/wireframe.py`][03] (reads the rover website over
 WiFi) is a full-build test tool and isn't covered by these guides; see [`full_build/`][04].
 
@@ -68,7 +68,7 @@ than once.
 
 
 [01]:../README.md
-[02]:../src/wireframe/README.md
+[02]:../lesson_scripts/wireframe.py
 [03]:../full_build/src/laptop/wireframe.py
 [04]:../full_build/README.md
 [05]:../CLAUDE.md
