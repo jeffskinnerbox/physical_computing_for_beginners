@@ -78,7 +78,9 @@ first tells you which direction the knob turned. This pattern is called **quadra
 and like the pushbutton, both `CLK` and `DT` are just digital signals you read with `digitalio`,
 wired active-low with internal pull-ups. The KY-040 module also has a `+`/VCC pin (power) and a
 `GND` pin, separate from its `SW` pin (a built-in pushbutton you get by pressing the knob itself —
-used only in Phase 1's bounce demo, and again in Homework 5). Note: the KY-040's pull-up resistors tie its `CLK`/`DT`/`SW` signal pins to whatever supply `+` is on, so at `VSYS 5V` they idle at 5V. This is the wiring this course was tested with; if you'd rather keep those pins at 3.3V, power the encoder's `+` from `3V3` instead.
+used only in Phase 1's bounce demo, and again in Homework 5).
+Note: the KY-040's pull-up resistors tie its `CLK`/`DT`/`SW` signal pins to whatever supply `+` is on, so power the encoder's `+` from `3V3` — that keeps every signal at the Pico's own 3.3V logic level.
+(If you wired it to `VSYS 5V` from an earlier version of this script, move it to `3V3`; the encoder works the same on 3.3V.)
 
 
 **LEDs.** An LED (light-emitting diode) only lets current flow one direction, and it needs a
@@ -99,7 +101,7 @@ motor driver in Class 3, so this is your first look at a pattern you'll reuse al
 | `GP4` | Encoder `DT` input |
 | `GP18` | Encoder `SW` input |
 | `GP14` | Encoder brightness LED output (PWM) |
-| `VSYS 5V` | Encoder `+`/VCC power |
+| `3V3` | Encoder `+`/VCC power |
 | `GND` | Encoder `GND`, button's second leg, both LED cathodes |
 
 ## 4. Build It: Phase 1 — See the Bounce
@@ -121,7 +123,7 @@ only the code does.
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
 | Rotary encoder `SW` | `GP18` |
-| Rotary encoder `+` / `VCC` | `VSYS 5V` |
+| Rotary encoder `+` / `VCC` | `3V3` |
 | Rotary encoder `GND` | `GND` |
 | Button LED anode, through resistor | `GP15` |
 | Button LED cathode | `GND` |
@@ -528,7 +530,7 @@ following the phase-by-phase walkthrough above.
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
 | Rotary encoder `SW` | not used |
-| Rotary encoder `+` / `VCC` | `VSYS 5V` |
+| Rotary encoder `+` / `VCC` | `3V3` |
 | Rotary encoder `GND` | `GND` |
 | Button LED anode, through resistor | `GP15` |
 | Button LED cathode | `GND` |

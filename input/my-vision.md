@@ -199,7 +199,7 @@ Tips for Students:
   Debouncing is added to both the switch & encoder, problem solved.
 
   If you have time, start the assembly of the Car Chassis Kit.
-* **Wiring Continuity**: First circuit of the course (button on `GP2`, encoder on `GP3`/`GP4` powered from `VSYS 5V`, encoder `SW` on `GP18` for the Phase 1 demo only, LEDs on `GP14`/`GP15`).
+* **Wiring Continuity**: First circuit of the course (button on `GP2`, encoder on `GP3`/`GP4` powered from `3V3`, encoder `SW` on `GP18` for the Phase 1 demo only, LEDs on `GP14`/`GP15`).
   Leave it on the breadboard after this class &mdash; the rotary encoder is reused, unchanged, as a live
   speed control in the Class 6 stretch goal (`class-6-code-1.py`).
 * **Objective**: Show how to use CircuitPython modules to [debounce a switch](https://www.picotech.com/library/articles/blog/what-is-switch-bounce-how-to-implement-debounce)
@@ -751,6 +751,9 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | Invisible Hold Mounting Tape | 1 | $11.99 | [Amazon][19] | mounts the Class 2 HC-SR04 onto the SG90 servo horn and helps with chassis assembly |
 | Blu Tack | 1 | $5.70 | [Amazon][17] | holds the breadboard, battery, buck converter, and DRV8833 in place on the chassis, Class 3 onward |
 | Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
+| Cable Ties - 4", 6", 10" | 36 | $0.00 | Makersmiths | needed for final build |
+| M2.5 Metric Screws & Nuts (assorted sizes) | 36 | $0.00 | Makersmiths | needed for final build |
+| Glue Gun and Glue Stick | 1 | $0.00 | Makersmiths | needed for final build |
 
 Shared Supplies Cost = 9.99 + 11.99 + 5.70 + 0 = $27.68 total ÷ 9 people ≈ $3.08 per student
 
@@ -889,7 +892,7 @@ These documents
 | wiring diagrams | student | A visual or tabular reference document showing how to physically connect components—pin-to-pin wiring, power/ground routing, and connector orientation—so students can wire the hardware correctly without misreading a schematic. |
 | bill of materials (BOM) | instructor | A complete, itemized bill of materials (BOM). It says what do we need to buy, how much does it cost, and where do we get it. The single source of truth for all cost and sourcing information in the project. |
 | code snippets | student | A grab-bag of ready-to-use, well-commented code blocks (sensor reads, motor control, common patterns) that students copy-paste into their own sketches — like a spice rack next to the stove, not a full recipe. |
-| tested project code | instructor | The instructor's own working reference build (code + wiring), fully verified end-to-end — the "answer key" pulled out when a student's project won't cooperate and you need to prove it can work. |
+| tested project code | instructor | The instructor's own working reference build (code + wiring), fully verified end-to-end — the "answer key" pulled out when a student's project won't cooperate and you need to prove it can work. Now provided by `full_build/`. |
 
 ----
 

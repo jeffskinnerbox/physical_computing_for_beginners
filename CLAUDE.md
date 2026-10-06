@@ -35,7 +35,7 @@ Methodology" (for course material, where `my-vision.md`, BOM, syllabus, and less
 executable contracts). It's context for *how* this repo is meant to be worked, not a generated
 doc itself — don't regenerate or reconcile it the way you would syllabus/lesson-plan/BOM content.
 
-Generation pipeline, per `my-vision.md`'s "Course Documentation" table:
+Generation pipeline (document types from `my-vision.md`'s "Course Documentation" table, mapped to skills):
 
 | Document | Skill | Output location |
 | ---------- | ------- | ------------------ |
@@ -56,10 +56,12 @@ Software for this phase (table: component | new / modified / unchanged + its
 `class-xx-phase-x-*.py` id | what it does) → What this code does → The code → Try it / what you
 should see → Checkpoint. Keep that order and the Software table in sync when phase code changes.
 
-`my-vision.md`'s Course Documentation table also lists a few document types with no skill built
-yet and not present in the repo (build guide, wiring diagrams, code snippets, tested project
-code — marked "TBD"). If asked to generate one of these, there is no dedicated skill to invoke;
-check `input/my-prompts.md` first for whether an ad-hoc prompt pattern was already used.
+`my-vision.md`'s Course Documentation table (document | audience | description — the skill/output
+mapping lives in the table above, not there) also lists document types with no skill built yet:
+build guide, wiring diagrams, and code snippets are not present in the repo; "tested project code" is
+covered by `full_build/` (built ad hoc — see "My 41st/42nd Prompt"). If asked to generate one of
+these, there is no dedicated skill to invoke; check `input/my-prompts.md` first for whether an
+ad-hoc prompt pattern was already used.
 
 Lesson plans must follow the class outline already fixed in the syllabus and flow class-to-class
 with minimal repetition — generate/regenerate them one class at a time, stopping for review,

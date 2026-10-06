@@ -77,6 +77,10 @@ with N20 geared motors.
   not tell you (it catches slip/stall, but not which way the wheel is turning or the rover's heading)
 * (Stretch) Explain how feedback control lets a car correct its own path — measure both wheels, compare,
   and adjust — and why matching wheel speeds still doesn't guarantee driving straight
+* Host a live status website from the Pico 2 W, running as its own WiFi access point, and grow it
+  class by class with new sensor data
+* Fuse a calibrated magnetometer into a compass heading and use that heading to steer turns
+  (closed-loop turning instead of timed turns)
 
 **Design & Problem-Solving**
 
@@ -225,7 +229,7 @@ another's — pairs work at whatever speed keeps both partners engaged.
 * Sweep the servo back and forth and read distance at each angle
 * Mount the distance sensor on the servo to scan for objects in front of the car
 * Discuss: how could this scanning data help a car avoid bumping into things?
-* Finish assembling the Car Chassis Kit
+* Continue assembling the Car Chassis Kit (finish it as Class 2 homework)
 * **Milestone:** Live streamed distance-vs-angle data as the servo sweeps
 
 ### Phase 2 — Outputs & Motion

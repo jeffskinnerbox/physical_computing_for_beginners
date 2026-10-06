@@ -161,10 +161,11 @@ rotary encoder is reused, unchanged, in Class 6's stretch goal as a live speed c
 | Button LED (through resistor) | `GP15` |
 | Encoder brightness LED (through resistor, PWM) | `GP14` |
 | Rotary encoder `SW` (Phase 1 demo only; unused afterward) | `GP18` |
-| Rotary encoder `+`/VCC | `VSYS 5V` |
+| Rotary encoder `+`/VCC | `3V3` |
 | Rotary encoder `GND`, switch GND leg, LED cathodes | `GND` |
 
-**Encoder power note:** the KY-040's pull-up resistors tie its `CLK`/`DT`/`SW` signal pins to whatever supply `+` is on, so at `VSYS 5V` they idle at 5V. This is the wiring this course was tested with; if you'd rather keep those pins at 3.3V, power the encoder's `+` from `3V3` instead.
+**Encoder power note:** the KY-040's pull-up resistors tie its `CLK`/`DT`/`SW` signal pins to whatever supply `+` is on, so the encoder's `+` goes on `3V3` — every signal stays at the Pico's 3.3V logic level.
+Students who wired it to `VSYS 5V` from an earlier version of the docs should move it to `3V3`; it works the same.
 
 **Checkpoint 1:** Before writing any code, have every pair trace their own wiring against the
 table above out loud to a neighbor. Wiring mistakes found now save debugging time later.

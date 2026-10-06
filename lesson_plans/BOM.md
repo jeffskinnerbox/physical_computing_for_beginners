@@ -96,7 +96,7 @@ Consumables and bulk items used by the whole class, not kept individually by eac
 | Blu Tack | 1 | $5.70 | [Amazon][17] | holds the breadboard, battery, buck converter, and DRV8833 in place on the chassis, Class 3 onward |
 | Painter's/Marking Tape + Tape Measure | 1 | $0.00 | Makersmiths | marks the 35 cm square/circle test tracks, Class 3 onward |
 | Cable Ties - 4", 6", 10" | 36 | $0.00 | Makersmiths | needed for final build |
-| M2.5 Metric Screws & Nuts (asorted sizes) | 36 | $0.00 | Makersmiths | needed for final build |
+| M2.5 Metric Screws & Nuts (assorted sizes) | 36 | $0.00 | Makersmiths | needed for final build |
 | Glue Gun and Glue Stick | 1 | $0.00 | Makersmiths | needed for final build |
 
 Shared Supplies Cost = 9.99 + 11.99 + 5.70 + 0 = $27.68 total ÷ 9 people ≈ $3.08 per student

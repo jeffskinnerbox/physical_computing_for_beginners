@@ -140,7 +140,9 @@ temporarily set `SCAN_ANGLES = [150]` so every turn is 60° right, then adjust `
 `HEADING_TOLERANCE_DEG` until each `drive: heading now ...` lands within about 5 of its target.
 This is debugging and tuning, not new code: treat it as a continuation of Class 5's Independent
 Work. Aim for a rover that reliably completes a full stop-look-go cycle and avoids at least one
-obstacle without you touching it.
+obstacle without you touching it. For the full step-by-step tuning order — which constant to set
+first, what each one affects, and when it's "good enough" — follow the
+[Strategy for Tuning & Calibration of the Random Rover][06] explainer.
 
 ### Checkpoint
 
@@ -158,12 +160,25 @@ No new wiring — reconnect Class 1's encoder exactly as it was wired:
 | :---------- | :------------- |
 | Rotary encoder `CLK` | `GP3` |
 | Rotary encoder `DT` | `GP4` |
+| Rotary encoder `+` / `VCC` | `3V3` |
+| Rotary encoder `GND` | `GND` |
+
+### Software for this stretch goal
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** (standalone demo) — `class-6-code-1.py`, temporarily replaces `class-5-code.py` | Reads the encoder and raises/lowers `current_speed`, printing each change. Put `class-5-code.py` back (merged with this pattern) when you're done. |
+| `motor_driver.py` | **Unchanged** — `class-3-phase-1-motor-driver.py` | Not used to drive here; the demo only reads its `MAX_THROTTLE` so the knob can't go past the motors' real ceiling. |
+| `rover_server.py`, `wheel_odometry.py` | **Unchanged** — Class 5 versions | Not used by the standalone demo; leave them on `CIRCUITPY` for the rover. |
 
 ### What this code does
 
 This demonstrates the *pattern* for live speed control: it reads the encoder the same debounced
-way Class 1 did, and raises or lowers a `current_speed` variable within `MIN_SPEED`/`MAX_SPEED`
-bounds as you turn the knob, printing the new speed each time it changes.
+way Class 1 did, and raises or lowers a `current_speed` variable within `MIN_SPEED`/`TOP_SPEED`
+bounds as you turn the knob, printing the new speed each time it changes. `TOP_SPEED` is the smaller
+of `MAX_SPEED` and Class 3's `motor_driver.MAX_THROTTLE` (`0.6`): `motor_driver.drive()` clamps every
+throttle to `MAX_THROTTLE` anyway, so letting the knob climb past it would print speeds the motors
+never actually get.
 
 ### The code
 
@@ -176,6 +191,7 @@ Run this standalone first (as `code.py`) to see the pattern work on its own:
 import time
 import digitalio
 import board
+import motor_driver  # from Class 3 -- only for its MAX_THROTTLE ceiling
 
 encoder_clk = digitalio.DigitalInOut(board.GP3)
 encoder_clk.direction = digitalio.Direction.INPUT
@@ -186,6 +202,7 @@ encoder_dt.pull = digitalio.Pull.UP
 
 MIN_SPEED = 0.3
 MAX_SPEED = 0.9
+TOP_SPEED = min(MAX_SPEED, motor_driver.MAX_THROTTLE)  # drive() clamps to MAX_THROTTLE anyway
 SPEED_STEP = 0.05
 MIN_STEP_INTERVAL = 0.02  # seconds -- same debounce technique as Class 1
 
@@ -200,7 +217,7 @@ while True:
     now = time.monotonic()
     if clk_state != last_clk_state and (now - last_step_time) >= MIN_STEP_INTERVAL:
         if encoder_dt.value != clk_state:
-            current_speed = min(MAX_SPEED, current_speed + SPEED_STEP)
+            current_speed = min(TOP_SPEED, current_speed + SPEED_STEP)
         else:
             current_speed = max(MIN_SPEED, current_speed - SPEED_STEP)
         last_step_time = now
@@ -216,7 +233,8 @@ while True:
 ### Try it / what you should see
 
 Turn the knob one direction and watch `current_speed` climb in steps of `0.05`, capped at
-`MAX_SPEED`. Turn it the other way and watch it fall, capped at `MIN_SPEED`.
+`TOP_SPEED` (`0.6`, unless you raised `MAX_THROTTLE` in `motor_driver.py`). Turn it the other way and
+watch it fall, capped at `MIN_SPEED`.
 
 ### Checkpoint, and how to fully integrate
 
@@ -226,7 +244,8 @@ encoder-reading code updates inside the main drive loop, and use `current_speed`
 `class-5-code.py` currently uses `DRIVE_SPEED` in its `motor_driver.drive()` calls. Leave
 `TURN_SPEED` alone — turns are compass-steered and don't care how fast you drive between them. At the
 top of the speed range, watch `heading` on the website as the motors start: more motor current means
-a bigger magnetic jump, and if turns start landing off target, lower `MAX_SPEED`.
+a bigger magnetic jump, and if turns start landing off target, lower `MAX_SPEED` below
+`MAX_THROTTLE` (e.g. `0.5`).
 
 ## 6. Stretch Goal 2 — Rover Website History Chart
 
@@ -235,6 +254,15 @@ a bigger magnetic jump, and if turns start landing off target, lower `MAX_SPEED`
 None. No new WiFi join, no new `settings.toml`, no new IMU wiring — everything this stretch needs
 (the Pico's own WiFi network, `adafruit_httpserver`, the Class 4 IMU on `SDA` `GP0`/`SCL` `GP1`)
 has been running since Class 3 and is already on your board.
+
+### Software for this stretch goal
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `history_chart.py` | **New** — `class-6-code-2.py` | Adds a rolling-history chart to the existing status page. Imported, never run as `code.py`. |
+| `code.py` | **Modified** — `class-5-code.py` (or your Stretch 1 merge) | One new line, `import history_chart`, right after `import rover_server`. |
+| `rover_server.py` | **Unchanged** — Class 5 library version | Still serves `/data.json`; `history_chart.py` edits its `STATUS_PAGE` text at startup, not the file. |
+| `motor_driver.py`, `wheel_odometry.py` | **Unchanged** | Drive the rover and report wheel speed, as in Class 5. |
 
 ### What this code does
 
@@ -353,6 +381,14 @@ pin on `GP18` can stay wired, and the encoder's `CLK`/`DT` on `GP3`/`GP4` stay e
 | TFT `RST` | `GP22` |
 | TFT `VIN`/power | `3V3` |
 | TFT `GND` | `GND` |
+
+### Software for this stretch goal
+
+| Software component | New, modified, or unchanged | What it does |
+| :------------------- | :-------------------------- | :----------- |
+| `code.py` | **New** (standalone demo) — `class-6-code-3.py`, temporarily replaces `class-5-code.py` | Draws distance/heading/speed on the TFT and keeps the IMU filter and website running. |
+| `rover_server.py` | **Unchanged** — Class 5 library version | Supplies the real compass `latest_heading` shown on screen. |
+| `motor_driver.py`, `wheel_odometry.py` | **Unchanged** | Not driven by the demo, but `rover_server.py` imports `wheel_odometry.py`, which imports `motor_driver.py` — both must be on `CIRCUITPY`. |
 
 ### What this code does
 
@@ -484,6 +520,7 @@ in one place, so you can build straight to whichever combination you want.
 | Wheel-odometry optocouplers (website) | `GP19`/`GP17` | Core rover |
 | LSM9DS1 `SDA`/`SCL` (compass heading for turns) | `GP0`/`GP1` | Core rover, Stretches 2-3 |
 | Rotary encoder `CLK`/`DT` | `GP3`/`GP4` | Stretch 1 |
+| Rotary encoder `+` / `GND` | `3V3` / `GND` | Stretch 1 |
 | TFT `SCK`/`MOSI`/`CS`/`DC`/`RST` | `GP26`/`GP27`/`GP20`-`GP22` | Stretch 3 |
 
 ### Complete code
@@ -499,6 +536,10 @@ called out in each section above. Stretch 2 is different: `class-6-code-2.py` is
 `class-5-code.py`'s logic — it's simply imported alongside it (after `rover_server`) so its
 one-time `STATUS_PAGE` edit takes effect before the rover's existing main
 loop starts calling `rover_server.server.poll()`.
+
+Want to see every piece merged and running together? The [full build][07] is the tested,
+fully integrated version of the Class 5 rover plus all three stretch goals — the knob, the history
+chart, and the TFT wired into one `code.py` — with its own build script, deploy tool, and tests.
 
 ## 10. What You Learned
 
@@ -544,6 +585,9 @@ does, full commented code, and real-world examples).
   for the same type of robot
 * [What Is an IMU, and What Does a Mahony Filter Do?][05] — course explainer on the IMU, the
   magnetometer's role in stopping yaw drift, and sensor-fusion filters
+* [Strategy for Tuning & Calibration of the Random Rover][06] — course explainer: the order to tune
+  the rover's constants in, and how to tell when each is done
+* [Full build][07] — the tested, fully integrated Random Rover with all three stretch goals
 
 ---
 
@@ -554,3 +598,5 @@ does, full commented code, and real-world examples).
 [03]:https://microcontrollerslab.com/raspberry-pi-pico-w-soft-access-point-web-server-example/
 [04]:https://www.instructables.com/Cerberus-Obstacle-Avoiding-Robot-With-Mecanum-Whee
 [05]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/what-is-an-imu-and-mahony-filter.md
+[06]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/strategy-for-tuning-calibration-random-rover.md
+[07]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/tree/main/full_build

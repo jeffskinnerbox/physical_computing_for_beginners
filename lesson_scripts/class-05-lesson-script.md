@@ -63,6 +63,7 @@ your rover's own main loop imports and calls each cycle.
 | Phone with a compass app | shared | Checking your magnetometer's axes and your rover's `heading` |
 | (none — the Pico broadcasts its own WiFi network) | — | No classroom WiFi needed: the rover status website runs on the network your Pico creates itself (access point mode, from Class 3) |
 | Open floor area with soft obstacles | shared | Test space for autonomous driving runs |
+| Cable ties, M2.5 screws/nuts, hot-glue gun (Makersmiths) | shared | Securing sensors, servo, battery, and wiring to the chassis for the final build |
 
 **Homework Assignments** (Section 10) — coming soon; no additional components are needed for this
 class yet.

@@ -545,7 +545,7 @@ circuit (`GP6`/`GP7`/`GP8`) exactly as they already sit on your breadboard.
 | KY-040 Rotary encoder `CLK` | `GP3` | |
 | KY-040 Rotary encoder `DT` | `GP4` | |
 | KY-040 Rotary encoder `SW` | `GP18` | not used |
-| KY-040 Rotary encoder `+` / `VCC` | `VSYS 5V` | |
+| KY-040 Rotary encoder `+` / `VCC` | `3V3` | |
 | KY-040 Rotary encoder `GND` | `GND` | |
 
 

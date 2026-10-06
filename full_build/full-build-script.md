@@ -138,7 +138,7 @@ Wire in the order of the table: power first, then each device. Trace each row ou
 | Pico `GND` (two or more pins) | GND rail | Class 1 | |
 | * KY-040 encoder `CLK` | `GP3` | Class 1 | |
 | * KY-040 encoder `DT` | `GP4` | Class 1 | |
-| * KY-040 encoder `+` / `GND` | 3.3V rail / GND rail | Class 1 | **changed** — Class 1 used 5V; see pitfall below |
+| * KY-040 encoder `+` / `GND` | 3.3V rail / GND rail | Class 1 | same as Class 1 — move it if an older build has it on 5V; see pitfall below |
 | * KY-040 encoder `SW` | not connected | Class 1 | the rover doesn't use the push button |
 | * HC-SR04 `TRIG` | `GP6` | Class 2 | |
 | * HC-SR04 `ECHO` | 1 kΩ → `GP7`, with 2 kΩ from `GP7` to GND <br>**See NOTE / Diagram below** | Class 2 | divider on `ECHO`, never `TRIG` |
@@ -173,8 +173,8 @@ Wire in the order of the table: power first, then each device. Trace each row ou
 
 >**NOTE:** Rows with "*" are new or changed since the Class 4 build. Rebuilding a Class 4 rover,
 >you **add** the bump switch, IR sensor, TFT, and capacitor (if you skipped it), and **rewire**
->two things already on your board: move HC-SR04 `VCC` and servo `+` from `VBUS` to the 5V rail,
->and move the encoder `+` from 5V to the 3.3V rail. The encoder `SW` wire on `GP18` is unused —
+>one thing already on your board: move HC-SR04 `VCC` and servo `+` from `VBUS` to the 5V rail. (If an
+>older build has the encoder `+` on 5V, move it to the 3.3V rail too.) The encoder `SW` wire on `GP18` is unused —
 >unplug it or leave it; it's harmless.
 
 **Pitfalls to check before power-on:**
