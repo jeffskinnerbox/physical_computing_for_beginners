@@ -32,12 +32,20 @@ REQUEST_TIMEOUT_S = 6
 STARTUP_WAIT_S = 15  # room for two full request timeouts
 
 
+# The rover is always a local address: never send it through a system/corporate proxy, which a
+# browser usually skips for 192.168.x.x but urllib would otherwise use.
+opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+last_error = None  # why the most recent read_rover() failed, for the "couldn't reach" message
+
+
 def read_rover():
     """Return the rover's /data.json as a dict, or None if it didn't answer."""
+    global last_error
     try:
-        with urllib.request.urlopen(ROVER_URL + "/data.json", timeout=REQUEST_TIMEOUT_S) as reply:
+        with opener.open(ROVER_URL + "/data.json", timeout=REQUEST_TIMEOUT_S) as reply:
             return json.load(reply)
-    except (OSError, ValueError):
+    except (OSError, ValueError) as err:
+        last_error = err
         return None
 
 
@@ -55,6 +63,7 @@ print(f"Waiting up to {STARTUP_WAIT_S} s for the rover at {ROVER_URL}...")
 if not wait_for_rover():
     sys.exit(
         f"Couldn't reach {ROVER_URL}/data.json for {STARTUP_WAIT_S} seconds.\n"
+        f"Last error: {last_error!r}\n"
         "Is your laptop joined to the rover's WiFi network, and is the rover's code running?"
     )
 
