@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# setup-gethub.sh
+# setup-github.sh
 #
 # ============================================================================
 # PURPOSE
@@ -63,21 +63,21 @@
 # ============================================================================
 #   1. Review this script before running it (you're doing that now).
 #   2. Make it executable (already done, but if needed):
-#        chmod +x tech_setup_check/setup-gethub.sh
+#        chmod +x tech_setup_check/setup-github.sh
 #   3. Run it from anywhere on your filesystem — you can invoke it by full
-#      or relative path (e.g. `~/some/where/setup-gethub.sh` or
-#      `../tech_setup_check/setup-gethub.sh`). It always operates on your
+#      or relative path (e.g. `~/some/where/setup-github.sh` or
+#      `../tech_setup_check/setup-github.sh`). It always operates on your
 #      CURRENT WORKING DIRECTORY (i.e. wherever you ran it FROM), not on
 #      the directory the script itself lives in. cd into the directory you
 #      want to turn into a git repo / GitHub repo first, then run it:
 #        cd /path/to/the/project/you/want/to/set/up
-#        /path/to/tech_setup_check/setup-gethub.sh
+#        /path/to/tech_setup_check/setup-github.sh
 #   4. Answer the prompts. Press Enter to accept any shown default.
 #   5. Review the printed summary carefully.
 #   6. Type "yes" to proceed, or anything else to abort with no changes made.
 #
 #   To preview without making any changes, add -n / --dry-run:
-#        /path/to/tech_setup_check/setup-gethub.sh --dry-run
+#        /path/to/tech_setup_check/setup-github.sh --dry-run
 #   This still asks all the same prompts (so the summary reflects real
 #   answers) but stops after printing the summary — nothing is written,
 #   committed, created, or pushed.

@@ -157,7 +157,7 @@ CIRCUITPY, and `test/` has device/system tests. Laptop scripts carry PEP 723 inl
 `full_build/README.md`) — e.g. the `poll_website()` BrokenPipeError guard lives in both
 `src/pico/code.py` and `class-5-code.py` in `lesson_scripts/class-05-lesson-script.md`.
 
-`full_build/` commands (run from `full_build/`): `uv run deploy.py rover [--overwrite] [--drive PATH]`,
+`full_build/` commands (run from `full_build/`): `uv run deploy.py [--drive PATH] rover [--overwrite]` (`--drive` goes before the subcommand),
 `deploy.py tool <mag_calibration|servo_check|motor_check>`, `deploy.py test` (runs
 `test/device_test.py` on the Pico as `code.py`), `deploy.py restore`; laptop-side
 `uv run test/system_test.py [PORT]` (exit 0 = pass) and `uv run src/laptop/wireframe.py`.
