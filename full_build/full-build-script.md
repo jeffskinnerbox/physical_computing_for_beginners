@@ -278,7 +278,8 @@ finished rover never prints CSV over USB, so instead it reads `/data.json` from 
 over WiFi, twice a second, and draws a box that follows roll, pitch, and yaw, with the compass
 heading in the title. Join the rover's WiFi network, then `uv run src/laptop/wireframe.py`. Keep the
 rover on its stand: every request pauses its drive loop for about 0.25 s. While the rover scans or
-turns, the title shows `no answer from the rover` for a few seconds — that's normal. [wireframe.py][21]
+turns (up to about 4 s) it can't answer, so the box freezes until it drives again — that's normal.
+`no answer from the rover` in the title means it stayed silent for over 6 s. [wireframe.py][21]
 
 **`device_test.py` — part-by-part test (Pico).** Runs as `code.py` (via `uv run deploy.py test`)
 using the same library files as the rover, so it tests the code you'll actually drive with. It walks

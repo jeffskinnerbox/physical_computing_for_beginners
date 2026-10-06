@@ -25,13 +25,17 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D pro
 
 ROVER_URL = (sys.argv[1] if len(sys.argv) > 1 else "http://192.168.4.1:5000").rstrip("/")
 POLL_SECONDS = 0.5  # same rate as the rover's own status page -- don't go faster
-STARTUP_WAIT_S = 10  # a scan or turn silences the rover ~4 s -- wait past that
+# A scan (~1 s) plus a turn (up to TURN_TIMEOUT_S = 3 s) keeps the rover from answering for ~4 s.
+# Each request must outwait that: one that gives up first leaves a dead request that the rover
+# answers next, ahead of the retry -- so on its stand the retries never get through.
+REQUEST_TIMEOUT_S = 6
+STARTUP_WAIT_S = 15  # room for two full request timeouts
 
 
 def read_rover():
     """Return the rover's /data.json as a dict, or None if it didn't answer."""
     try:
-        with urllib.request.urlopen(ROVER_URL + "/data.json", timeout=2) as reply:
+        with urllib.request.urlopen(ROVER_URL + "/data.json", timeout=REQUEST_TIMEOUT_S) as reply:
             return json.load(reply)
     except (OSError, ValueError):
         return None
