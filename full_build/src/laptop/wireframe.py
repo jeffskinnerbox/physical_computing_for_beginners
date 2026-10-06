@@ -16,6 +16,7 @@
 import json
 import signal
 import sys
+import time
 import urllib.request
 
 import matplotlib.pyplot as plt
@@ -24,6 +25,7 @@ from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 -- needed to enable 3D pro
 
 ROVER_URL = (sys.argv[1] if len(sys.argv) > 1 else "http://192.168.4.1:5000").rstrip("/")
 POLL_SECONDS = 0.5  # same rate as the rover's own status page -- don't go faster
+STARTUP_WAIT_S = 10  # a scan or turn silences the rover ~4 s -- wait past that
 
 
 def read_rover():
@@ -35,9 +37,20 @@ def read_rover():
         return None
 
 
-if read_rover() is None:
+def wait_for_rover():
+    """Keep trying read_rover() for up to STARTUP_WAIT_S seconds; True once it answers."""
+    deadline = time.monotonic() + STARTUP_WAIT_S
+    while time.monotonic() < deadline:
+        if read_rover() is not None:
+            return True
+        time.sleep(POLL_SECONDS)
+    return False
+
+
+print(f"Waiting up to {STARTUP_WAIT_S} s for the rover at {ROVER_URL}...")
+if not wait_for_rover():
     sys.exit(
-        f"Couldn't reach {ROVER_URL}/data.json.\n"
+        f"Couldn't reach {ROVER_URL}/data.json for {STARTUP_WAIT_S} seconds.\n"
         "Is your laptop joined to the rover's WiFi network, and is the rover's code running?"
     )
 
