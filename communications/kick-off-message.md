@@ -12,9 +12,6 @@ I'll be creating a "script" for all classes and they will remain online after th
 
 I'm looking forward to working with Basil tomorrow.  See you at 10am @MSL.
 
-Jeff Irland
-571-271-8183
-
 ----
 
 Hi ...
@@ -37,9 +34,6 @@ I don't expect the students to read this in advance but its it is posted so they
 I'll be creating a "script" for all the classes and they will remain online after the course is finished.
 
 I'm looking forward to working with the students.  See you Tuesday September 1st @MSL.
-
-Jeff Irland
-571-271-8183
 
 
 [01]:https://www.makersmiths.org/event-6785489
