@@ -582,7 +582,10 @@ import rover_server  # boot the rover still and flat: gyro calibration + compass
 
 while True:
     rover_server.update()
-    rover_server.server.poll()
+    try:
+        rover_server.server.poll()
+    except OSError:
+        pass  # a browser hung up before the reply was sent -- skip it
     time.sleep(0.02)
 ```
 
@@ -646,7 +649,7 @@ This is the "stop-look-go" cycle, running forever:
     checking the heading every 20 ms, and stops within `HEADING_TOLERANCE_DEG`.
 5. Resume driving. Repeat.
 
-Three details in `turn_toward()` are worth a closer look:
+Three details in `turn_toward()`, and one in the main loop, are worth a closer look:
 
 * **`heading_error()` handles the wrap-around.** Going from heading 350 to heading 10 is a 20° turn
     right, not a 340° turn left. `(target - heading + 180) % 360 - 180` always gives the short way
@@ -657,6 +660,10 @@ Three details in `turn_toward()` are worth a closer look:
 * **The website waits during a turn.** `turn_toward()` calls `wait()` but never `server.poll()`,
     because answering a browser request pauses about 0.25 s — long enough to spin well past the
     target. The website catches up as soon as the turn finishes.
+* **A late reply can't crash the rover.** A browser that gets tired of waiting during a scan or
+    turn hangs up. When the rover finally replies, sending to that closed connection raises
+    `BrokenPipeError`. `poll_website()` wraps `server.poll()` in `try`/`except OSError` and skips
+    that one request, so the rover keeps driving.
 
 Every pause uses `wait()` instead of `time.sleep()`. `wait()` calls `rover_server.update()` every 20
 ms, so the filter never misses a turn.
@@ -780,19 +787,29 @@ def safety_override_triggered():
     return "none"
 
 
+def poll_website():
+    """Answer any pending website request. A browser that gave up waiting (the
+    rover was scanning or turning) has already hung up, so sending the reply
+    raises BrokenPipeError -- skip that request instead of crashing."""
+    try:
+        rover_server.server.poll()
+    except OSError:
+        pass
+
+
 print("Class 5 -- Random Rover starting...")
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
 
 while True:
-    rover_server.server.poll()  # answer any pending website request
+    poll_website()  # answer any pending website request
     rover_server.scan_status["drive_state"] = "driving"
     print("drive: forward, heading", round(rover_server.latest_heading))
     motor_driver.drive(DRIVE_SPEED, DRIVE_SPEED)
 
     stop_reason = "none"
     while True:
-        rover_server.server.poll()
+        poll_website()
         stop_reason = safety_override_triggered()
         if stop_reason != "none":
             rover_server.scan_status["drive_state"] = "stopped"
@@ -1284,19 +1301,29 @@ def safety_override_triggered():
     return "none"
 
 
+def poll_website():
+    """Answer any pending website request. A browser that gave up waiting (the
+    rover was scanning or turning) has already hung up, so sending the reply
+    raises BrokenPipeError -- skip that request instead of crashing."""
+    try:
+        rover_server.server.poll()
+    except OSError:
+        pass
+
+
 print("Class 5 -- Random Rover starting...")
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
 
 while True:
-    rover_server.server.poll()  # answer any pending website request
+    poll_website()  # answer any pending website request
     rover_server.scan_status["drive_state"] = "driving"
     print("drive: forward, heading", round(rover_server.latest_heading))
     motor_driver.drive(DRIVE_SPEED, DRIVE_SPEED)
 
     stop_reason = "none"
     while True:
-        rover_server.server.poll()
+        poll_website()
         stop_reason = safety_override_triggered()
         if stop_reason != "none":
             rover_server.scan_status["drive_state"] = "stopped"

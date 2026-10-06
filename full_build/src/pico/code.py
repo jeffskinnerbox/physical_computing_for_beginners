@@ -118,13 +118,23 @@ def safety_override_triggered():
     return "none"
 
 
+def poll_website():
+    """Answer any pending website request. A browser that gave up waiting (the
+    rover was scanning or turning) has already hung up, so sending the reply
+    raises BrokenPipeError -- skip that request instead of crashing."""
+    try:
+        rover_server.server.poll()
+    except OSError:
+        pass
+
+
 print("Full build -- Random Rover starting...")
 speed_knob.reset(DRIVE_SPEED)
 scan_servo.angle = CENTER_ANGLE
 last_scan_time = time.monotonic()
 
 while True:
-    rover_server.server.poll()  # answer any pending website request
+    poll_website()  # answer any pending website request
     rover_server.scan_status["drive_state"] = "driving"
     speed = speed_knob.update()
     print("drive: forward, heading", round(rover_server.latest_heading), "speed", round(speed, 2))
@@ -132,7 +142,7 @@ while True:
 
     stop_reason = "none"
     while True:
-        rover_server.server.poll()
+        poll_website()
         new_speed = speed_knob.update()  # Stretch 1: knob clicks take effect while driving
         if new_speed != speed:
             speed = new_speed

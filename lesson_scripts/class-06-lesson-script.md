@@ -415,7 +415,10 @@ last_refresh = 0.0
 
 while True:
     rover_server.update()       # keep the IMU filter running about every 20 ms
-    rover_server.server.poll()  # keep the rover status website alive too
+    try:
+        rover_server.server.poll()  # keep the rover status website alive too
+    except OSError:
+        pass  # a browser hung up before the reply was sent -- skip it
     now = time.monotonic()
     if now - last_refresh >= REFRESH_S:
         last_refresh = now
