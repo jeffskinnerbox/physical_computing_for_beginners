@@ -66,6 +66,8 @@ done
 step "Checking serial-port access (needed by system_test.py)"
 if [ "$(uname -s)" = "Darwin" ]; then
     echo "  macOS: no setup needed -- the Pico shows up as /dev/cu.usbmodem..."
+    echo "  Also allow this terminal app under System Settings > Privacy & Security > Local Network,"
+    echo "  or wireframe.py and system_test.py can't reach the rover over its WiFi."
 elif id -nG "$USER" | grep -qw dialout; then
     echo "  $USER is in the dialout group"
 else

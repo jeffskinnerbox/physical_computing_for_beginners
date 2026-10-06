@@ -279,7 +279,9 @@ over WiFi, twice a second, and draws a box that follows roll, pitch, and yaw, wi
 heading in the title. Join the rover's WiFi network, then `uv run src/laptop/wireframe.py`. Keep the
 rover on its stand: every request pauses its drive loop for about 0.25 s. While the rover scans or
 turns (up to about 4 s) it can't answer, so the box freezes until it drives again — that's normal.
-`no answer from the rover` in the title means it stayed silent for over 6 s. [wireframe.py][21]
+`no answer from the rover` in the title means it stayed silent for over 6 s. On a Mac, allow your
+terminal app under **System Settings → Privacy & Security → Local Network** first, or it can't
+reach the rover at all (see the build pitfalls). [wireframe.py][21]
 
 **`device_test.py` — part-by-part test (Pico).** Runs as `code.py` (via `uv run deploy.py test`)
 using the same library files as the rover, so it tests the code you'll actually drive with. It walks
@@ -365,6 +367,11 @@ reacted. Its checks use generous ranges, so it passes the same way before and af
     `uv run deploy.py test` narrows it down.
 * **`heading` wrong or creeping** → booted while moving or tilted, or the IMU moved after
     calibration. Reboot still and flat; recalibrate if anything moved.
+* **A browser loads `http://192.168.4.1:5000`, but `wireframe.py` or `system_test.py` can't reach
+    the rover** → on a Mac, macOS blocks programs started from Terminal from reaching local-network
+    devices until you allow it, even though your browser already has permission. Open **System
+    Settings → Privacy & Security → Local Network**, switch on **Terminal** (or the terminal app you
+    use), then quit and reopen it. Check the `Last error:` line `wireframe.py` prints for other causes.
 * **Blank TFT** → check `GP26`/`GP27`/`GP20`-`GP22` against the table.
 * **Knob turns the speed the wrong way, or needs two clicks per step** → see the comments in
     `speed_knob.py` (swap `GP3`/`GP4` in the code, or add `divisor=2`).
