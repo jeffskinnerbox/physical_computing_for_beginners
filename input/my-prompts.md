@@ -1061,6 +1061,32 @@ recommend the changes to apply, and get my approval before making any changes.
 
 ----
 
+## My 42st Prompt - Improve the Full Build Script File
+The @lesson_scripts/full-build-script.md appears to be complete but the instructions are not sufficiently detailed for my students.
+This is because I expect that some students will not go thought @lesson_scripts/class-NN-lesson-script.md,
+but will proceed directly to @lesson_scripts/full-build-script.md.
+As a result, many of the details that would be learned via @lesson_scripts/class-NN-lesson-script.md
+about calibration/tuning/preferences are missed by the student.
+
+To fix this, do the following:
+* Replicate much of the calibration/tuning/preferences guidance in @lesson_scripts/class-NN-lesson-script.md
+  to @lesson_scripts/full-build-script.md
+* Use your /explainer skill to make the @lesson_scripts/full-build-script.md easy for the student to understand what and why.
+
+Using a sub-agent,
+validate that the wiring plan and calibration/tuning/preferences of the
+@lesson_scripts/full-build-script.md is equivalent to @lesson_scripts/class-NN-lesson-script.md
+and also it follows the strategy document in @explainers/strategy-for-tuning-calibration-random-rover.md.
+Continue to modify @lesson_scripts/full-build-script.md as necessary to make them equivalent
+and repeat the validation for no more than 5 iterations.
+
+Use the `/grill-me` skill to clarify any questions you may have.
+When you find inconsistencies or incompleteness, describe to me what you found,
+list the options for changes to correct it,
+recommend the changes to apply, and get my approval before making any changes.
+
+----
+
 
 
 

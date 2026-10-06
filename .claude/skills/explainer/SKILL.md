@@ -83,6 +83,9 @@ Avoid over-relying on analogies. Start with direct, plain English explanations.
 - Use concrete examples before abstractions
 - Build from familiar to unfamiliar
 
+### Make it Visual
+To make a document easy to follow and not confusing, use of text based diagrams could be helpful.
+
 ### Less is More
 Attention and mental effort are finite. Be economical with your audience's cognitive resources.
 - Cut unnecessary fluff

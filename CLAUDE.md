@@ -91,8 +91,12 @@ already hold port 80 — keep that consistent across lesson plans/scripts when e
 Linting/formatting: `npx markdownlint-cli2 "**/*.md"` against the committed `.markdownlint-cli2.jsonc`
 (not installed globally). The linter is **not** clean on existing docs — it reports pre-existing,
 tolerated warnings (MD013 long lines, MD036 emphasis-as-heading, MD060 table-pipe spacing). Don't
-chase zero warnings; just confirm you didn't add *new* ones. Lint just the file you edited with
-`npx markdownlint-cli2 lesson_scripts/class-04-lesson-script.md` (any path/glob works).
+chase zero warnings; just confirm you didn't add *new* ones.
+
+**Don't run it in place.** The config has `"fix": true` *and* `"globs": ["**/*.md"]`, so even
+`npx markdownlint-cli2 one-file.md` lints and silently rewrites every `.md` in the repo (table
+spacing, etc.). To check one file, copy it plus a version of the config with `fix: false` and
+`globs` removed into the scratchpad, and lint it there.
 
 Non-default rules to honor when hand-editing:
 
@@ -150,7 +154,18 @@ the rover website's `/data.json`, not USB-serial CSV), `src/tuning-log-template.
 CIRCUITPY, and `test/` has device/system tests. Laptop scripts carry PEP 723 inline deps
 (`# /// script`) — run them with `uv run <script>.py`; there's no project file to sync. Code in
 `src/pico/` copied from Class 5/6 lesson scripts must be kept in sync with those scripts (see
-`full_build/README.md`).
+`full_build/README.md`) — e.g. the `poll_website()` BrokenPipeError guard lives in both
+`src/pico/code.py` and `class-5-code.py` in `lesson_scripts/class-05-lesson-script.md`.
+
+`full_build/` commands (run from `full_build/`): `uv run deploy.py rover [--overwrite] [--drive PATH]`,
+`deploy.py tool <mag_calibration|servo_check|motor_check>`, `deploy.py test` (runs
+`test/device_test.py` on the Pico as `code.py`), `deploy.py restore`; laptop-side
+`uv run test/system_test.py [PORT]` (exit 0 = pass) and `uv run src/laptop/wireframe.py`.
+`setup-test-laptop.sh` (Linux/macOS) / `.ps1` (Windows 11) bootstrap a separate test laptop from
+GitHub (git, uv, clone/pull, `uv sync --script` for each laptop script) and are fetched by raw
+GitHub URL, so don't move or rename them. Laptop tools talking to the rover's WiFi must bypass
+system proxies (`build_opener(ProxyHandler({}))`) and use request timeouts longer than the rover's
+~4 s scan+turn silence.
 
 `lesson_scripts/wireframe.py` is the Class 4 laptop-side 3D orientation viewer (reads roll/pitch/yaw
 CSV over USB serial). Its canonical copy is embedded in `lesson_scripts/class-04-lesson-script.md`
@@ -168,6 +183,6 @@ script — don't assume everything there came from the skill.
 ## Working conventions
 
 Per the user's global rule, editing any file means first `cp -f file file.bak` in the same
-directory (overwriting an existing `.bak`) — that's why `*.md.bak` files sit beside lesson
-plans/scripts/BOM. They are throwaway backups, not canonical; don't edit or reconcile them.
+directory (overwriting an existing `.bak`). `*.bak*` is gitignored; `.bak` files are throwaway
+backups, not canonical — don't edit, reconcile, or commit them.
 Every top-level directory except `expenses/` has its own `README.md`.
