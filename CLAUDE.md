@@ -102,7 +102,7 @@ spacing, etc.). To check one file, copy it plus a version of the config with `fi
 
 Non-default rules to honor when hand-editing:
 
-- Unordered-list indent is **4 spaces** (`ul-indent`), not 2.
+- Unordered-list indent is **2 spaces** (markdownlint default; the `MD007` 4-space override in `.markdownlint-cli2.jsonc` is commented out). Bullets nested under a numbered step align with the step text (3+ spaces).
 - Long lines allowed (`line-length` = 300).
 - Headings: 2 blank lines above, 0 below.
 - MD012 (blank lines), MD022, MD024, MD032, MD033 (inline HTML), MD036, MD041, MD045 are all disabled.
@@ -117,8 +117,8 @@ installed.
 ## Skills available in `.claude/skills/`
 
 `bill_of_materials_generator`, `explainer`, `file-combining`, `grill-me`, `history_and_application`,
-`html_slide_deck`, `lesson_plan_generator`, `python_code`, `readme_generator`, `syllabus_generator`,
-`teen-install-instructions`, `theory_of_operation`, `wiring_diagram`, `workbench_voice`. These are
+`html_slide_deck`, `lesson_plan_generator`, `python_code`, `readme_generator`, `simplified_technical_english`
+(alias `ste`), `syllabus_generator`, `teen-install-instructions`, `theory_of_operation`, `wiring_diagram`, `workbench_voice`. These are
 the primary tools for generating course content — prefer invoking the matching skill over
 freehand-writing a new syllabus/lesson-plan/install-guide/BOM/README section from scratch.
 `wiring_diagram` generates a labeled schematic PNG from a "Wiring — <Board> to <Module>" markdown
@@ -128,7 +128,9 @@ specified directory, using any existing README in that directory as a content di
 into a self-contained single-file HTML slide presentation, prompting for a saved-default vs.
 customized look before building. `workbench_voice` rewrites existing prose into a
 direct, hands-on explainer voice — invoke it only when explicitly requested, not automatically
-alongside the other generators. `python_code` is a style guide for any generated Python/
+alongside the other generators. `simplified_technical_english` (alias skill `ste`, a thin wrapper that points at it) rewrites an existing doc into, or composes a
+new doc in, ASD-STE100 Simplified Technical English for the 12-18 reader; in transform mode it backs up the source to `<file>.bak`, then
+rewrites it in place, and loops `scripts/ste_check.py` + a manual checklist (max 3 passes). `python_code` is a style guide for any generated Python/
 CircuitPython code (readability, Pythonic idioms, efficiency) — apply it whenever writing the
 `class-N-code-*.py` snippets embedded in lesson plans/scripts, not just when explicitly invoked.
 
