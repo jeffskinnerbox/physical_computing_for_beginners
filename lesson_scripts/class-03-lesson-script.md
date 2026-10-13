@@ -88,6 +88,11 @@ minimum voltage just to overcome friction and start moving at all), gearbox/whee
 voltage sag (a loaded 9V battery delivers less than its rated voltage). That's why this project
 caps throttle with a `MAX_THROTTLE` constant — to limit current draw, not to set a precise speed.
 
+> **Known limitation of the 9V battery.** A 9V alkaline battery can't deliver motor-starting
+> current without its voltage dropping. If your Pico resets or a motor stalls when the motors start,
+> even on a fresh battery, that's the battery, not your wiring.
+> [Alkaline vs. LiPo Batteries][41] explains why, and what a better battery choice looks like.
+
 **Why two power sources still need a common ground.** The motors run off the 9V battery's raw,
 unregulated voltage (`VM` on the DRV8833) — separate from your Pico's own power, which now comes
 through a 5V buck converter (`VSYS`) or USB, either regulated to a clean 5V. Keeping the motors on
@@ -1945,4 +1950,5 @@ website.
 [20]:https://pico2w.pinout.xyz/
 [39]:https://learn.adafruit.com/adafruit-drv8833-dc-stepper-motor-driver-breakout-board/pinouts
 [40]:https://www.handsontec.com/dataspecs/sensor/Slot%20IR%20Detector.pdf
+[41]:../explainers/alkaline-vs-lipo-batteries.md
 

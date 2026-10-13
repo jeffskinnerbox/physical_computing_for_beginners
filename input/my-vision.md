@@ -163,6 +163,11 @@ Tips for Students:
 * **Features/Capabilities**: Blink the onboard LED and print a heartbeat count to the serial console,
   proving the board, CircuitPython firmware, and editor (Mu/Thonny) are all talking to each other.
 * **Course Pseudocode**: `class-0-code.py` &mdash; save as `code.py` on the CIRCUITPY drive. No external parts required.
+* **Homework (optional)**: Take-home exercises at the end of the lesson script, Section 10 of `class-00-lesson-script.md`. They extend this class's build and are not needed for the next class:
+  1. Log the Pico 2W's own internal temperature
+  2. Turn the Pico 2W into a WiFi captive portal access point
+  3. Bouncing square animation on the TFT display
+  4. Test the IR obstacle avoidance sensor
 * **Potential Source Materials**:
   * [What is CircuitPython?](https://learn.adafruit.com/welcome-to-circuitpython/what-is-circuitpython),
   * [Recommended Editors](https://learn.adafruit.com/welcome-to-circuitpython/recommended-editors),
@@ -223,6 +228,16 @@ Tips for Students:
   * `class-1-code-2.py` &mdash; same wiring, now debounced with `adafruit_debouncer.Debouncer`
     on the button and a minimum-step-interval software debounce on the encoder. Requires
     `adafruit_debouncer` and its helper `adafruit_ticks` from the Adafruit CircuitPython Library Bundle in `/lib`.
+* **Homework (optional)**: Take-home exercises at the end of the lesson script, Section 10 of `class-01-lesson-script.md` (`class-1-homework-1.py` through `class-1-homework-9.py`). They extend this class's build and are not needed for the next class:
+  1. Long-press vs. short-press detection
+  2. Encoder acceleration (speed-sensitive stepping)
+  3. Persistent press counter (survives power-off)
+  4. Add the IR obstacle sensor as a second debounced input
+  5. Combination lock using the KY-040's built-in `SW` pushbutton
+  6. Live bar gauge: drive the TFT display from the encoder in real time
+  7. Remote dimmer: a webpage slider controls the LED over WiFi
+  8. Countdown timer: encoder sets duration, button starts, LED counts down
+  9. NVM event log: a ring buffer of the last 10 events
 * **Potential Source Materials**:
   * [MicroPython Rotary Encoder Driver (GitHub)](https://github.com/miketeachman/micropython-rotary)
   * [Hardware Debounced Rotary Encoder (Hackaday.io)](https://hackaday.io/project/162207-hardware-debounced-rotary-encoder)
@@ -278,6 +293,15 @@ Tips for Students:
     `adafruit_motor.servo`, with calibration notes for `min_pulse`/`max_pulse` since cheap servos vary.
   * `class-2-phase-3-code.py` &mdash; combined: HC-SR04 mounted on the SG90 shaft, sweeps and
     prints angle + distance pairs at each stop, the direct precursor to the collision-avoidance logic in Class 5.
+* **Homework (optional)**: Take-home exercises at the end of the lesson script, Section 11 of `class-02-lesson-script.md`. They extend this class's build and are not needed for the next class (except the chassis assembly, which saves Class 3 time):
+  1. Random Rover: assemble the chassis kit (no wiring, no battery holder) so it's ready for Class 3
+  2. Manual aim: drive the servo with the rotary encoder
+  3. One-shot scan on button press, with a blink-rate report
+  4. Live radar readout on the TFT
+  5. Sensor cross-check: HC-SR04 sweep vs. fixed IR sensor
+  6. Non-blocking sweep you can pause mid-motion
+  7. Sweep results published to a WiFi dashboard
+  8. Remote-controlled servo aim with live feedback (WiFi)
 * **Potential Source Materials**:
   * [HC-SR04 Ultrasonic Module Distance Sensor - Product Page](https://www.amazon.com/AEDIKO-HC-SR04-Ultrasonic-Distance-Arduino/dp/B09BYWHSMJ)
   * [Python & CircuitPython | Ultrasonic Sonar Distance Sensors](https://learn.adafruit.com/ultrasonic-sonar-distance-sensors/python-circuitpython)
@@ -423,6 +447,8 @@ Tips for Students:
     1.0 of throttle) and a suggested starting `KI` (about `0.3 / k`). `code` sweeps a list of `(KI, MAX_TRIM)` pairs,
     running the feedback drive 3 times per pair so drift, settle cycles, and `trim` jitter can be scored. Both are
     [VERIFY] &mdash; bench test pending. Overrides `straight_drive.KI`/`.MAX_TRIM` from outside; no edit to `straight_drive.py`.
+* **Homework (optional)**: Take-home exercises at the end of the lesson script, Section 9 of `class-03-lesson-script.md`. They extend this class's build and are not needed for the next class:
+  1. Phase 6: tune `KI` and `MAX_TRIM` by experiment for the best straight-line driving
 * **Potential Source Materials**:
   * [DC Motor Examples - Raspberry Pi Pico (CMU Creative Soft Robotics)](https://courses.ideate.cmu.edu/16-480/s2026/text/code/pico-motor.html)
   * [Driving A DC Motor With CircuitPython](https://www.woolseyworkshop.com/2022/07/25/driving-a-dc-motor-with-circuitpython/)
@@ -515,6 +541,7 @@ Tips for Students:
     one or the other as `code.py`, not both at the same time &mdash; the same "run one or the other" pattern
     already established in Class 3 between the driving code and the website code, since both end in their
     own blocking `while True:` loop and there's no refactor to let them coexist until Class 5.
+* **Homework (optional)**: Coming soon &mdash; the lesson script ends with a placeholder Homework Assignment section.
 * **Potential Source Materials**:
   * [Python & CircuitPython — Adafruit LSM9DS1 9-DOF Breakout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/python-circuitpython)
   * [API Reference — Adafruit LSM9DS1 Library](https://docs.circuitpython.org/projects/lsm9ds1/en/latest/api.html)
@@ -598,6 +625,7 @@ Tips for Students:
     loop calls &mdash; through a small `wait()` helper that replaces `time.sleep()` &mdash; to keep the IMU filter
     running. Known limitation: each `/data.json` request blocks about 0.25 s in `read_speed()` inside
     `server.poll()`, pausing the drive loop while the page is open.
+* **Homework (optional)**: Coming soon &mdash; the lesson script ends with a placeholder Homework Assignment section.
 * **Potential Source Materials**:
   * [Raspberry Pi Pico W taught this car to avoid objects](https://www.raspberrypi.com/news/raspberry-pi-pico-w-taught-this-car-to-avoid-objects/)
   * [How to make an obstacle avoidance robot using Raspberry Pi Pico board](https://srituhobby.com/how-to-make-an-obstacle-avoidance-robot-using-raspberry-pi-pico-board/)
@@ -658,6 +686,7 @@ Tips for Students:
     distance/speed values (swap in the real variables from class-5-code.py / class-6-code-1.py) and a real heading
     read from Class 5's `rover_server.latest_heading`. Uses `rowstart=40, colstart=53`
     so drawing lands on this panel's visible glass.
+* **Homework (optional)**: Coming soon &mdash; the lesson script ends with a placeholder Homework Assignment section.
 * **Potential Source Materials**:
   * [Adafruit 1.14" 240x135 Color Newxie TFT Display](https://learn.adafruit.com/adafruit-1-14-240x135-color-newxie-tft-display/circuitpython)
   * [Raspberry Pi Pico W Asynchronous Web Server – MicroPython Code](https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/)
@@ -885,6 +914,7 @@ These documents
 | syllabus | student | High-level course map that tells students what to expect: topics, schedule, materials, objectives, and how progress is measured. |
 | lesson plan | instructor | A step-by-step teaching guide that tells the instructor exactly how to run a single class: what to prep, what to say, what to build, how to handle problems, and how to wrap up. It covers the *how* — the syllabus covers the *what* and *when*. |
 | lesson script | student | A detailed, student-facing build+code walkthrough for a single class: explanatory text plus fully-commented CircuitPython built up in phases, with the complete final code listed at the end. Complements the instructor-facing lesson plan. |
+| homework | student | Optional take-home exercises that extend one class's build, each with its own wiring table and complete, fully-commented code. Not a separate file: homework is the Homework Assignment section at the end of that class's lesson script. |
 | install instructions | student | A step-by-step software install guide, written at a level a 12-18 year old with basic Bash/PowerShell/Python literacy can follow without hand-holding. |
 | theory of operation | student | Explain how a technology, software program, machine, electronic circuit, or system works. Document contains brief overview and detailed step-by-step decomposition of the system's operation. |
 | explainer | student | Makes complex ideas accessible to teens through plain English, use of examples & analogies, and narrative structure. It provides the What → Why → How. Explain simple concepts that are unfamiliar. |

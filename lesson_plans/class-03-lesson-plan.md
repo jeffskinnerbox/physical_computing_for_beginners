@@ -433,7 +433,9 @@ swapped at `AOUT1`/`AOUT2` (or `BOUT1`/`BOUT2`) — swap the two wires, don't fi
 the class wants to practice fixing it in software (swap the `+1`/`-1` sign instead). If *neither*
 motor moves but the prints appear, check the `nSLEEP` jumper first. If everything works over USB but
 fails or the optocoupler LED flickers on battery alone, the 9V battery is sagging under motor load —
-try a fresh battery before anything else.
+try a fresh battery before anything else. This is a known limitation of the 9V alkaline battery, not
+only of tired ones: [Alkaline vs. LiPo Batteries][10] explains the cause (internal resistance) and
+the alternatives, if resets or stalls persist on fresh batteries.
 
 **Checkpoint 2:** Every pair should be able to print "forward" and see both wheels spin the same
 direction at the same rate, print "reverse" and see both reverse, and print a turn command and see
@@ -969,3 +971,4 @@ start of Class 4 and note it in their build journal.
 [07]:https://articulatedrobotics.xyz/mobile-robot-8-odometry/
 [08]:https://electrocredible.com/raspberry-pi-pico-w-web-server-asynchronous-micropython/
 [09]:https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
+[10]:../explainers/alkaline-vs-lipo-batteries.md

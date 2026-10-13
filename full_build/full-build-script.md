@@ -6,7 +6,9 @@
   * CircuitPython **10.x** on the Pico 2 W. (The TFT `fourwire` module needs CircuitPython 9 or later.)
   * Mu or Thonny.
   * `uv`.
-* **Earlier classes:** You do **not** have to do Classes 1-6 first. This script gives the reason (*why*) for each wiring rule and each tuning value. For the long version, read the [lesson scripts][01].
+* **Earlier classes:** You do **not** have to do Classes 1-6 first.
+  This script gives the reason (*why*) for each wiring rule and each tuning value.
+  For the long version, read the [lesson scripts][01].
 * **Reference document:** [Strategy for Tuning and Calibrating the Random Rover][48].
 
 ---
@@ -978,6 +980,9 @@ This decrease goes through the buck converter to the Pico. Then the Pico can *br
 A weak battery also makes the motors weak and changes how far the rover moves after the motors stop.
 Tuning cannot correct bad power.
 
+> **NOTE:** A 9V alkaline battery has this problem even when it is new, because it cannot supply a large current.
+> If the Pico resets or the motors stall with a new battery, read [Alkaline vs. LiPo Batteries][49].
+
 **Do this:**
 
 1. Disconnect the battery clip. Set the multimeter to DC volts, and measure the 9V battery.
@@ -1681,3 +1686,4 @@ It drives with purpose, stops before obstacles, looks, turns quickly to open spa
 [46]:#6-build-it
 [47]:../lesson_scripts/class-03-lesson-script.md#10-troubleshooting-guide
 [48]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/blob/main/explainers/strategy-for-tuning-calibration-random-rover.md
+[49]:../explainers/alkaline-vs-lipo-batteries.md

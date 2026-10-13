@@ -22,8 +22,10 @@ sync with `my-vision.md` without also reconciling.
 `input/my-prompts.md` is a running log of the actual prompts used to generate each artifact
 (chronological, "My Nth Prompt" sections) — check it before regenerating something to see the
 exact invocation pattern and skill combination that produced the current version. It's long
-(~40 prompt sections); `grep -n "My .* Prompt" input/my-prompts.md` to jump to them rather than
-reading it whole.
+(~45 prompt sections); `grep -n "My .* Prompt" input/my-prompts.md` to jump to them rather than
+reading it whole. Sections titled "My XXX Prompt" at the end are unrun drafts (e.g. the planned
+`lesson_script_generator` / `circuitpython_class_script` skills) — they describe intent, not
+anything that exists in the repo.
 
 `methodology/course-methodology.md` has definitions/background the user reads before working the
 repo (class vs. course vs. workshop, external articles on applying coding agents to non-programming
@@ -34,6 +36,11 @@ methodologies this user applies with Claude Code — Spec-Kit (for software) and
 Methodology" (for course material, where `my-vision.md`, BOM, syllabus, and lesson plans act as
 executable contracts). It's context for *how* this repo is meant to be worked, not a generated
 doc itself — don't regenerate or reconcile it the way you would syllabus/lesson-plan/BOM content.
+
+`methodology/prompt-audit-2026-10-04.md` is a point-in-time audit of this file and the skills in
+`.claude/skills/` (edits proposed, not applied). Check its findings against the current files
+before editing a skill — some are still open, e.g. six generator skills reference a
+`.claude/skills/shared/definitions.md` that doesn't exist.
 
 Generation pipeline (document types from `my-vision.md`'s "Course Documentation" table, mapped to skills):
 
@@ -171,6 +178,15 @@ GitHub URL, so don't move or rename them. Laptop tools talking to the rover's Wi
 system proxies (`build_opener(ProxyHandler({}))`) and use request timeouts longer than the rover's
 ~4 s scan+turn silence.
 
+`deploy.py` behavior to preserve when editing it or the docs that describe it: `rover` installs
+the libraries in `src/pico/requirements.txt` via `circup`, copies `code.py` last (the rover starts
+driving the moment it lands — docs must tell the reader to keep the rover on its stand), never
+overwrites an existing `settings.toml` on CIRCUITPY (the one in `src/pico/` is a template), and
+refuses to replace rover files changed on CIRCUITPY unless `--overwrite`, which first copies them to
+`full_build/backup/<date-time>/` (gitignored). `tool`/`test` park the rover's `code.py` as
+`code_rover.py`; `restore` puts it back. Tuned values (e.g. `MAG_OFFSET` in `rover_server.py`)
+have to be pasted into `src/pico/` too, or the next `--overwrite` deploy loses them.
+
 `lesson_scripts/wireframe.py` is the Class 4 laptop-side 3D orientation viewer (reads roll/pitch/yaw
 CSV over USB serial). Its canonical copy is embedded in `lesson_scripts/class-04-lesson-script.md`
 (Phase 2 and the final listing) — keep all three identical. Students download it from GitHub via
@@ -189,4 +205,7 @@ script — don't assume everything there came from the skill.
 Per the user's global rule, editing any file means first `cp -f file file.bak` in the same
 directory (overwriting an existing `.bak`). `*.bak*` is gitignored; `.bak` files are throwaway
 backups, not canonical — don't edit, reconcile, or commit them.
+Also gitignored: `*.pdf` (so pandoc PDF exports never get committed), `expenses/`,
+`communications/registration.md`, `communications/photos`, and `full_build/backup/` — a clean
+`git status` doesn't mean those are absent or unchanged.
 Every top-level directory except `expenses/` has its own `README.md`.

@@ -26,6 +26,7 @@ about *why* something was invented than a spec sheet about *what* it is.
 | Gimbal lock (series part 2 of 3) | [`what-is-gimbal-lock.md`][10] | Euler angles (roll/pitch/yaw), how gimbal lock loses a degree of freedom in physical gimbals and in software, the Apollo story ("a fourth gimbal for Christmas," Apollo 13), why NASA didn't add a fourth gimbal or use quaternions, and where gimbal lock still bites today. |
 | Quaternions (series part 3 of 3) | [`what-are-quaternion-and-why-use-them.md`][11] | What quaternions are, Hamilton's 1843 Broom Bridge invention and their comeback in graphics/aerospace/robotics, and why the Class 4 Mahony filter stores orientation as a quaternion (`q0..q3`) instead of Euler angles — with an optional worked example. |
 | Tuning and calibrating the Random Rover | [`strategy-for-tuning-calibration-random-rover.md`][12] | Student-facing guide for after the course. Part 1: calibration vs. tuning vs. preference-setting, every tunable parameter rated by importance, a bottom-up strategy, and realistic improvement targets. Part 2: a step-by-step procedure, Steps 0-11 (get ready, power, mechanics, servo aim, compass, motors, turning, scans, speed/stopping distance, safety nets, preferences, 5-minute arena run), with time estimates, tools, hardware-safety warnings, and ripple effects between parameters. |
+| Alkaline vs. LiPo batteries | [`alkaline-vs-lipo-batteries.md`][21] | Why the rover's 9V alkaline battery causes Pico reboots and motor stalls (internal resistance and voltage sag), what happens inside alkaline and LiPo cells, 2S vs. 3S pack voltages against the DRV8833 limit, pros and cons of changing to a 2S LiPo (cost, size, readiness, safety), the NiMH middle option, how to do a power budget, and rules of thumb for choosing a battery. |
 
 
 ## Purpose / Role in Repository
@@ -107,3 +108,4 @@ of them exist yet; move an entry into the Contents table above once its file is 
 [18]:../full_build/README.md
 [19]:../lesson_plans/README.md
 [20]:../handouts/README.md
+[21]:alkaline-vs-lipo-batteries.md

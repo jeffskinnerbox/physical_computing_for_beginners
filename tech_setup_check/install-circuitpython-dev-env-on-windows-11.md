@@ -19,11 +19,11 @@ What we will do:
 
 | Component | What it does | Why you need it | Instructions source | Official docs |
 | ----------- | --------------- | ------------------ | ---------------------- | ---------------- |
-| CircuitPython firmware (UF2) | Replaces the Pico 2W's stock firmware with a Python interpreter that runs directly on the board | Without it, the Pico only understands raw machine code — CircuitPython lets you talk to it in Python | [circuitpython.org Pico 2 W page](https://circuitpython.org/board/raspberry_pi_pico2_w/) | [Adafruit: Getting Started with Raspberry Pi Pico and CircuitPython](https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython/circuitpython) |
-| Mu Editor | A beginner-focused code editor with a built-in "Serial" console for talking to CircuitPython boards | Lets you write and save code straight to the board, and watch its output live, without wrestling a general-purpose IDE. The Mu project is already archived/unmaintained (no more updates), but the last release still installs and runs fine for this workflow. | [Adafruit: Installing the Mu Editor](https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor) | [codewith.mu](https://codewith.mu) |
-| Thonny | A second beginner IDE with a built-in CircuitPython/MicroPython file browser, variable inspector, and step-through debugger | Gives you a backup editor if Mu is ever unavailable (it's the actively-maintained alternative), and its file browser makes managing files on CIRCUITPY easier than drag-and-drop alone | [Thonny official site](https://thonny.org) | [thonny.org](https://thonny.org) |
-| Adafruit CircuitPython Library Bundle | A collection of ready-made CircuitPython libraries (NeoPixel, sensors, displays, etc.) that aren't built into the firmware | Almost every real tutorial beyond "blink an LED" needs at least one of these — without it you'll hit `ImportError: no module named '...'` the moment you `import neopixel` or similar | [circuitpython.org/libraries](https://circuitpython.org/libraries) | [Adafruit CircuitPython Bundle docs](https://docs.circuitpython.org/projects/bundle/en/latest/) |
-| Windows Terminal / File Explorer (built in) | Used to confirm the board shows up as a drive and to inspect files on it | You'll use these throughout to check your work — no separate install needed on Windows 11 | — | [Microsoft Support: Files and storage / File Explorer help](https://support.microsoft.com/en-us/windows/help-in-file-explorer-a2d33543-5242-788d-8994-b0be10ae5bca) |
+| CircuitPython firmware (UF2) | Replaces the Pico 2W's stock firmware with a Python interpreter that runs directly on the board | Without it, the Pico only understands raw machine code — CircuitPython lets you talk to it in Python | [circuitpython.org Pico 2 W page][01] | [Adafruit: Getting Started with Raspberry Pi Pico and CircuitPython][02] |
+| Mu Editor | A beginner-focused code editor with a built-in "Serial" console for talking to CircuitPython boards | Lets you write and save code straight to the board, and watch its output live, without wrestling a general-purpose IDE. The Mu project is already archived/unmaintained (no more updates), but the last release still installs and runs fine for this workflow. | [Adafruit: Installing the Mu Editor][03] | [codewith.mu][04] |
+| Thonny | A second beginner IDE with a built-in CircuitPython/MicroPython file browser, variable inspector, and step-through debugger | Gives you a backup editor if Mu is ever unavailable (it's the actively-maintained alternative), and its file browser makes managing files on CIRCUITPY easier than drag-and-drop alone | [Thonny official site][05] | [thonny.org][05] |
+| Adafruit CircuitPython Library Bundle | A collection of ready-made CircuitPython libraries (NeoPixel, sensors, displays, etc.) that aren't built into the firmware | Almost every real tutorial beyond "blink an LED" needs at least one of these — without it you'll hit `ImportError: no module named '...'` the moment you `import neopixel` or similar | [circuitpython.org/libraries][06] | [Adafruit CircuitPython Bundle docs][07] |
+| Windows Terminal / File Explorer (built in) | Used to confirm the board shows up as a drive and to inspect files on it | You'll use these throughout to check your work — no separate install needed on Windows 11 | — | [Microsoft Support: Files and storage / File Explorer help][08] |
 
 ## Target environment
 
@@ -409,9 +409,9 @@ If you ever need to remove this setup entirely:
   installer to undo, it's plain files.
 - **CircuitPython firmware:** There's no "uninstall" for board firmware — to go back to a blank
   board, put it back into BOOTSEL mode (same steps as Part 1) and drag on a different `.uf2`. To
-  install [MicroPython](https://micropython.org/download/RPI_PICO2_W/) instead of CircuitPython,
+  install [MicroPython][09] instead of CircuitPython,
   grab its `.uf2` from that page. To truly erase the board back to blank/no-firmware, use the
-  `nuke.uf2` flash-eraser from the [pico-sdk-prebuilts releases](https://github.com/raspberrypi/pico-sdk/releases)
+  `nuke.uf2` flash-eraser from the [pico-sdk-prebuilts releases][10]
   (search that page for a `nuke_universal.uf2` or matching RP2350 nuke image), then reflash
   whichever firmware you actually want afterward.
 <br>
@@ -424,7 +424,7 @@ Everything above got your dev environment running and proved the chain works wit
 blink. The exercises below are **homework, not required class content** — optional problems that
 push you past "blink an LED" into territory that starts to look like real projects: web servers,
 wireless networking, and introspecting the hardware itself. Each one builds directly on the Pico
-2W setup you already have; only new hardware required is the [TFT display](https://www.proculustech.com/tft-vs-lcd).
+2W setup you already have; only new hardware required is the [TFT display][11].
 
 Do them in any order. For each one you'll find: what the code does and why it's useful, the full
 commented code to save as `code.py` on your CIRCUITPY drive, and a couple of real-world examples
@@ -762,3 +762,15 @@ disappearing off the side.
 
 ---
 
+
+[01]:https://circuitpython.org/board/raspberry_pi_pico2_w/
+[02]:https://learn.adafruit.com/getting-started-with-raspberry-pi-pico-circuitpython/circuitpython
+[03]:https://learn.adafruit.com/welcome-to-circuitpython/installing-mu-editor
+[04]:https://codewith.mu
+[05]:https://thonny.org
+[06]:https://circuitpython.org/libraries
+[07]:https://docs.circuitpython.org/projects/bundle/en/latest/
+[08]:https://support.microsoft.com/en-us/windows/help-in-file-explorer-a2d33543-5242-788d-8994-b0be10ae5bca
+[09]:https://micropython.org/download/RPI_PICO2_W/
+[10]:https://github.com/raspberrypi/pico-sdk/releases
+[11]:https://www.proculustech.com/tft-vs-lcd

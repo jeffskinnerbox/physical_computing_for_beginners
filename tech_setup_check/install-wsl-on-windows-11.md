@@ -20,9 +20,9 @@ set up, and you'll have proven it works by running a real command against a real
 
 | Component | What it does | Why you need it | Instructions source | Official docs |
 | ----------- | --------------- | ------------------ | ---------------------- | ---------------- |
-| Windows Subsystem for Linux (WSL 2) | A Windows feature that runs a real Linux kernel alongside Windows | It's the engine that makes everything else possible | [learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install) | [learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install) |
-| Ubuntu (Linux distribution) | A full Linux operating system that runs inside WSL | This is the actual Linux environment you'll type commands into | [learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install) | [ubuntu.com/wsl](https://ubuntu.com/desktop/wsl) |
-| Windows Terminal | A modern terminal app for running command lines (PowerShell, WSL, etc.) in tabs | It's the easiest way to open and switch between your Ubuntu and PowerShell sessions | [learn.microsoft.com/windows/wsl/install](https://learn.microsoft.com/en-us/windows/wsl/install) | [learn.microsoft.com/windows/terminal](https://learn.microsoft.com/en-us/windows/terminal/install) |
+| Windows Subsystem for Linux (WSL 2) | A Windows feature that runs a real Linux kernel alongside Windows | It's the engine that makes everything else possible | [learn.microsoft.com/windows/wsl/install][01] | [learn.microsoft.com/windows/wsl/install][01] |
+| Ubuntu (Linux distribution) | A full Linux operating system that runs inside WSL | This is the actual Linux environment you'll type commands into | [learn.microsoft.com/windows/wsl/install][01] | [ubuntu.com/wsl][02] |
+| Windows Terminal | A modern terminal app for running command lines (PowerShell, WSL, etc.) in tabs | It's the easiest way to open and switch between your Ubuntu and PowerShell sessions | [learn.microsoft.com/windows/wsl/install][01] | [learn.microsoft.com/windows/terminal][03] |
 
 ## Target environment
 
@@ -242,3 +242,8 @@ disabled in your laptop's BIOS/firmware — on your own laptop (Path A) you can 
 yourself by restarting and pressing the manufacturer's BIOS key (commonly `F2`, `F10`, or `Del`
 right at boot) and turning on **Intel VT-x** or **AMD-V/SVM Mode**. On a managed laptop (Path B),
 this step has to be done by IT.
+
+
+[01]:https://learn.microsoft.com/en-us/windows/wsl/install
+[02]:https://ubuntu.com/desktop/wsl
+[03]:https://learn.microsoft.com/en-us/windows/terminal/install

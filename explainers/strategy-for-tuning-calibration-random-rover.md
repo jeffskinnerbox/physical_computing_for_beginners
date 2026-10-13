@@ -295,6 +295,10 @@ around bad power.
 **Ripple effects:** every motor-related number you tune later (Steps 5, 6, 8, 9) was tuned *on this
 battery*. When you swap batteries, re-run the quick checks in Step 11.
 
+**If a fresh battery still isn't enough:** that's a known limit of the 9V alkaline, which can't
+deliver motor-starting current without its voltage dropping. [Alkaline vs. LiPo Batteries][10]
+explains why, and what the alternatives are.
+
 
 ### Step 2 — Mechanics: bolt everything down where it will stay
 
@@ -886,3 +890,4 @@ lesson scripts for [Class 2][08] (servo and sensor), [Class 4][09] (the IMU filt
 [07]:../lesson_scripts/class-00-lesson-script.md
 [08]:../lesson_scripts/class-02-lesson-script.md
 [09]:../lesson_scripts/class-04-lesson-script.md
+[10]:alkaline-vs-lipo-batteries.md

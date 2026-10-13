@@ -1073,6 +1073,7 @@ To fix this, do the following:
   to @lesson_scripts/full-build-script.md
 * Use your /explainer skill to make the @lesson_scripts/full-build-script.md easy for the student to understand what and why.
 
+## My 14th Prompt - Using the `/explainer` skill, create `micropython-vs-circuitpython.md`
 Using a sub-agent,
 validate that the wiring plan and calibration/tuning/preferences of the
 @lesson_scripts/full-build-script.md is equivalent to @lesson_scripts/class-NN-lesson-script.md
@@ -1110,6 +1111,25 @@ The target audience for the created documents will be
 * us text diagrams to help explain complex topics
 
 ----
+
+## My 44th Prompt - Alkaline Battery or LiPo Battery, Which Should I Use?
+Using the /explainer skill, create a document located @explainer/alkaline-vs-lipo-batteries.md that discusses
+when & why one should choose Alkaline vs LiPo Battery.
+
+I'm having trouble with poor power deliver, MCU reboots, and motor stalls of the random rover when using a 9V alkaline battery.
+I experimented with a LiPo 3S battery (12.6V) and all my problems disappeared.
+I'm considering dropping the Alkaline 9V battery for a LiPo 2S battery (11.8V so I don't exceed the motor drive rating).
+
+What are the pros & cons of this change?
+Consider the cost, size, readyness to use on the project, and will it solve my problem.
+What is going on inside of the Alkaline and LiPo battteries to cause me problems?
+What should have I considered earlier in the project so I make the right battery choose?
+What are some good rules of thumb to make the best  battery choice?
+
+----
+
+
+
 
 
 

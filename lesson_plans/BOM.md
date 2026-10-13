@@ -191,14 +191,14 @@ part of the course budget above.
 
 | Item Name | Source | Type of Unit | Items per Unit | Total Items Needed | Total Units Needed | Unit Cost | Total Cost |
 | :---------- | :------: | :------------: | :--------------: | :------------------: | :------------------: | :---------: | :----------: |
-| Pushbutton Switch, 3-Way Toggle | [Adafruit](https://www.adafruit.com/product/1684) | single | 1 | 9 | 9 | $1.95 | $17.55 |
-| DRV8833 DC Motor Driver Module | [Amazon](https://www.amazon.com/DRV8833-Driver-Module-Bridge-Controller/dp/B0GSJSY6XK) | multiple | 5 | 9 | 2 | $6.99 | $13.98 |
-| IMU MPU-6050 6-DoF Accel and Gyro Sensor (STEMMA) | [Adafruit](https://www.adafruit.com/product/3886) | single | 1 | 9 | 9 | $12.95 | $116.55 |
-| IMU BNO055 9-DOF Absolute Orientation IMU Fusion (STEMMA) | [Adafruit](https://www.adafruit.com/product/4646) | single | 1 | 9 | 9 | $29.95 | $269.55 |
-| IMU TDK InvenSense ICM-20948 9-DoF (STEMMA) | [Adafruit](https://www.adafruit.com/product/4554) | single | 1 | 9 | 9 | $19.95 | $179.55 |
-| Slim Rubber Rotary Encoder Knob - 11.5mm x 14.5mm D-Shaft | [Adafruit](https://www.adafruit.com/product/5093) | single | 1 | 3 | 1 | $0.75 | $2.25 |
-| I2C Stemma QT Rotary Encoder Breakout with Encoder | [Adafruit](https://www.adafruit.com/product/5880) | single | 1 | 3 | 1 | $7.95 | $23.85 |
-| Monochrome 1.12" 128x128 OLED Graphic Display - STEMMA QT / Qwiic | [Adafriuit](https://www.adafruit.com/product/5297) | single | 1 | 1 | 1 | $17.50 | $17.50 |
+| Pushbutton Switch, 3-Way Toggle | [Adafruit][30] | single | 1 | 9 | 9 | $1.95 | $17.55 |
+| DRV8833 DC Motor Driver Module | [Amazon][31] | multiple | 5 | 9 | 2 | $6.99 | $13.98 |
+| IMU MPU-6050 6-DoF Accel and Gyro Sensor (STEMMA) | [Adafruit][32] | single | 1 | 9 | 9 | $12.95 | $116.55 |
+| IMU BNO055 9-DOF Absolute Orientation IMU Fusion (STEMMA) | [Adafruit][33] | single | 1 | 9 | 9 | $29.95 | $269.55 |
+| IMU TDK InvenSense ICM-20948 9-DoF (STEMMA) | [Adafruit][34] | single | 1 | 9 | 9 | $19.95 | $179.55 |
+| Slim Rubber Rotary Encoder Knob - 11.5mm x 14.5mm D-Shaft | [Adafruit][35] | single | 1 | 3 | 1 | $0.75 | $2.25 |
+| I2C Stemma QT Rotary Encoder Breakout with Encoder | [Adafruit][36] | single | 1 | 3 | 1 | $7.95 | $23.85 |
+| Monochrome 1.12" 128x128 OLED Graphic Display - STEMMA QT / Qwiic | [Adafriuit][37] | single | 1 | 1 | 1 | $17.50 | $17.50 |
 
 ---
 
@@ -229,4 +229,11 @@ part of the course budget above.
 [27]:https://www.amazon.com/dp/B0DTJZ3432
 [28]:https://www.amazon.com/dp/B0B2NSQJDL
 [29]:https://www.amazon.com/ALLECIN-Electrolytic-Capacitor-0-39x0-67in-Capacitors/dp/B0CMQBD1C3/?th=1
-
+[30]:https://www.adafruit.com/product/1684
+[31]:https://www.amazon.com/DRV8833-Driver-Module-Bridge-Controller/dp/B0GSJSY6XK
+[32]:https://www.adafruit.com/product/3886
+[33]:https://www.adafruit.com/product/4646
+[34]:https://www.adafruit.com/product/4554
+[35]:https://www.adafruit.com/product/5093
+[36]:https://www.adafruit.com/product/5880
+[37]:https://www.adafruit.com/product/5297

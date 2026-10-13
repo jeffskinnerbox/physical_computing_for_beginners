@@ -199,8 +199,8 @@ off the table) whenever you deploy code or edit files on `CIRCUITPY`.
 
 ## Status and Support
 
-Active course development — materials for all seven sessions, the full build, and the tuning
-guide exist and are still being refined and reconciled against `input/my-vision.md`. Report
+The first course run is complete (Sept 1 - Oct 13, 2026). Materials for all seven sessions, the
+full build, and the tuning guide exist and are still being refined and reconciled against `input/my-vision.md`. Report
 problems or suggest changes via [GitHub issues][30] on the
 [project repository][31].
 

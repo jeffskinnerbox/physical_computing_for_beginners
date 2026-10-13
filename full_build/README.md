@@ -1,5 +1,5 @@
 # Full Build: The Random Rover, Start to Finish
-*Status: active course development — part of [Physical Computing for Beginners][01].*
+*Status: first course run complete (Sept 1 - Oct 13, 2026) — part of [Physical Computing for Beginners][01].*
 
 The one-session build of the finished Random Rover — Classes 1-6 plus all three Class 6 stretch
 goals (encoder speed control, rolling-history chart on the rover website, TFT status display) —
