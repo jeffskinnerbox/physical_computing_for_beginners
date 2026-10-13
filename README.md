@@ -92,7 +92,8 @@ macOS), a Raspberry Pi Pico 2 W with a data-capable USB cable, and the kit from 
 2. Pre-Class: flash CircuitPython and get the onboard LED blinking, following
     [the Pre-Class lesson script][17].
 3. Each class: follow that class's walkthrough in [`lesson_scripts/`][18]. Dip into
-    [`explainers/`][19] whenever you want the "why" behind something.
+    [`explainers/`][19] whenever you want the "why" behind something. The Pre-Class and Class 1-3
+    scripts end with optional take-home homework; homework for Classes 4-6 isn't written yet.
 4. Before Class 4, do the [wireframe install guide][20]. It downloads `wireframe.py` on its own,
     so run the 3D orientation viewer from the folder the guide put it in (optional serial port
     argument, e.g. `COM5` or `/dev/ttyACM0`):
@@ -137,7 +138,7 @@ full_build/       One-session build of the finished rover: full-build-script.md 
                   src/pico rover code, src/tools calibration scripts, src/laptop WiFi viewer, deploy.py,
                   test-laptop setup scripts, device/system tests
 tech_setup_check/ Windows 11 install/setup guides, plus hand-maintained git/Python-venv/SSH notes and setup-github.sh
-explainers/       Standalone "why does it work that way" deep dives (Pico pinout, IMU/Mahony, quaternions, tuning, ...)
+explainers/       Standalone "why does it work that way" deep dives (Pico pinout, IMU/Mahony, quaternions, tuning, batteries, ...)
 handouts/         Per-class markdown handouts, single-file HTML slide decks, reference links
 communications/   Course marketing copy and announcements (not course content)
 expenses/         Purchase receipts (not course content; gitignored, local only)
@@ -200,9 +201,18 @@ off the table) whenever you deploy code or edit files on `CIRCUITPY`.
 ## Status and Support
 
 The first course run is complete (Sept 1 - Oct 13, 2026). Materials for all seven sessions, the
-full build, and the tuning guide exist and are still being refined and reconciled against `input/my-vision.md`. Report
-problems or suggest changes via [GitHub issues][30] on the
+full build, and the tuning guide exist and are still being refined and reconciled against
+`input/my-vision.md`. Report problems or suggest changes via [GitHub issues][30] on the
 [project repository][31].
+
+Known gaps and limitations:
+
+- The 9V alkaline battery can't always deliver motor-starting current, which shows up as Pico
+    resets and motor stalls. The course still specifies it; the
+    [alkaline vs. LiPo explainer][32] covers the cause and the alternatives.
+- Homework exists for the Pre-Class and Classes 1-3 only.
+- Build guide, wiring diagrams, and code-snippet documents named in `input/my-vision.md` aren't
+    written yet.
 
 
 ## Credits and License
@@ -242,3 +252,4 @@ ask via [GitHub issues][30] before reusing the material.
 [29]:CLAUDE.md
 [30]:https://github.com/jeffskinnerbox/physical_computing_for_beginners/issues
 [31]:https://github.com/jeffskinnerbox/physical_computing_for_beginners
+[32]:explainers/alkaline-vs-lipo-batteries.md

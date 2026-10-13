@@ -172,6 +172,7 @@ longer than the rover's ~4 s scan+turn silence. On macOS, allow your terminal ap
 ├── deploy.py                   # laptop: copies libraries + rover code onto CIRCUITPY, runs tools/tests as code.py
 ├── src/
 │   ├── tuning-log-template.md  # the tuning log, pre-filled with the starting values, in section 8's step order
+│   ├── my-rover-tuning-log.md  # the instructor's own filled-in copy of the log (one rover's values, not course defaults)
 │   ├── pico/                   # the rover itself (runs on the Pico)
 │   │   ├── code.py             # full build: Class 5 stop-look-go rover + Class 6 stretch glue
 │   │   ├── rover_server.py     # Class 5, unchanged: 9-DOF Mahony filter, compass heading, rover website
@@ -221,6 +222,12 @@ None of the subfolders has its own README; this file covers them all:
 - `servo_check.py` and `motor_check.py` come from Steps 3 and 5 of the
     [tuning and calibration explainer][04].
 
+**Tuned values stay out of `src/`.** The files in `src/pico/` and `src/tools/` keep the course's
+placeholder values (`MAX_THROTTLE = 0.6`, `MIN_SPEED = 0.3`, ...), so they match the lesson
+scripts. Values tuned for one rover belong on that rover's `CIRCUITPY` and in a copy of the tuning
+log — [`src/my-rover-tuning-log.md`][18] is the instructor's. The one exception is `MAG_OFFSET`
+(see Configuration).
+
 Code in `src/pico/` copied from the Class 5/6 lesson scripts must be kept in sync with those
 scripts (and the Class 3 code likewise). When a lesson script's code changes, copy the change here,
 and vice versa — for example, the `poll_website()` `BrokenPipeError` guard lives in both
@@ -257,6 +264,8 @@ uv run src/laptop/wireframe.py
     the compass at start-up.
 - Keep the rover on its stand (wheels off the table) whenever you deploy or edit files on
     `CIRCUITPY`; see the safety notes in the root [README][01].
+- If the Pico resets or the motors stall even on a new 9V battery, that's a known limit of the
+    alkaline battery, not your build — see the [alkaline vs. LiPo explainer][19].
 - Related: the root [README][01] for where this fits in the course, [`lesson_scripts/`][02] for
     the class-by-class version, [`explainers/`][16] for background, and [`CLAUDE.md`][17] for repo
     conventions.
@@ -279,3 +288,5 @@ uv run src/laptop/wireframe.py
 [15]:../lesson_scripts/class-05-lesson-script.md
 [16]:../explainers/README.md
 [17]:../CLAUDE.md
+[18]:src/my-rover-tuning-log.md
+[19]:../explainers/alkaline-vs-lipo-batteries.md

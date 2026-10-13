@@ -45,6 +45,11 @@ procedure is also folded, rewritten for the full-build files and tools, into sec
 other. Its tuning log is [`full_build/src/tuning-log-template.md`][17], and the `servo_check.py`
 and `motor_check.py` tools in [`full_build/`][18] come from its Steps 3 and 5.
 
+The alkaline vs. LiPo explainer documents a known limitation of the course hardware rather than a
+concept: the 9V alkaline battery the course specifies can cause Pico resets and motor stalls. The
+course docs still specify that battery; the Class 3 lesson plan and lesson script, the full build
+script, and the tuning explainer's Step 1 each link here instead of repeating the explanation.
+
 
 ## Usage
 
@@ -63,8 +68,8 @@ pandoc -f gfm what-is-the-random-rover.md -o what-is-the-random-rover.docx
 ## Notes
 
 - Explainers are written for the student, so keep the plain-English, narrative voice when
-    regenerating; follow the repo's markdown conventions (4-space list indent, reference-style
-    links) in [`CLAUDE.md`][14].
+    regenerating; follow the repo's markdown conventions (reference-style links, heading spacing)
+    in [`CLAUDE.md`][14].
 - Related folders: [`lesson_scripts/`][15] (student walkthroughs that link here),
     [`lesson_plans/`][19] (instructor guides), [`handouts/`][20] (short per-class summaries and
     reference links).

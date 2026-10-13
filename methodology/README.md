@@ -24,7 +24,8 @@ nothing here feeds it. `course-methodology.md` and `spec-kit-methodology.md` use
 `input/` and moved here because they're background the user consults, not source material any
 skill consumes. The prompt audit is a snapshot of how the repo's Claude Code configuration looked
 on 2026-10-04 — read it against the current files, since some of its findings may since have been
-fixed.
+fixed. As of 2026-10-13 at least one is still open: six generator skills reference a
+`.claude/skills/shared/definitions.md` that doesn't exist.
 
 See [`CLAUDE.md`][06] for how this folder sits alongside `input/` and the generation pipeline.
 

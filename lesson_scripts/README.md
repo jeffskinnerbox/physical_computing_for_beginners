@@ -11,9 +11,9 @@ orientation viewer.
 
 | Topic | File | Description/Summary |
 | :------ | :---------- | :------------ |
-| Pre-Class lesson script | [`class-00-lesson-script.md`][01] | Prepare your laptop and Pico: flash CircuitPython onto the Pico 2 W, install Mu/Thonny, download the library bundle, and write a first blink+heartbeat program. No wiring yet. |
-| Class 1 lesson script | [`class-01-lesson-script.md`][02] | Pushbutton and KY-040 rotary encoder wired to two LEDs. Phase 1 shows the bounce; Phase 2 fixes it with debouncing. |
-| Class 2 lesson script | [`class-02-lesson-script.md`][03] | HC-SR04 ultrasonic sensor and SG90 servo, each run alone (Phases 1-2), then combined into a sweep-and-report that previews the Random Rover's scan (Phase 3). |
+| Pre-Class lesson script | [`class-00-lesson-script.md`][01] | Prepare your laptop and Pico: flash CircuitPython onto the Pico 2 W, install Mu/Thonny, download the library bundle, and write a first blink+heartbeat program. No wiring yet. Ends with 4 optional homework exercises (chip temperature, WiFi access point, TFT bouncing square, IR sensor test). |
+| Class 1 lesson script | [`class-01-lesson-script.md`][02] | Pushbutton and KY-040 rotary encoder wired to two LEDs. Phase 1 shows the bounce; Phase 2 fixes it with debouncing. Ends with 9 optional homework exercises (`class-1-homework-1.py` through `-9.py`). |
+| Class 2 lesson script | [`class-02-lesson-script.md`][03] | HC-SR04 ultrasonic sensor and SG90 servo, each run alone (Phases 1-2), then combined into a sweep-and-report that previews the Random Rover's scan (Phase 3). Ends with 8 optional homework exercises; Homework 1 is assembling the chassis kit before Class 3. |
 | Class 3 lesson script | [`class-03-lesson-script.md`][04] | DRV8833 dual H-bridge motor driver library and test (Phase 1), open-loop square/circle and dead-reckoning drift (Phase 2), wheel odometry with an IR optocoupler per wheel (Phase 3), the first rover status website (Phase 4), drive straight with wheel feedback (Phase 5), and a homework Phase 6 tuning `KI`/`MAX_TRIM` by experiment. |
 | Class 4 lesson script | [`class-04-lesson-script.md`][05] | LSM9DS1 9-DOF IMU over I2C: read and fuse roll/pitch/yaw with a Mahony filter (Phase 1), live 3D view on the laptop with `wireframe.py` (Phase 2), gyro bias calibration against yaw drift (Phase 3), and orientation added to the rover status website (Phase 4). |
 | Class 5 lesson script | [`class-05-lesson-script.md`][06] | The Random Rover: limit switch + IR safety sensors and magnetometer calibration (Phase 1), `rover_server.py` upgraded to a 9-DOF filter with compass heading and a library mode (Phase 2), then the collision-avoidance rover with compass-steered turns and live telemetry (compass heading, scan heading, drive state, stop reason) on the rover website (Phase 3). |
@@ -69,6 +69,15 @@ without updating the guide's URL.
     id | what it does) → What this code does → The code → Try it / what you should see →
     Checkpoint. Keep that order, and keep the Software table in sync whenever a phase's code
     changes.
+- Homework is the "Homework Assignment" section of each script, not a separate file. The
+    Pre-Class and Classes 1-3 have exercises (4, 9, 8, and 1); Classes 4-6 have a "coming soon"
+    placeholder. The exercise titles are also listed per class in `input/my-vision.md` — keep the
+    two in step.
+- In `class-03-lesson-script.md` the homework (Section 9, Phase 6) comes before Troubleshooting,
+    Put It All Together, and What You Learned; in every other script it's the last section.
+    Other docs link to those section numbers, so don't renumber without fixing the links.
+- The Class 3 script notes a known limitation of the 9V alkaline battery (resets and stalls when
+    the motors start) and links to the [alkaline vs. LiPo explainer][20].
 - Regenerate/reconcile scripts one class at a time, stopping for review, rather than all at once.
 - GPIO pin assignments don't overlap across classes, so earlier circuits keep working; the one
     rewiring is Class 5's `VBUS`-to-`VSYS` power move. The rover status website (Classes 3-6) runs
@@ -100,3 +109,4 @@ without updating the guide's URL.
 [17]:../handouts/README.md
 [18]:../tech_setup_check/README.md
 [19]:../CLAUDE.md
+[20]:../explainers/alkaline-vs-lipo-batteries.md

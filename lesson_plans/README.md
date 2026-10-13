@@ -37,6 +37,9 @@ that produced the current version; see [`CLAUDE.md`][13] for the full generation
     `class-N-code-*.py` code inline as fenced code blocks; there are no standalone `.py` files here.
 - The student-facing [lesson scripts][01] cover the same classes and must stay consistent with these
     plans.
+- **Homework** lives in the lesson scripts, not here. The Pre-Class and Class 1-3 plans close with
+    an optional "Assign homework" step that points at the script's Homework Assignment section;
+    the syllabus notes that homework for Classes 4-6 is coming soon.
 
 
 ## Usage
@@ -60,6 +63,9 @@ pandoc -f gfm syllabus-physical-computing-for-beginners.md -o syllabus-physical-
 - GPIO pin assignments are deliberately non-overlapping across classes so earlier circuits keep
     working; preserve that when editing class code or wiring.
 - The rover status website (Classes 3-6) runs at `http://192.168.4.1:5000` — port 5000, not 80.
+- The course specifies a 9V alkaline battery (Class 3 onward). Its known limitation — resets and
+    stalls when the motors start — is noted in the Class 3 plan and explained in the
+    [alkaline vs. LiPo explainer][16].
 - Editing a file here also writes a matching `.md.bak` backup alongside it; `.bak` files are
     throwaway and gitignored.
 - Related: [`lesson_scripts/`][01], [`handouts/`][14] (class summaries and slide decks),
@@ -81,3 +87,4 @@ pandoc -f gfm syllabus-physical-computing-for-beginners.md -o syllabus-physical-
 [13]:../CLAUDE.md
 [14]:../handouts/README.md
 [15]:../explainers/README.md
+[16]:../explainers/alkaline-vs-lipo-batteries.md
