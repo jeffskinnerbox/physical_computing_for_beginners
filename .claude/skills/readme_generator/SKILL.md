@@ -26,7 +26,9 @@ that context, not describe the repo/directory in isolation.
 
 Both modes follow this repo's markdown conventions when writing:
 
-- Unordered-list indent is 4 spaces, not 2.
+- Unordered-list indent is 2 spaces (the markdownlint default, per `CLAUDE.md`). Bullets nested
+  under a numbered step align with the step text (3+ spaces). When refreshing an existing
+  `README.md`, keep the indent style it already uses rather than reindenting it.
 - 2 blank lines above headings, 0 below.
 - URLs use reference-style links (`[text][01]`) with numbered definitions at the bottom — never
   raw/inline URLs.
